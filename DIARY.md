@@ -21,3 +21,17 @@
   - need to decide if want to go with Agentic structure OR just simple chat completions with StructuredOutput object in Langchain?
   - if go with simple chat completions, maybe small ollama is enough? (will it take long however for Vector DB searching etc...), how to ensure structuredOutput with ollama models
 - I discovered this in separate project, will this week create simple structured format with OpenAI response and Ollama response and simple agentic response
+
+## 26/10/2025
+
+- Setup initial fastAPI server
+- Frontend, realised cannot put UI and data fetching in the same place, so best to have component/hooks/services structure (something I learned!)
+  - this is something new I learned, usually would put it all into one file
+  - tanstack query is what I used (industry standard)
+- was wondering what "..." means in typescript code
+- learnt about 'DRY' when creating apiClient, also spread operator and immutability in React (dont effect original copy, just create a new one)
+- learnt about RequestInit object in fetch for
+  - what is an interface in TS?
+- implement CORS in the backend and config.ts in the frontend
+- need to wrap index root in frontend, with QueryProvider, also forget to put custom hook useState INSIDE the function!
+- SERVICE: for raw api calls and transformations, HOOK: Query behaviour and retries etc..., COMPONENT: to display the data

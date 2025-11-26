@@ -1,6 +1,8 @@
 FRONTEND: 
 *add accessibility + aria stuff
 *look at GPT speech mode? have that ball as well. When streaming output, on stream, the ball gets bigger (animataion) on spaces it goes back to original size 
+*get network error when sideload manually 
+
 
 BACKEND:
 *choose a suitable backend language 
@@ -13,3 +15,5 @@ GENERAL:
 *have button to 'fine-tune' will generate ~100examples from previous of your responses and fine tune a model
 OR just get a few (5) example responses of USER, and PASS IT AS CONTEXT (for system prompt)? 
 *when making the model + prompt, make sure to have explanation for why you chose this method 
+*how will deploy (nginx reverse proxy / CORS / change localhost for BOTH frontend and backend at once (dont need to do it manually))
+    * setup middleware and stuff for this! 
