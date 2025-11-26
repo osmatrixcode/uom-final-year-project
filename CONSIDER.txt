@@ -1,0 +1,15 @@
+FRONTEND: 
+*add accessibility + aria stuff
+*look at GPT speech mode? have that ball as well. When streaming output, on stream, the ball gets bigger (animataion) on spaces it goes back to original size 
+
+BACKEND:
+*choose a suitable backend language 
+
+
+GENERAL: 
+* add tests (test coverage etc...)
+*basic auth (need to sign up to services, so can eventually pay for it) 
+*create logging, evals, etc... 
+*have button to 'fine-tune' will generate ~100examples from previous of your responses and fine tune a model
+OR just get a few (5) example responses of USER, and PASS IT AS CONTEXT (for system prompt)? 
+*when making the model + prompt, make sure to have explanation for why you chose this method 

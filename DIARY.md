@@ -7,3 +7,17 @@
   - problem was @fluentui and import/export problems
   - removed @fluentui (icons) as uneccessary!
   - fixed TS warning flags
+
+### 25/10/2025
+
+- initially didn't want to pay for AI credits, decided to go with local model
+- local model still slow (even 1B) compared to chatGPT website
+- local model cannot do function/tool calling, making it hard for AI agents with Langchain
+- all AI companies have different API implementations, so decided to use langchain (unified API)
+- put 5$ into OpenAI credits, use mini model as extremely cheap and can do tool calling
+- look at temperature and seed, as gives different responses
+- looked at JSON response, cannot do JSON response with agent, so use second model to clean it into JSON
+  - above is expensive?
+  - need to decide if want to go with Agentic structure OR just simple chat completions with StructuredOutput object in Langchain?
+  - if go with simple chat completions, maybe small ollama is enough? (will it take long however for Vector DB searching etc...), how to ensure structuredOutput with ollama models
+- I discovered this in separate project, will this week create simple structured format with OpenAI response and Ollama response and simple agentic response
