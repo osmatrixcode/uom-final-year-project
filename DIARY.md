@@ -35,3 +35,9 @@
 - implement CORS in the backend and config.ts in the frontend
 - need to wrap index root in frontend, with QueryProvider, also forget to put custom hook useState INSIDE the function!
 - SERVICE: for raw api calls and transformations, HOOK: Query behaviour and retries etc..., COMPONENT: to display the data
+
+## 5/2/2026
+
+- planning to change backend to be javascript backend
+  - langchain JS
+  - simple API call?
