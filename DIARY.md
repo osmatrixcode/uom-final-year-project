@@ -41,3 +41,7 @@
 - planning to change backend to be javascript backend
   - langchain JS
   - simple API call?
+- setup TS backend! (type safe)
+  - struggled with using typescript (more faff to setup)
+  - struggled with .env (realised should be file based and named my API key wrong)
+- commonJS vs ESM Modules
