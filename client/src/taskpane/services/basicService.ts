@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import apiClient from "./apiClient";
 
 export function getBasicData() {
   return apiClient("/hello", { method: "GET" });
@@ -6,5 +6,5 @@ export function getBasicData() {
 
 export async function getBasicText(): Promise<string> {
   const response = await getBasicData();
-  return response?.message || JSON.stringify(response) || "No data received";
+  return response?.data?.message || JSON.stringify(response) || "No data received";
 }

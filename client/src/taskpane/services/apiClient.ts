@@ -1,24 +1,21 @@
+import axios from "axios";
 import { API_URL } from "../config";
 
-export async function apiClient(path: string, options: RequestInit = {}) {
-  const response = await fetch(`${API_URL}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+const apiClient = axios.create({
+  baseURL: API_URL,
+  timeout: 10000, // Optional: kill request if it takes >10 seconds
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-  let data;
-  try {
-    data = await response.json();
-  } catch {
-    data = null;
+// Interceptors: The "Secret Sauce" of Axios
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+  return config;
+});
 
-  if (!response.ok) {
-    throw new Error(data?.message || `API Error: ${response.status}`);
-  }
-
-  return data;
-}
+export default apiClient;
