@@ -59,3 +59,7 @@ What it’s about
 Any tone or style preferences
 
 Or let me know what kind of email-related help you’re looking for!
+
+### THANKS
+
+https://www.figma.com/community/file/1530305855415503769

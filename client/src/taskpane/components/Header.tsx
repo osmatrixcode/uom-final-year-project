@@ -1,5 +1,6 @@
 import * as React from "react";
-import { Image, tokens, makeStyles } from "@fluentui/react-components";
+import { makeStyles } from "@fluentui/react-components";
+import { Eyes } from "./Eye";
 
 export interface HeaderProps {
   title: string;
@@ -8,30 +9,74 @@ export interface HeaderProps {
 }
 
 const useStyles = makeStyles({
-  welcome__header: {
+  // Outer cream card
+  card: {
+    backgroundColor: "#FBF0DC",
+    padding: "12px",
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
-    paddingBottom: "30px",
-    paddingTop: "100px",
-    backgroundColor: tokens.colorNeutralBackground3,
+    gap: "8px",
+    width: "100%",
+    boxSizing: "border-box",
   },
-  message: {
-    fontSize: tokens.fontSizeHero900,
-    fontWeight: tokens.fontWeightRegular,
-    fontColor: tokens.colorNeutralBackgroundStatic,
+  // Blue area with eyes
+  monster: {
+    backgroundColor: "#0062AD",
+    width: "100%",
+    height: "200px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  // Text area below the eyes
+  legend: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "24px",
+    paddingTop: "6px",
+    paddingBottom: "6px",
+  },
+  heroTitle: {
+    fontSize: "36px",
+    fontWeight: "700",
+    lineHeight: "40px",
+    color: "#000",
+    margin: "0",
+  },
+  heroSubtitle: {
+    fontSize: "16px",
+    fontWeight: "500",
+    lineHeight: "normal",
+    color: "#000",
+    margin: "0",
+  },
+  heroCaption: {
+    fontSize: "12px",
+    fontWeight: "500",
+    lineHeight: "normal",
+    color: "#000",
+    margin: "0",
   },
 });
 
 const Header: React.FC<HeaderProps> = (props: HeaderProps) => {
-  const { title, logo, message } = props;
+  const { title, message } = props;
   const styles = useStyles();
 
   return (
-    <section className={styles.welcome__header}>
-      <Image width="90" height="90" src={logo} alt={title} />
-      <h1 className={styles.message}>{message}</h1>
-    </section>
+    <div className={styles.card}>
+      <div className={styles.monster}>
+        <Eyes />
+      </div>
+      <div className={styles.legend}>
+        <div>
+          <h1 className={styles.heroTitle}>{message}</h1>
+          <p className={styles.heroSubtitle}>{title}</p>
+        </div>
+        <p className={styles.heroCaption}>Intelligent Email Assistant</p>
+      </div>
+    </div>
   );
 };
 
