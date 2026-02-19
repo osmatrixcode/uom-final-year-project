@@ -71,10 +71,14 @@ const Header: React.FC<HeaderProps> = (props: HeaderProps) => {
       </div>
       <div className={styles.legend}>
         <div>
-          <h1 className={styles.heroTitle} style={{ color: textColor }}>{message}</h1>
-          <p className={styles.heroSubtitle} style={{ color: textColor }}>{title}</p>
+          <h1 className={styles.heroTitle} style={{ color: textColor }}>
+            {message}
+          </h1>
+          <p className={styles.heroSubtitle} style={{ color: textColor }}>
+            {title}
+          </p>
         </div>
-        <p className={styles.heroCaption} style={{ color: textColor }}>Intelligent Email Assistant</p>
+        {/* <p className={styles.heroCaption} style={{ color: textColor }}>Intelligent Email Assistant</p> */}
       </div>
     </div>
   );

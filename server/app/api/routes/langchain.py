@@ -16,6 +16,7 @@ class EmailContextRequest(BaseModel):
     body: str
     recipients: List[EmailRecipient]
     draft: Optional[str] = None
+    instruction: Optional[str] = None
 
 
 class GenerateReplyResponse(BaseModel):

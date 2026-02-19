@@ -1,7 +1,5 @@
 import * as React from "react";
 import Header from "./Header";
-import HeroList, { HeroListItem } from "./HeroList";
-import TextInsertion from "./TextInsertion";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { insertText } from "../taskpane";
 import BasicBtn from "./BasicBtn";
@@ -41,12 +39,6 @@ const AppContent: React.FC<AppProps> = (props: AppProps) => {
   const styles = useStyles();
   const { isDark, toggleDark } = useTheme();
 
-  const listItems: HeroListItem[] = [
-    { primaryText: "Achieve more with Office integration" },
-    { primaryText: "Unlock features and functionality" },
-    { primaryText: "Create and visualize like a pro" },
-  ];
-
   return (
     <div className={styles.root} style={{ backgroundColor: isDark ? "#1a1a2e" : "#0062AD" }}>
       <div className={styles.topBar}>
@@ -58,8 +50,6 @@ const AppContent: React.FC<AppProps> = (props: AppProps) => {
         />
       </div>
       <Header logo="assets/logo-filled.png" title={props.title} message="Welcome" />
-      <HeroList message="Discover what this add-in can do for you today!" items={listItems} />
-      <TextInsertion insertText={insertText} />
       <BasicBtn insertText={insertText} />
     </div>
   );
