@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from app.services.langchain_service import LangChainService
 
 router = APIRouter()
@@ -15,6 +15,7 @@ class EmailContextRequest(BaseModel):
     subject: str
     body: str
     recipients: List[EmailRecipient]
+    draft: Optional[str] = None
 
 
 class GenerateReplyResponse(BaseModel):

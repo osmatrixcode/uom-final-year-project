@@ -20,19 +20,37 @@ class LangChainService:
             r.displayName or r.emailAddress for r in email_context.recipients
         ) or "the sender"
 
-        prompt = ChatPromptTemplate.from_messages([
-            SystemMessage(content=(
+        if email_context.draft:
+            system_content = (
+                "You are a professional email assistant. "
+                "The user has written a draft reply and wants you to refine it. "
+                "Preserve their intent and edits — improve clarity, tone, and professionalism where needed. "
+                "Write only the reply body — no subject line, no greeting preamble, no sign-off."
+            )
+            human_content = (
+                f"Subject: {email_context.subject}\n"
+                f"Recipients: {recipients_str}\n\n"
+                f"Email thread:\n{email_context.body}\n\n"
+                f"User's current draft:\n{email_context.draft}\n\n"
+                f"Refine this draft."
+            )
+        else:
+            system_content = (
                 "You are a professional email assistant. "
                 "Draft a clear, concise, professional reply to the email thread. "
                 "Write only the reply body — no subject line, no greeting preamble, no sign-off. "
                 "Match the tone of the original email."
-            )),
-            HumanMessage(content=(
+            )
+            human_content = (
                 f"Subject: {email_context.subject}\n"
                 f"Recipients: {recipients_str}\n\n"
                 f"Email thread:\n{email_context.body}\n\n"
                 f"Draft a reply."
-            )),
+            )
+
+        prompt = ChatPromptTemplate.from_messages([
+            SystemMessage(content=system_content),
+            HumanMessage(content=human_content),
         ])
 
         chain = prompt | self.llm
