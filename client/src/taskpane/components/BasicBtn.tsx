@@ -1,33 +1,40 @@
 import * as React from "react";
-import { Button, Field, tokens, makeStyles } from "@fluentui/react-components";
+import { Button, makeStyles } from "@fluentui/react-components";
 import { useBasicService } from "../hooks/useBasicService";
+import { useTheme } from "./ThemeContext";
 
 interface BasicBtnProps {
   insertText: (text: string) => void;
 }
 
 const useStyles = makeStyles({
-  instructions: {
-    fontWeight: tokens.fontWeightSemibold,
-    marginTop: "20px",
-    marginBottom: "10px",
-  },
-  textPromptAndInsertion: {
+  card: {
+    padding: "18px",
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
+    gap: "12px",
+    width: "100%",
+    boxSizing: "border-box",
   },
-  textAreaField: {
-    marginLeft: "20px",
-    marginTop: "30px",
-    marginBottom: "20px",
-    marginRight: "20px",
-    maxWidth: "50%",
+  label: {
+    fontSize: "14px",
+    fontWeight: "700",
+    margin: "0",
+  },
+  button: {
+    backgroundColor: "#0062AD",
+    color: "#fff",
+    alignSelf: "flex-start",
+    ":hover": {
+      backgroundColor: "#004E8A",
+    },
   },
 });
 
 const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
   const { mutate, isPending } = useBasicService();
+  const styles = useStyles();
+  const { isDark } = useTheme();
 
   const handleTextInsertion = () => {
     mutate(undefined, {
@@ -36,20 +43,19 @@ const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
       },
       onError: (error) => {
         console.error("Failed to fetch data:", error);
-        // Show error to user
         alert(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
       },
     });
   };
 
-  const styles = useStyles();
+  const cardBg = isDark ? "#2a2a3e" : "#FFFFFF";
+  const textColor = isDark ? "#e0e0e0" : "#000";
 
   return (
-    <div className={styles.textPromptAndInsertion}>
-
-      <Field className={styles.instructions}>Click the button to fetch from server and put into email body</Field>
-      <Button appearance="primary" disabled={isPending} size="large" onClick={handleTextInsertion}>
-        {isPending ? "Loading..." : "Insert text"}
+    <div className={styles.card} style={{ backgroundColor: cardBg }}>
+      <p className={styles.label} style={{ color: textColor }}>Fetch from server and insert into email body</p>
+      <Button className={styles.button} appearance="primary" disabled={isPending} size="medium" onClick={handleTextInsertion}>
+        {isPending ? "Loading..." : "Fetch & insert"}
       </Button>
     </div>
   );

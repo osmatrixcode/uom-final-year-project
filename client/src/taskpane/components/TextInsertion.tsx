@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState } from "react";
-import { Button, Field, Textarea, tokens, makeStyles } from "@fluentui/react-components";
+import { Button, Textarea, makeStyles } from "@fluentui/react-components";
+import { useTheme } from "./ThemeContext";
 
 /* global HTMLTextAreaElement */
 
@@ -9,45 +10,54 @@ interface TextInsertionProps {
 }
 
 const useStyles = makeStyles({
-  instructions: {
-    fontWeight: tokens.fontWeightSemibold,
-    marginTop: "20px",
-    marginBottom: "10px",
-  },
-  textPromptAndInsertion: {
+  card: {
+    padding: "18px",
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
+    gap: "12px",
+    width: "100%",
+    boxSizing: "border-box",
   },
-  textAreaField: {
-    marginLeft: "20px",
-    marginTop: "30px",
-    marginBottom: "20px",
-    marginRight: "20px",
-    maxWidth: "50%",
+  label: {
+    fontSize: "14px",
+    fontWeight: "700",
+    margin: "0",
+  },
+  textarea: {
+    width: "100%",
+    minHeight: "80px",
+  },
+  button: {
+    backgroundColor: "#0062AD",
+    color: "#fff",
+    alignSelf: "flex-start",
+    ":hover": {
+      backgroundColor: "#004E8A",
+    },
   },
 });
 
 const TextInsertion: React.FC<TextInsertionProps> = (props: TextInsertionProps) => {
   const [text, setText] = useState<string>("Some text.");
+  const styles = useStyles();
+  const { isDark } = useTheme();
 
   const handleTextInsertion = async () => {
     await props.insertText(text);
   };
 
-  const handleTextChange = async (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(event.target.value);
   };
 
-  const styles = useStyles();
+  const cardBg = isDark ? "#2a2a3e" : "#FFFFFF";
+  const textColor = isDark ? "#e0e0e0" : "#000";
 
   return (
-    <div className={styles.textPromptAndInsertion}>
-      <Field className={styles.textAreaField} size="large" label="Enter text to be inserted into the document.">
-        <Textarea size="large" value={text} onChange={handleTextChange} />
-      </Field>
-      <Field className={styles.instructions}>Click the button to insert text.</Field>
-      <Button appearance="primary" disabled={false} size="large" onClick={handleTextInsertion}>
+    <div className={styles.card} style={{ backgroundColor: cardBg }}>
+      <p className={styles.label} style={{ color: textColor }}>Enter text to insert into the email</p>
+      <Textarea className={styles.textarea} size="large" value={text} onChange={handleTextChange} />
+      <Button className={styles.button} appearance="primary" size="medium" onClick={handleTextInsertion}>
         Insert text
       </Button>
     </div>

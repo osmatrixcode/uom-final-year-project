@@ -1,7 +1,7 @@
 import apiClient from "./apiClient";
 
 export function getBasicData() {
-  return apiClient("/hello", { method: "GET" });
+  return apiClient("/langchain-hello", { method: "GET" });
 }
 
 export async function getBasicText(): Promise<string> {

@@ -45,3 +45,8 @@
   - struggled with using typescript (more faff to setup)
   - struggled with .env (realised should be file based and named my API key wrong)
 - commonJS vs ESM Modules
+
+## 17th Feb 2026
+
+- Changed backend back again to FastAPI backend
+- use Axios for apiClient instead of fetch

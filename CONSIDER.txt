@@ -33,3 +33,11 @@ Subjective "it feels like it works" feedback is not enough for a First-Class gra
 
 LLM Benchmarking: Compare two or three models (e.g., GPT-4o-mini vs. a local Llama 3). Evaluate them on Latency (response time), Cost, and Accuracy.
 CAN EVEN USE LLM AS A JUDGE!
+
+
+
+LOOK AT this
+* Use Langchain (much easier) 
+* Use ChromaDB (like SQLite for Vector DB) 
+* Create it to how Claude Cowork looks like + acts
+* Create it how Claude Code acts (Shift + Tab to alternate) 
