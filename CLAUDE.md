@@ -22,7 +22,7 @@ npm run validate        # Validate manifest.xml
 ### Server (FastAPI) - run from `/server` directory
 
 ```bash
-uvicorn main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8000
 ```
 
 ### Manual Sideloading (Required)
@@ -45,8 +45,14 @@ client/                     # React + TypeScript Outlook Add-in
 ├── manifest.xml           # Outlook add-in manifest
 └── webpack.config.js      # Build configuration
 
-server/                     # FastAPI backend
-└── main.py                # API endpoints with CORS
+server/                     # FastAPI backend (layered architecture)
+├── app/
+│   ├── main.py            # FastAPI app setup, CORS, router includes
+│   ├── api/
+│   │   └── routes.py      # API route handlers (uses dependency injection)
+│   └── services/
+│       └── hello_world.py # Business logic services
+└── requirements.txt
 ```
 
 ### Key Patterns
@@ -55,6 +61,7 @@ server/                     # FastAPI backend
 - **UI Components**: Fluent UI React Components (Microsoft's design system)
 - **Office Integration**: `Office.context.mailbox.item.body.setSelectedDataAsync()` in taskpane.ts inserts text into email body
 - **API Client**: Generic HTTP client in `services/apiClient.ts` with service layer in `services/basicService.ts`
+- **Backend Architecture**: Layered with routes (API layer) → services (business logic), using FastAPI dependency injection
 
 ### Configuration
 

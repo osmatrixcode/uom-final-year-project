@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { useBasicService } from "../hooks/useBasicService";
+import { useTheme } from "./ThemeContext";
 
 interface BasicBtnProps {
   insertText: (text: string) => void;
@@ -8,7 +9,6 @@ interface BasicBtnProps {
 
 const useStyles = makeStyles({
   card: {
-    backgroundColor: "#FBF0DC",
     padding: "18px",
     display: "flex",
     flexDirection: "column",
@@ -19,7 +19,6 @@ const useStyles = makeStyles({
   label: {
     fontSize: "14px",
     fontWeight: "700",
-    color: "#000",
     margin: "0",
   },
   button: {
@@ -35,6 +34,7 @@ const useStyles = makeStyles({
 const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
   const { mutate, isPending } = useBasicService();
   const styles = useStyles();
+  const { isDark } = useTheme();
 
   const handleTextInsertion = () => {
     mutate(undefined, {
@@ -48,9 +48,12 @@ const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
     });
   };
 
+  const cardBg = isDark ? "#2a2a3e" : "#FFFFFF";
+  const textColor = isDark ? "#e0e0e0" : "#000";
+
   return (
-    <div className={styles.card}>
-      <p className={styles.label}>Fetch from server and insert into email body</p>
+    <div className={styles.card} style={{ backgroundColor: cardBg }}>
+      <p className={styles.label} style={{ color: textColor }}>Fetch from server and insert into email body</p>
       <Button className={styles.button} appearance="primary" disabled={isPending} size="medium" onClick={handleTextInsertion}>
         {isPending ? "Loading..." : "Fetch & insert"}
       </Button>

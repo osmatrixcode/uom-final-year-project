@@ -1,5 +1,6 @@
 import * as React from "react";
 import { makeStyles } from "@fluentui/react-components";
+import { useTheme } from "./ThemeContext";
 
 export interface HeroListItem {
   primaryText: string;
@@ -12,7 +13,6 @@ export interface HeroListProps {
 
 const useStyles = makeStyles({
   card: {
-    backgroundColor: "#FBF0DC",
     padding: "18px",
     display: "flex",
     flexDirection: "column",
@@ -23,7 +23,6 @@ const useStyles = makeStyles({
   message: {
     fontSize: "16px",
     fontWeight: "700",
-    color: "#000",
     margin: "0",
     lineHeight: "normal",
   },
@@ -50,7 +49,6 @@ const useStyles = makeStyles({
   itemText: {
     fontSize: "13px",
     fontWeight: "500",
-    color: "#000",
     lineHeight: "normal",
   },
 });
@@ -58,15 +56,19 @@ const useStyles = makeStyles({
 const HeroList: React.FC<HeroListProps> = (props: HeroListProps) => {
   const { items, message } = props;
   const styles = useStyles();
+  const { isDark } = useTheme();
+
+  const cardBg = isDark ? "#2a2a3e" : "#FFFFFF";
+  const textColor = isDark ? "#e0e0e0" : "#000";
 
   return (
-    <div className={styles.card}>
-      <h2 className={styles.message}>{message}</h2>
+    <div className={styles.card} style={{ backgroundColor: cardBg }}>
+      <h2 className={styles.message} style={{ color: textColor }}>{message}</h2>
       <ul className={styles.list}>
         {items.map((item, index) => (
           <li className={styles.listItem} key={index}>
             <div className={styles.bullet} />
-            <span className={styles.itemText}>{item.primaryText}</span>
+            <span className={styles.itemText} style={{ color: textColor }}>{item.primaryText}</span>
           </li>
         ))}
       </ul>

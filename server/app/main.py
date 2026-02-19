@@ -1,7 +1,11 @@
 # app/main.py
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import router as hello_router
+from app.api.routes.hello import router as hello_router
+from app.api.routes.langchain import router as langchain_router
 
 app = FastAPI(title="Layered Hello World")
 
@@ -12,8 +16,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include our routes
 app.include_router(hello_router)
+app.include_router(langchain_router)
 
 if __name__ == "__main__":
     import uvicorn

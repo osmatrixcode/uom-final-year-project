@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { Button, Textarea, makeStyles } from "@fluentui/react-components";
+import { useTheme } from "./ThemeContext";
 
 /* global HTMLTextAreaElement */
 
@@ -10,7 +11,6 @@ interface TextInsertionProps {
 
 const useStyles = makeStyles({
   card: {
-    backgroundColor: "#FBF0DC",
     padding: "18px",
     display: "flex",
     flexDirection: "column",
@@ -21,7 +21,6 @@ const useStyles = makeStyles({
   label: {
     fontSize: "14px",
     fontWeight: "700",
-    color: "#000",
     margin: "0",
   },
   textarea: {
@@ -41,6 +40,7 @@ const useStyles = makeStyles({
 const TextInsertion: React.FC<TextInsertionProps> = (props: TextInsertionProps) => {
   const [text, setText] = useState<string>("Some text.");
   const styles = useStyles();
+  const { isDark } = useTheme();
 
   const handleTextInsertion = async () => {
     await props.insertText(text);
@@ -50,9 +50,12 @@ const TextInsertion: React.FC<TextInsertionProps> = (props: TextInsertionProps) 
     setText(event.target.value);
   };
 
+  const cardBg = isDark ? "#2a2a3e" : "#FFFFFF";
+  const textColor = isDark ? "#e0e0e0" : "#000";
+
   return (
-    <div className={styles.card}>
-      <p className={styles.label}>Enter text to insert into the email</p>
+    <div className={styles.card} style={{ backgroundColor: cardBg }}>
+      <p className={styles.label} style={{ color: textColor }}>Enter text to insert into the email</p>
       <Textarea className={styles.textarea} size="large" value={text} onChange={handleTextChange} />
       <Button className={styles.button} appearance="primary" size="medium" onClick={handleTextInsertion}>
         Insert text

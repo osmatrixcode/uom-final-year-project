@@ -18,7 +18,7 @@ const useStyles = makeStyles({
     width: "80px",
     height: "80px",
     borderRadius: "50%",
-    backgroundColor: "#FFFDF5",
+    backgroundColor: "#FFFFFF",
     overflow: "hidden",
     flexShrink: 0,
   },
