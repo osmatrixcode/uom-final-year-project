@@ -3,7 +3,7 @@ import { API_URL } from "../config";
 
 const apiClient = axios.create({
   baseURL: API_URL,
-  timeout: 10000, // Optional: kill request if it takes >10 seconds
+  timeout: 60000, // LLM calls can take up to 60 seconds
   headers: {
     "Content-Type": "application/json",
   },

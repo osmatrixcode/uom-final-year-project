@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import { getBasicText } from "../services/basicService";
+import { getBasicText, generateEmailReply } from "../services/basicService";
+import { EmailContext } from "../taskpane";
 
 /**
  * Hook for fetching basic data from the server
@@ -7,4 +8,8 @@ import { getBasicText } from "../services/basicService";
  */
 export function useBasicService() {
   return useMutation({ mutationFn: getBasicText });
+}
+
+export function useGenerateReply() {
+  return useMutation<string, Error, EmailContext>({ mutationFn: generateEmailReply });
 }
