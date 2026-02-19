@@ -1,0 +1,37 @@
+DOCUMENTATION:
+    ☐ In README...
+    ☐ add section on how to load the client
+    ☐ add section on how to load the server
+        ☐ remember the OPEN AI API
+    ☐ make the README really pretty! 
+
+
+FRONTEND DESIGN:
+    ☐ make it look like claude cowork (clean, simple, modern)
+        ☐ make it look like claude code (Shift + Tab to alternate)
+
+
+BACKEND:
+    VECTOR DATABASE:
+        ☐ look into chromaDB (like SQLite for vector DB)
+    ALL THINGS AI: 
+        ☐ use Langchain (much easier and has standard agentic architecture)
+        ☐ PROMPT: get a few (5) example responses of USER, and PASS IT AS CONTEXT (for system prompt)? 
+        ☐ 
+    ALL THINGS BACKEND:
+        ☐ create logging, traces, etc... 
+
+ 
+TESTING & EVALUATION:
+    ☐ add general tests for the backend and frontend (unit tests, integration tests, etc...)
+    ☐ to get high grade, need data
+        ☐ benchmark different models (e.g., GPT-4o-mini vs. local Llama 3) on Latency, Cost, and Accuracy
+        ☐ use LLM as a judge to evaluate the responses!
+
+
+PRIVACY AND SECURITY: 
+    ☐ Azure OpenAI has safety + privacy built in (since it's for enterprise)
+    ☐ perhaps python libraries for data anonymisation 
+
+
+

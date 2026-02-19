@@ -50,3 +50,7 @@
 
 - Changed backend back again to FastAPI backend
 - use Axios for apiClient instead of fetch
+
+## 19th Feb 2026
+
+- basic Email Response. Use Promise.all()
