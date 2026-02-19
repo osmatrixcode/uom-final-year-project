@@ -1,18 +1,43 @@
 import * as React from "react";
 import { Button, Textarea, makeStyles } from "@fluentui/react-components";
 import { useGenerateReply } from "../hooks/useBasicService";
-import { useTheme } from "./ThemeContext";
 import { getEmailContext } from "../taskpane";
 
 /* global HTMLTextAreaElement */
 
+const LOADING_PHRASES = [
+  "Herding the cats...",
+  "Boiling the ocean...",
+  "Circling back with the AI...",
+  "Leveraging synergies...",
+  "Touching base with GPT...",
+  "Thinking outside the inbox...",
+  "Picking the low-hanging fruit...",
+  "Moving the needle...",
+  "Generating enterprise value...",
+  "Consulting the reply oracle...",
+  "Summoning professional prose...",
+  "Banishing filler words...",
+  "Running it up the flagpole...",
+  "Eating the frog...",
+  "Teaching AI to write emails...",
+  "Counting tokens...",
+  "Spell-checking... twice...",
+  "Adding buzzwords... removing buzzwords...",
+  "Asking the AI nicely...",
+  "Making it sound smart...",
+];
+
 interface BasicBtnProps {
   insertText: (text: string) => void;
+  defaultSubtitle: string;
+  onSubtitleChange: (text: string) => void;
 }
 
 const useStyles = makeStyles({
   wrapper: {
     padding: "16px",
+    flex: "1",
     display: "flex",
     flexDirection: "column",
     gap: "12px",
@@ -63,7 +88,24 @@ const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
   const [preview, setPreview] = React.useState<string | null>(null);
   const [instruction, setInstruction] = React.useState("");
   const styles = useStyles();
-  const { isDark } = useTheme();
+
+  React.useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    if (isPending) {
+      const shuffled = [...LOADING_PHRASES].sort(() => Math.random() - 0.5);
+      let idx = 0;
+      props.onSubtitleChange(shuffled[idx]);
+      interval = setInterval(() => {
+        idx = (idx + 1) % shuffled.length;
+        props.onSubtitleChange(shuffled[idx]);
+      }, 1800);
+    } else {
+      props.onSubtitleChange(props.defaultSubtitle);
+    }
+    return () => {
+      if (interval !== null) clearInterval(interval);
+    };
+  }, [isPending]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSend = async () => {
     try {
@@ -105,10 +147,10 @@ const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
     }
   };
 
-  const cardBg = isDark ? "#2a2a3e" : "#FFFFFF";
-  const previewLabelColor = isDark ? "#a0a0c0" : "#555";
-  const chatBg = isDark ? "#1e1e2e" : "#f0f0f0";
-  const inputTextColor = isDark ? "#e0e0e0" : "#222";
+  const cardBg = "#FFFFFF";
+  const previewLabelColor = "#555";
+  const chatBg = "#f0f0f0";
+  const inputTextColor = "#222";
 
   const placeholder = preview !== null ? "Refine the draft... (Enter to send)" : "How can I help? (Enter to send)";
 
@@ -136,7 +178,7 @@ const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
         </>
       )}
 
-      <div className={styles.chatBox} style={{ backgroundColor: chatBg }}>
+      <div className={styles.chatBox} style={{ backgroundColor: chatBg, marginTop: "auto" }}>
         <textarea
           style={{
             background: "transparent",
