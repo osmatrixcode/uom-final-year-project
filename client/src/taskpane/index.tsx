@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 /* global document, Office, module, require, HTMLElement */
 
-const title = "Contoso Task Pane Add-in";
+const title = "Intelligent AI Email Assistant";
 
 const queryClient = new QueryClient();
 
