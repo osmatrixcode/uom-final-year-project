@@ -1,7 +1,6 @@
 import * as React from "react";
 import { makeStyles } from "@fluentui/react-components";
 import { Eyes } from "./Eye";
-import { useTheme } from "./ThemeContext";
 
 export interface HeaderProps {
   title: string;
@@ -59,22 +58,22 @@ const useStyles = makeStyles({
 const Header: React.FC<HeaderProps> = (props: HeaderProps) => {
   const { title, message } = props;
   const styles = useStyles();
-  const { isDark } = useTheme();
-
-  const cardBg = isDark ? "#2a2a3e" : "#FFFFFF";
-  const textColor = isDark ? "#e0e0e0" : "#000";
 
   return (
-    <div className={styles.card} style={{ backgroundColor: cardBg }}>
+    <div className={styles.card} style={{ backgroundColor: "#FFFFFF" }}>
       <div className={styles.monster}>
         <Eyes />
       </div>
       <div className={styles.legend}>
         <div>
-          <h1 className={styles.heroTitle} style={{ color: textColor }}>{message}</h1>
-          <p className={styles.heroSubtitle} style={{ color: textColor }}>{title}</p>
+          <h1 className={styles.heroTitle} style={{ color: "#000" }}>
+            {message}
+          </h1>
+          <p className={styles.heroSubtitle} style={{ color: "#000" }}>
+            {title}
+          </p>
         </div>
-        <p className={styles.heroCaption} style={{ color: textColor }}>Intelligent Email Assistant</p>
+        {/* <p className={styles.heroCaption} style={{ color: textColor }}>Intelligent Email Assistant</p> */}
       </div>
     </div>
   );

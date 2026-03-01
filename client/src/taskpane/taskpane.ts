@@ -9,6 +9,8 @@ export interface EmailContext {
   subject: string;
   body: string;
   recipients: EmailRecipient[];
+  draft?: string;
+  instruction?: string;
 }
 
 export function getEmailContext(): Promise<EmailContext> {

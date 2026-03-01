@@ -17,7 +17,11 @@ BACKEND:
     ALL THINGS AI: 
         ☐ use Langchain (much easier and has standard agentic architecture)
         ☐ PROMPT: get a few (5) example responses of USER, and PASS IT AS CONTEXT (for system prompt)? 
-        ☐ 
+        ☐ Have GENERAL chat interface (can ask ANY question) and then use agentic to find out what the response is
+            ☐ right now prompt just generates a response email. 
+        ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response
+        ☐ when receive email from user, generate an MD file for that user (can implement what tone to have for this person, some back history etc...)
+            ☐ think claude.init but for each user. Can update? (in chatbox)? 
     ALL THINGS BACKEND:
         ☐ create logging, traces, etc... 
 
@@ -27,6 +31,7 @@ TESTING & EVALUATION:
     ☐ to get high grade, need data
         ☐ benchmark different models (e.g., GPT-4o-mini vs. local Llama 3) on Latency, Cost, and Accuracy
         ☐ use LLM as a judge to evaluate the responses!
+    ☐ start looking at evaluation, what makes it better than 
 
 
 PRIVACY AND SECURITY: 
