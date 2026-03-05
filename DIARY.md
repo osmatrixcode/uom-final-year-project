@@ -54,3 +54,7 @@
 ## 19th Feb 2026
 
 - basic Email Response. Use Promise.all()
+
+## 4th March 2026
+
+-found Medium Blog on how to implement Microsoft Graph API

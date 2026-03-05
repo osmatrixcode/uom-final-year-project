@@ -15,6 +15,9 @@ To address this, the project aims to develop a prototype application that integr
 - add this add in manually! (manual sideload)
 - click an email and press 'reply' then press APP icon and press this add in and press show task pane!
 
+-setup microsoft graph API
+https://medium.com/nerd-for-tech/query-ms-graph-api-in-python-e8e04490b04e
+
 ## RUN THE BACKEND
 
 - create conda environment

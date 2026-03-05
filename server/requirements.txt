@@ -45,3 +45,5 @@ websockets==16.0
 wheel==0.46.3
 langchain
 langchain-openai
+msal
+requests
