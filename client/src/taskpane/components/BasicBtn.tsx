@@ -81,6 +81,23 @@ const useStyles = makeStyles({
     padding: "0 10px",
     ":hover": { backgroundColor: "#A5511F" },
   },
+  qaBox: {
+    background: "#e8f4fd",
+    borderRadius: "12px",
+    padding: "12px",
+    fontSize: "13px",
+  },
+  qaLabel: {
+    margin: "0 0 6px 0",
+    fontWeight: "600",
+    color: "#0062AD",
+  },
+  qaText: {
+    margin: "0 0 10px 0",
+    lineHeight: "1.5",
+    color: "#222",
+    whiteSpace: "pre-wrap",
+  },
 });
 
 const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
@@ -185,9 +202,9 @@ const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
       )}
 
       {qaAnswer !== null && (
-        <div style={{ background: "#e8f4fd", borderRadius: "12px", padding: "12px", fontSize: "13px" }}>
-          <p style={{ margin: "0 0 6px 0", fontWeight: 600, color: "#0062AD" }}>Answer</p>
-          <p style={{ margin: "0 0 10px 0", lineHeight: "1.5", color: "#222", whiteSpace: "pre-wrap" }}>{qaAnswer}</p>
+        <div className={styles.qaBox}>
+          <p className={styles.qaLabel}>Answer</p>
+          <p className={styles.qaText}>{qaAnswer}</p>
           <Button size="small" appearance="secondary" onClick={() => setQaAnswer(null)}>Dismiss</Button>
         </div>
       )}

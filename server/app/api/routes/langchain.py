@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Literal, Optional
 from app.services.langchain_service import LangChainService
 from app.services.token_validator import try_validate_token, ValidatedToken
 from app.services.graph_service import get_email_thread, get_thread_by_conversation_id
@@ -32,7 +32,7 @@ class GenerateReplyResponse(BaseModel):
     reply: str
     user_name: Optional[str] = None
     graph_enriched: bool = False  # True when reply used Graph API thread data
-    intent: str = "draft"  # "draft" | "qa"
+    intent: Literal["draft", "qa"] = "draft"
 
 
 def get_langchain_service():

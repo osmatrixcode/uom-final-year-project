@@ -24,6 +24,8 @@ BACKEND:
         ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response
         ☐ when receive email from user, generate an MD file for that user (can implement what tone to have for this person, some back history etc...)
             ☐ think claude.init but for each user. Can update? (in chatbox)? 
+        ☐ in email draft prompt, {} for email tone (can change?) etc... 
+        
     ALL THINGS BACKEND:
         ☐ create logging, traces, etc... 
 

@@ -10,6 +10,15 @@ with open(_PROMPTS_PATH, "rb") as _f:
     _PROMPTS = tomllib.load(_f)
 
 
+def _build_prompt(prompt_key: str) -> ChatPromptTemplate:
+    p = _PROMPTS[prompt_key]
+    return ChatPromptTemplate.from_messages([("system", p["system"]), ("human", p["human"])])
+
+
+# Cache all prompts at import time — avoids rebuilding on every request
+_PROMPT_CACHE = {key: _build_prompt(key) for key in _PROMPTS}
+
+
 class LangChainService:
     def __init__(self):
         self.llm = ChatOpenAI(
@@ -23,9 +32,7 @@ class LangChainService:
 
     def _classify_intent(self, instruction: str) -> str:
         """Returns 'draft' or 'qa' based on the user's instruction."""
-        p = _PROMPTS["intent_classifier"]
-        prompt = ChatPromptTemplate.from_messages([("system", p["system"]), ("human", p["human"])])
-        result = (prompt | self.llm).invoke({"instruction": instruction}).content.strip().lower()
+        result = (_PROMPT_CACHE["intent_classifier"] | self.llm).invoke({"instruction": instruction}).content.strip().lower()
         return "qa" if result.startswith("qa") else "draft"
 
     def generate_email_reply(self, email_context, graph_thread: dict | None = None) -> tuple[str, str]:
@@ -53,9 +60,7 @@ class LangChainService:
         intent = self._classify_intent(instruction) if instruction else "draft"
 
         if intent == "qa":
-            p = _PROMPTS["general_qa"]
-            prompt = ChatPromptTemplate.from_messages([("system", p["system"]), ("human", p["human"])])
-            reply = (prompt | self.llm).invoke({
+            reply = (_PROMPT_CACHE["general_qa"] | self.llm).invoke({
                 "subject": email_context.subject,
                 "recipients": recipients_str,
                 "body": email_context.body,
@@ -65,9 +70,7 @@ class LangChainService:
         else:
             instruction_note = f"User instruction: {instruction}" if instruction else ""
             prompt_key = "refine_draft" if email_context.draft else "generate_reply"
-            p = _PROMPTS[prompt_key]
-            prompt = ChatPromptTemplate.from_messages([("system", p["system"]), ("human", p["human"])])
-            reply = (prompt | self.llm).invoke({
+            reply = (_PROMPT_CACHE[prompt_key] | self.llm).invoke({
                 "subject": email_context.subject,
                 "recipients": recipients_str,
                 "body": email_context.body,
