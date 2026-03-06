@@ -1,7 +1,13 @@
 import os
+import tomllib
+import pathlib
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
+
+_PROMPTS_PATH = pathlib.Path(__file__).parent.parent / "prompts.toml"
+with open(_PROMPTS_PATH, "rb") as _f:
+    _PROMPTS = tomllib.load(_f)
 
 
 class LangChainService:
@@ -21,7 +27,7 @@ class LangChainService:
         ) or "the sender"
 
         instruction_note = (
-            f"\nUser instruction: {email_context.instruction}" if email_context.instruction else ""
+            f"User instruction: {email_context.instruction}" if email_context.instruction else ""
         )
 
         # Build a richer thread summary when Graph data is available
@@ -37,44 +43,20 @@ class LangChainService:
                     summaries.append(f"[{date}] {sender}: {preview}")
                 thread_context = "\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries)
 
-        if email_context.draft:
-            system_content = (
-                "You are a professional email assistant. "
-                "The user has written a draft reply and wants you to refine it. "
-                "Preserve their intent and edits — improve clarity, tone, and professionalism where needed. "
-                "If a user instruction is provided, follow it precisely. "
-                "Write only the reply body — no subject line, no greeting preamble, no sign-off."
-            )
-            human_content = (
-                f"Subject: {email_context.subject}\n"
-                f"Recipients: {recipients_str}\n\n"
-                f"Email thread:\n{email_context.body}"
-                f"{thread_context}\n\n"
-                f"User's current draft:\n{email_context.draft}\n"
-                f"{instruction_note}\n"
-                f"Refine this draft."
-            )
-        else:
-            system_content = (
-                "You are a professional email assistant. "
-                "Draft a clear, concise, professional reply to the email thread. "
-                "Write only the reply body — no subject line, no greeting preamble, no sign-off. "
-                "Match the tone of the original email. "
-                "If a user instruction is provided, follow it precisely."
-            )
-            human_content = (
-                f"Subject: {email_context.subject}\n"
-                f"Recipients: {recipients_str}\n\n"
-                f"Email thread:\n{email_context.body}"
-                f"{thread_context}\n"
-                f"{instruction_note}\n"
-                f"Draft a reply."
-            )
+        prompt_key = "refine_draft" if email_context.draft else "generate_reply"
+        p = _PROMPTS[prompt_key]
 
         prompt = ChatPromptTemplate.from_messages([
-            SystemMessage(content=system_content),
-            HumanMessage(content=human_content),
+            ("system", p["system"]),
+            ("human", p["human"]),
         ])
 
         chain = prompt | self.llm
-        return chain.invoke({}).content
+        return chain.invoke({
+            "subject": email_context.subject,
+            "recipients": recipients_str,
+            "body": email_context.body,
+            "thread_context": thread_context,
+            "instruction_note": instruction_note,
+            "draft": email_context.draft or "",
+        }).content
