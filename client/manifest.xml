@@ -103,6 +103,16 @@
           <bt:String id="ActionButton.Tooltip" DefaultValue="Perform an action when clicked."/>
         </bt:LongStrings>
       </Resources>
+      <WebApplicationInfo>
+        <Id>__AZURE_CLIENT_ID__</Id>
+        <Resource>api://localhost:3000/__AZURE_CLIENT_ID__</Resource>
+        <Scopes>
+          <Scope>openid</Scope>
+          <Scope>profile</Scope>
+          <Scope>User.Read</Scope>
+          <Scope>Mail.Read</Scope>
+        </Scopes>
+      </WebApplicationInfo>
     </VersionOverrides>
   </VersionOverrides>
 </OfficeApp>

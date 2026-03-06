@@ -58,3 +58,14 @@
 ## 4th March 2026
 
 -found Medium Blog on how to implement Microsoft Graph API
+
+## 5th March 2026
+
+-basic Microsoft Graph API setup
+
+- perhaps do SSO method (as user already logged in when opening the task pane add in?)
+  - or make user initially register the token
+
+## 6th March 2026
+
+- trying to impl naa

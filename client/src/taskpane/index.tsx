@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./components/App";
 import { FluentProvider, webLightTheme } from "@fluentui/react-components";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { initAuth } from "./services/authService";
 
 /* global document, Office, module, require, HTMLElement */
 
@@ -15,6 +16,10 @@ const root = rootElement ? createRoot(rootElement) : undefined;
 
 /* Render application after Office initializes */
 Office.onReady(() => {
+  // Warm up the MSAL token cache early so the first Graph call is silent.
+  // Non-fatal if it fails — tokens will be acquired on demand.
+  initAuth();
+
   root?.render(
     <QueryClientProvider client={queryClient}>
       <FluentProvider theme={webLightTheme}>

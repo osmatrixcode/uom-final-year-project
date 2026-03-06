@@ -4,6 +4,8 @@ const devCerts = require("office-addin-dev-certs");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
+const Dotenv = require("dotenv-webpack");
+require("dotenv").config();
 
 const urlDev = "https://localhost:3000/";
 const urlProd = "https://www.contoso.com/"; // CHANGE THIS TO YOUR PRODUCTION DEPLOYMENT LOCATION
@@ -76,11 +78,13 @@ module.exports = async (env, options) => {
             from: "manifest*.xml",
             to: "[name]" + "[ext]",
             transform(content) {
-              if (dev) {
-                return content;
-              } else {
-                return content.toString().replace(new RegExp(urlDev, "g"), urlProd);
+              let manifest = content.toString();
+              // Substitute env vars into the manifest
+              manifest = manifest.replace(/__AZURE_CLIENT_ID__/g, process.env.AZURE_CLIENT_ID || "");
+              if (!dev) {
+                manifest = manifest.replace(new RegExp(urlDev, "g"), urlProd);
               }
+              return manifest;
             },
           },
         ],
@@ -93,6 +97,7 @@ module.exports = async (env, options) => {
       new webpack.ProvidePlugin({
         Promise: ["es6-promise", "Promise"],
       }),
+      new Dotenv({ path: "./.env", safe: false, silent: true }),
     ],
     devServer: {
       hot: true,

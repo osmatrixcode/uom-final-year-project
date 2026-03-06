@@ -47,3 +47,4 @@ langchain
 langchain-openai
 msal
 requests
+PyJWT[crypto]

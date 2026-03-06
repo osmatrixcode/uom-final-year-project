@@ -62,3 +62,69 @@ def graph_get(url: str) -> dict | list:
     if not response.ok:
         raise RuntimeError(f"Graph API {response.status_code}: {response.text}")
     return response.json()
+
+
+def graph_get_with_token(url: str, token: str, extra_headers: dict | None = None) -> dict | list:
+    """Call Graph API using a token supplied directly (e.g. NAA token from the client)."""
+    headers = {"Authorization": f"Bearer {token}"}
+    if extra_headers:
+        headers.update(extra_headers)
+    response = requests.get(url, headers=headers)
+    if not response.ok:
+        raise RuntimeError(f"Graph API {response.status_code}: {response.text}")
+    return response.json()
+
+
+GRAPH_BASE = "https://graph.microsoft.com/v1.0"
+
+
+def get_thread_by_conversation_id(conversation_id: str, token: str) -> dict:
+    """
+    Fetch the conversation thread from Graph using a conversationId.
+    conversationId is available in Outlook compose/reply mode even before the draft is saved,
+    making this the preferred path when replying to an existing email.
+    """
+    result = graph_get_with_token(
+        f"{GRAPH_BASE}/me/messages"
+        f"?$filter=conversationId eq '{conversation_id}'"
+        f"&$select=subject,bodyPreview,from,receivedDateTime,conversationId"
+        f"&$top=10",
+        token,
+    )
+    # Sort client-side — Graph rejects $orderby combined with $filter on messages
+    thread_messages = sorted(
+        result.get("value", []),
+        key=lambda m: m.get("receivedDateTime", ""),
+    )
+    primary = thread_messages[-1] if thread_messages else {}
+    return {"message": primary, "thread": thread_messages}
+
+
+def get_email_thread(item_rest_id: str, token: str) -> dict:
+    """
+    Fetch an email and its conversation thread from Graph using the client's NAA token.
+    item_rest_id must be a REST-format ID — the client converts it with
+    Office.context.mailbox.convertToRestId() before sending.
+    """
+    message = graph_get_with_token(
+        f"{GRAPH_BASE}/me/messages/{item_rest_id}"
+        "?$select=id,subject,body,from,toRecipients,receivedDateTime,conversationId",
+        token,
+    )
+
+    conversation_id = message.get("conversationId", "")
+    thread_messages: list = []
+    if conversation_id:
+        result = graph_get_with_token(
+            f"{GRAPH_BASE}/me/messages"
+            f"?$filter=conversationId eq '{conversation_id}'"
+            f"&$select=subject,bodyPreview,from,receivedDateTime"
+            f"&$top=10",
+            token,
+        )
+        thread_messages = sorted(
+            result.get("value", []),
+            key=lambda m: m.get("receivedDateTime", ""),
+        )
+
+    return {"message": message, "thread": thread_messages}

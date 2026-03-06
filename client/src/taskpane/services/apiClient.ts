@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_URL } from "../config";
+import { acquireToken } from "./authService";
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -9,13 +10,17 @@ const apiClient = axios.create({
   },
 });
 
-// // Interceptors: The "Secret Sauce" of Axios
-// apiClient.interceptors.request.use((config) => {
-//   const token = localStorage.getItem("token");
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   return config;
-// });
+// Attach the NAA-acquired token to every outgoing request.
+// The token is acquired silently via the user's existing Outlook session.
+apiClient.interceptors.request.use(async (config) => {
+  try {
+    const token = await acquireToken();
+    config.headers.Authorization = `Bearer ${token}`;
+  } catch (e) {
+    // Non-fatal: request proceeds without auth if token acquisition fails
+    console.warn("apiClient: Could not attach auth token:", e);
+  }
+  return config;
+});
 
 export default apiClient;

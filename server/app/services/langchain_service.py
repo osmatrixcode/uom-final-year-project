@@ -15,7 +15,7 @@ class LangChainService:
         response = self.llm.invoke([HumanMessage(content="Say hello in one sentence.")])
         return response.content
 
-    def generate_email_reply(self, email_context) -> str:
+    def generate_email_reply(self, email_context, graph_thread: dict | None = None) -> str:
         recipients_str = ", ".join(
             r.displayName or r.emailAddress for r in email_context.recipients
         ) or "the sender"
@@ -23,6 +23,19 @@ class LangChainService:
         instruction_note = (
             f"\nUser instruction: {email_context.instruction}" if email_context.instruction else ""
         )
+
+        # Build a richer thread summary when Graph data is available
+        thread_context = ""
+        if graph_thread:
+            thread_messages = graph_thread.get("thread", [])
+            if thread_messages:
+                summaries = []
+                for msg in thread_messages:
+                    sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
+                    preview = msg.get("bodyPreview", "")
+                    date = msg.get("receivedDateTime", "")[:10]
+                    summaries.append(f"[{date}] {sender}: {preview}")
+                thread_context = "\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries)
 
         if email_context.draft:
             system_content = (
@@ -35,7 +48,8 @@ class LangChainService:
             human_content = (
                 f"Subject: {email_context.subject}\n"
                 f"Recipients: {recipients_str}\n\n"
-                f"Email thread:\n{email_context.body}\n\n"
+                f"Email thread:\n{email_context.body}"
+                f"{thread_context}\n\n"
                 f"User's current draft:\n{email_context.draft}\n"
                 f"{instruction_note}\n"
                 f"Refine this draft."
@@ -51,7 +65,8 @@ class LangChainService:
             human_content = (
                 f"Subject: {email_context.subject}\n"
                 f"Recipients: {recipients_str}\n\n"
-                f"Email thread:\n{email_context.body}\n"
+                f"Email thread:\n{email_context.body}"
+                f"{thread_context}\n"
                 f"{instruction_note}\n"
                 f"Draft a reply."
             )

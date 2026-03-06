@@ -60,6 +60,27 @@ export function getEmailContext(): Promise<EmailContext> {
   );
 }
 
+/**
+ * Returns the current email item's ID in REST format, suitable for Graph API calls.
+ * Outlook's native itemId is in EWS format; Graph requires the REST-format ID.
+ * Returns null if there is no active item or the conversion fails.
+ * NOTE: itemId is null in compose mode (including replies) until the draft is saved.
+ */
+export function getItemRestId(): string | null {
+  const item = Office.context.mailbox.item;
+  if (!item?.itemId) return null;
+  return Office.context.mailbox.convertToRestId(item.itemId, Office.MailboxEnums.RestVersion.v2_0);
+}
+
+/**
+ * Returns the conversationId of the current mail item.
+ * Unlike itemId, conversationId IS available in compose/reply mode.
+ * Use this to fetch the full conversation thread from Graph when replying.
+ */
+export function getConversationId(): string | null {
+  return Office.context.mailbox.item?.conversationId ?? null;
+}
+
 export async function insertText(text: string) {
   // Write text to the cursor point in the compose surface.
   try {
