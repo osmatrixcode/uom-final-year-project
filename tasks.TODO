@@ -10,6 +10,8 @@ FRONTEND DESIGN:
     ☐ make it look like claude cowork (clean, simple, modern)
         ☐ make it look like claude code (Shift + Tab to alternate)
 
+    ☐ Shift + Tab to alternate between user input and response (like claude code)
+
 
 BACKEND:
     VECTOR DATABASE:

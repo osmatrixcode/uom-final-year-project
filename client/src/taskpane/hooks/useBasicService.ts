@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { getBasicText, generateEmailReply } from "../services/basicService";
+import { getBasicText, generateEmailReply, type ReplyResult } from "../services/basicService";
 import { EmailContext } from "../taskpane";
 
 /**
@@ -11,5 +11,5 @@ export function useBasicService() {
 }
 
 export function useGenerateReply() {
-  return useMutation<string, Error, EmailContext>({ mutationFn: generateEmailReply });
+  return useMutation<ReplyResult, Error, EmailContext>({ mutationFn: generateEmailReply });
 }

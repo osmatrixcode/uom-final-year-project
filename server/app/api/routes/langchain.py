@@ -32,6 +32,7 @@ class GenerateReplyResponse(BaseModel):
     reply: str
     user_name: Optional[str] = None
     graph_enriched: bool = False  # True when reply used Graph API thread data
+    intent: str = "draft"  # "draft" | "qa"
 
 
 def get_langchain_service():
@@ -75,9 +76,10 @@ def generate_reply(
             # Non-fatal: fall back to the email context provided by the client
             logger.warning("Could not fetch email thread from Graph: %s", e)
 
-    reply = service.generate_email_reply(request, graph_thread=graph_thread)
+    reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
     return GenerateReplyResponse(
         reply=reply,
         user_name=user.name if user else None,
         graph_enriched=graph_thread is not None,
+        intent=intent,
     )

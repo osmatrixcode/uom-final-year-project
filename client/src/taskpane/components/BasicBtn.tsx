@@ -86,6 +86,7 @@ const useStyles = makeStyles({
 const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
   const { mutate, isPending } = useGenerateReply();
   const [preview, setPreview] = React.useState<string | null>(null);
+  const [qaAnswer, setQaAnswer] = React.useState<string | null>(null);
   const [instruction, setInstruction] = React.useState("");
   const styles = useStyles();
 
@@ -117,8 +118,13 @@ const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
           instruction: instruction.trim() || undefined,
         },
         {
-          onSuccess: (reply) => {
-            setPreview(reply);
+          onSuccess: ({ reply, intent }) => {
+            if (intent === "qa") {
+              setQaAnswer(reply);
+            } else {
+              setPreview(reply);
+              setQaAnswer(null);
+            }
             setInstruction("");
           },
           onError: (error) => {
@@ -176,6 +182,14 @@ const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
             </Button>
           </div>
         </>
+      )}
+
+      {qaAnswer !== null && (
+        <div style={{ background: "#e8f4fd", borderRadius: "12px", padding: "12px", fontSize: "13px" }}>
+          <p style={{ margin: "0 0 6px 0", fontWeight: 600, color: "#0062AD" }}>Answer</p>
+          <p style={{ margin: "0 0 10px 0", lineHeight: "1.5", color: "#222", whiteSpace: "pre-wrap" }}>{qaAnswer}</p>
+          <Button size="small" appearance="secondary" onClick={() => setQaAnswer(null)}>Dismiss</Button>
+        </div>
       )}
 
       <div className={styles.chatBox} style={{ backgroundColor: chatBg, marginTop: "auto" }}>
