@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Button, Textarea, makeStyles } from "@fluentui/react-components";
 import { useGenerateReply } from "../hooks/useBasicService";
+import { type ClarifyingAnswer } from "../services/basicService";
 import { getEmailContext } from "../taskpane";
 
 /* global HTMLTextAreaElement */
@@ -98,6 +99,48 @@ const useStyles = makeStyles({
     color: "#222",
     whiteSpace: "pre-wrap",
   },
+  questionsBox: {
+    background: "#fff8f0",
+    borderRadius: "12px",
+    padding: "14px",
+    fontSize: "13px",
+    border: "1px solid #f0d9c0",
+  },
+  questionsTitle: {
+    margin: "0 0 12px 0",
+    fontWeight: "600",
+    color: "#7a3e00",
+    fontSize: "13px",
+  },
+  questionItem: {
+    marginBottom: "10px",
+  },
+  questionLabel: {
+    display: "block",
+    marginBottom: "4px",
+    color: "#444",
+    lineHeight: "1.4",
+  },
+  questionInput: {
+    width: "100%",
+    padding: "6px 8px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    fontSize: "13px",
+    fontFamily: "inherit",
+    boxSizing: "border-box" as const,
+    outline: "none",
+  },
+  questionsActionRow: {
+    display: "flex",
+    gap: "8px",
+    marginTop: "12px",
+  },
+  generateBtn: {
+    backgroundColor: "#C4622D",
+    color: "#fff",
+    ":hover": { backgroundColor: "#A5511F" },
+  },
 });
 
 const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
@@ -105,6 +148,8 @@ const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
   const [preview, setPreview] = React.useState<string | null>(null);
   const [qaAnswer, setQaAnswer] = React.useState<string | null>(null);
   const [instruction, setInstruction] = React.useState("");
+  const [clarifyingQuestions, setClarifyingQuestions] = React.useState<string[] | null>(null);
+  const [clarifyingAnswers, setClarifyingAnswers] = React.useState<string[]>([]);
   const styles = useStyles();
 
   React.useEffect(() => {
@@ -125,31 +170,56 @@ const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
     };
   }, [isPending]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const _doMutate = async (answers?: ClarifyingAnswer[]) => {
+    const context = await getEmailContext();
+    mutate(
+      {
+        ...context,
+        draft: preview ?? undefined,
+        instruction: instruction.trim() || undefined,
+        clarifying_answers: answers,
+      },
+      {
+        onSuccess: ({ reply, intent, clarifying_questions }) => {
+          if (clarifying_questions && clarifying_questions.length > 0) {
+            setClarifyingQuestions(clarifying_questions);
+            setClarifyingAnswers(new Array(clarifying_questions.length).fill(""));
+          } else if (intent === "qa") {
+            setQaAnswer(reply);
+            setClarifyingQuestions(null);
+          } else {
+            setPreview(reply);
+            setQaAnswer(null);
+            setClarifyingQuestions(null);
+          }
+          setInstruction("");
+        },
+        onError: (error) => {
+          console.error("Failed to generate reply:", error);
+          alert(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+        },
+      }
+    );
+  };
+
   const handleSend = async () => {
     try {
-      const context = await getEmailContext();
-      mutate(
-        {
-          ...context,
-          draft: preview ?? undefined,
-          instruction: instruction.trim() || undefined,
-        },
-        {
-          onSuccess: ({ reply, intent }) => {
-            if (intent === "qa") {
-              setQaAnswer(reply);
-            } else {
-              setPreview(reply);
-              setQaAnswer(null);
-            }
-            setInstruction("");
-          },
-          onError: (error) => {
-            console.error("Failed to generate reply:", error);
-            alert(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
-          },
-        }
-      );
+      await _doMutate();
+    } catch (error) {
+      console.error("Failed to read email context:", error);
+      alert(`Error reading email: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  };
+
+  const handleSubmitAnswers = async () => {
+    if (!clarifyingQuestions) return;
+    const answers: ClarifyingAnswer[] = clarifyingQuestions.map((q, i) => ({
+      question: q,
+      answer: clarifyingAnswers[i] ?? "",
+    }));
+    setClarifyingQuestions(null);
+    try {
+      await _doMutate(answers);
     } catch (error) {
       console.error("Failed to read email context:", error);
       alert(`Error reading email: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -206,6 +276,42 @@ const BasicBtn: React.FC<BasicBtnProps> = (props: BasicBtnProps) => {
           <p className={styles.qaLabel}>Answer</p>
           <p className={styles.qaText}>{qaAnswer}</p>
           <Button size="small" appearance="secondary" onClick={() => setQaAnswer(null)}>Dismiss</Button>
+        </div>
+      )}
+
+      {clarifyingQuestions !== null && (
+        <div className={styles.questionsBox}>
+          <p className={styles.questionsTitle}>Before I draft a reply, I need a few details:</p>
+          {clarifyingQuestions.map((q, i) => (
+            <div key={i} className={styles.questionItem}>
+              <label className={styles.questionLabel}>{q}</label>
+              <input
+                className={styles.questionInput}
+                type="text"
+                placeholder="Your answer..."
+                value={clarifyingAnswers[i] ?? ""}
+                onChange={(e) => {
+                  const updated = [...clarifyingAnswers];
+                  updated[i] = e.target.value;
+                  setClarifyingAnswers(updated);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && i === clarifyingQuestions.length - 1) {
+                    e.preventDefault();
+                    handleSubmitAnswers();
+                  }
+                }}
+              />
+            </div>
+          ))}
+          <div className={styles.questionsActionRow}>
+            <Button className={styles.generateBtn} appearance="primary" size="medium" disabled={isPending} onClick={handleSubmitAnswers}>
+              Generate reply
+            </Button>
+            <Button appearance="secondary" size="medium" onClick={() => setClarifyingQuestions(null)}>
+              Skip
+            </Button>
+          </div>
         </div>
       )}
 

@@ -68,3 +68,22 @@ Email thread:
 
 User question: {instruction}
 """
+
+[clarifying_questions]
+system = """
+You are an assistant helping the user draft a reply to an email.
+Identify any specific pieces of information the user would need to provide to write a complete, accurate reply.
+Only ask about concrete missing facts — things only the user would know (e.g. their availability, preferences, decisions, personal details being asked about).
+Do NOT ask about tone, style, or length preferences.
+Do NOT ask things that are already clear from the email thread or the user's instruction.
+If the reply can be written without any extra info from the user, return an empty list.
+Return ONLY a JSON object with a single key "questions" containing a list of question strings.
+Example: {{"questions": ["What date and time works for you?", "What is your budget for the project?"]}}
+"""
+human = """
+Subject: {subject}
+Recipients: {recipients}
+
+Email thread:
+{body}{thread_context}
+{instruction_line}"""

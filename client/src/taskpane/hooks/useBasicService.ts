@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { getBasicText, generateEmailReply, type ReplyResult } from "../services/basicService";
+import { getBasicText, generateEmailReply, type ReplyResult, type ClarifyingAnswer } from "../services/basicService";
 import { EmailContext } from "../taskpane";
 
 /**
@@ -10,6 +10,12 @@ export function useBasicService() {
   return useMutation({ mutationFn: getBasicText });
 }
 
+export interface GenerateReplyInput extends EmailContext {
+  clarifying_answers?: ClarifyingAnswer[];
+}
+
 export function useGenerateReply() {
-  return useMutation<ReplyResult, Error, EmailContext>({ mutationFn: generateEmailReply });
+  return useMutation<ReplyResult, Error, GenerateReplyInput>({
+    mutationFn: ({ clarifying_answers, ...context }) => generateEmailReply(context, clarifying_answers),
+  });
 }

@@ -26,6 +26,8 @@ class EmailContextRequest(BaseModel):
     item_rest_id: Optional[str] = None
     # conversationId is available in compose/reply mode when itemId is not yet set
     conversation_id: Optional[str] = None
+    # User's answers to clarifying questions from a previous call
+    clarifying_answers: Optional[List[dict]] = None
 
 
 class GenerateReplyResponse(BaseModel):
@@ -33,6 +35,7 @@ class GenerateReplyResponse(BaseModel):
     user_name: Optional[str] = None
     graph_enriched: bool = False  # True when reply used Graph API thread data
     intent: Literal["draft", "qa"] = "draft"
+    clarifying_questions: Optional[List[str]] = None  # When set, ask user these before generating
 
 
 def get_langchain_service():
@@ -76,7 +79,24 @@ def generate_reply(
             # Non-fatal: fall back to the email context provided by the client
             logger.warning("Could not fetch email thread from Graph: %s", e)
 
-    reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
+    # When no clarifying answers yet, check if we need more info before generating
+    if not request.clarifying_answers:
+        try:
+            questions = service.get_clarifying_questions(request, graph_thread=graph_thread)
+            if questions:
+                return GenerateReplyResponse(
+                    reply="",
+                    user_name=user.name if user else None,
+                    graph_enriched=graph_thread is not None,
+                    clarifying_questions=questions,
+                )
+        except Exception as e:
+            # Non-fatal: if clarifying questions fail, proceed directly to generation
+            logger.warning("Could not get clarifying questions: %s", e)
+
+    reply, intent = service.generate_email_reply(
+        request, graph_thread=graph_thread, clarifying_answers=request.clarifying_answers
+    )
     return GenerateReplyResponse(
         reply=reply,
         user_name=user.name if user else None,
