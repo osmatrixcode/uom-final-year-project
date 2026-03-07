@@ -9,7 +9,8 @@ DOCUMENTATION:
 FRONTEND DESIGN:
     ☐ make it look like claude cowork (clean, simple, modern)
         ☐ make it look like claude code (Shift + Tab to alternate)
-
+    ☐ Have conversation history style interface (like copilot, chatgpt, etc...) right now just generates and cannot scroll through past conversations. Have it so can scroll it
+        ☐ think however about email draft? (perhaps make it into a shift + tab thing, where shift + tab is the email draft, and then the main chat interface is the general chat interface?)
     ☐ Shift + Tab to alternate between user input and response (like claude code)
 
 
