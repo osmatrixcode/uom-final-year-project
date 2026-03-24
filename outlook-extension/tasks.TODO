@@ -45,3 +45,12 @@ PRIVACY AND SECURITY:
 
 
 
+LAST MINUTE FEATURES:
+    ☐ ProfileMD for each email address (can modify tone, give context, etc...) 
+    ☐ View past conversations with a person (and summarise?) 
+    ☐ shift+tab to alternate? 
+        ☐ use for email draft making and accept or discard etc or make edits...
+    ☐ basic testing (with llm as a judge) python results) 
+    ☐ think of ways to be better than a GPT wrapper / Copilot on outlook
+    ☐ general QA prompt
+        ☐ Can prompt inject, etc... need safeguards + privacy 

@@ -1,0 +1,40 @@
+export const tokens = {
+  colors: {
+    primary: "#0062AD",
+    primaryHover: "#004E8A",
+    surface: "#FFFFFF",
+    background: "#F8F8F8",
+    border: "#E5E5E5",
+    text: "#1A1A1A",
+    textSecondary: "#707070",
+    placeholder: "#A0A0A0",
+    accent: "#C4622D",
+    accentHover: "#A5511F",
+    userBubble: "#0062AD",
+    aiBubble: "#FFFFFF",
+  },
+  radius: {
+    sm: "6px",
+    md: "10px",
+    lg: "16px",
+    pill: "100px",
+  },
+  spacing: {
+    xs: 3,
+    sm: 6,
+    md: 10,
+    lg: 12,
+    xl: 16,
+  },
+  shadow: {
+    card: "0 1px 3px rgba(0,0,0,0.07)",
+    cardHover: "0 3px 8px rgba(0,0,0,0.12)",
+    input: "0 1px 4px rgba(0,0,0,0.08)",
+  },
+  font: {
+    title: { size: "17px", weight: 700 as const },
+    body: { size: "13px", weight: 400 as const },
+    label: { size: "11px", weight: 600 as const },
+    caption: { size: "10px", weight: 400 as const },
+  },
+};
