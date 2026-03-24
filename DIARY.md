@@ -69,3 +69,7 @@
 ## 6th March 2026
 
 - trying to impl naa
+
+## 7th March 2026
+- Problem of: it works, but so many edge cases where it doenst know if a prompt means user should answer a clarifying questions, or to update email draft directly, or to do general qa.
+- need to figure out AI AGENTIC LLM PATTERN REGARDING THIS! 
