@@ -71,5 +71,12 @@
 - trying to impl naa
 
 ## 7th March 2026
+
 - Problem of: it works, but so many edge cases where it doenst know if a prompt means user should answer a clarifying questions, or to update email draft directly, or to do general qa.
-- need to figure out AI AGENTIC LLM PATTERN REGARDING THIS! 
+- need to figure out AI AGENTIC LLM PATTERN REGARDING THIS!
+
+## 24th March 2026
+
+- need to go back and revert so can go back to basic QA prompt (none of these chains)
+- need to make a plan for what to do in next 10 days
+  -
