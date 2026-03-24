@@ -65,3 +65,34 @@ class LangChainService:
         }).content
 
         return reply, "qa"
+
+    def stream_email_reply(self, email_context, graph_thread: dict | None = None):
+        """Yields reply text chunks for streaming responses."""
+        recipients_str = ", ".join(
+            r.displayName or r.emailAddress for r in email_context.recipients
+        ) or "the sender"
+
+        thread_context = ""
+        if graph_thread:
+            thread_messages = graph_thread.get("thread", [])
+            if thread_messages:
+                summaries = []
+                for msg in thread_messages:
+                    sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
+                    preview = msg.get("bodyPreview", "")
+                    date = msg.get("receivedDateTime", "")[:10]
+                    summaries.append(f"[{date}] {sender}: {preview}")
+                thread_context = "\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries)
+
+        instruction = email_context.instruction or ""
+        chain = _PROMPT_CACHE["general_qa"] | self.llm
+
+        for chunk in chain.stream({
+            "subject": email_context.subject,
+            "recipients": recipients_str,
+            "body": email_context.body,
+            "thread_context": thread_context,
+            "instruction": instruction,
+        }):
+            if chunk.content:
+                yield chunk.content

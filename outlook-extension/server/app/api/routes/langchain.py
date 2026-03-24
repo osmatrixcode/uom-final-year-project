@@ -1,5 +1,7 @@
+import json
 import logging
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List, Literal, Optional
 from app.services.langchain_service import LangChainService
@@ -83,3 +85,38 @@ def generate_reply(
         graph_enriched=graph_thread is not None,
         intent=intent,
     )
+
+
+@router.post("/generate-reply/stream")
+def generate_reply_stream(
+    request: EmailContextRequest,
+    http_request: Request,
+    service: LangChainService = Depends(get_langchain_service),
+):
+    user = get_current_user(http_request)
+    token = _extract_bearer_token(http_request)
+
+    graph_thread: dict | None = None
+    if token:
+        try:
+            if request.item_rest_id:
+                graph_thread = get_email_thread(request.item_rest_id, token)
+            elif request.conversation_id:
+                graph_thread = get_thread_by_conversation_id(request.conversation_id, token)
+        except Exception as e:
+            logger.warning("Could not fetch email thread from Graph: %s", e)
+
+    def event_stream():
+        try:
+            intent = service._classify_intent(request.instruction or "")
+            yield f"data: {json.dumps({'type': 'intent', 'intent': intent})}\n\n"
+
+            for chunk in service.stream_email_reply(request, graph_thread=graph_thread):
+                yield f"data: {json.dumps({'type': 'token', 'token': chunk})}\n\n"
+
+            yield f"data: {json.dumps({'type': 'done', 'user_name': user.name if user else None, 'graph_enriched': graph_thread is not None})}\n\n"
+        except Exception as e:
+            logger.error("Streaming error: %s", e)
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
