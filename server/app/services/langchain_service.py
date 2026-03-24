@@ -56,27 +56,12 @@ class LangChainService:
 
         instruction = email_context.instruction or ""
 
-        # Classify intent only when the user typed something
-        intent = self._classify_intent(instruction) if instruction else "draft"
+        reply = (_PROMPT_CACHE["general_qa"] | self.llm).invoke({
+            "subject": email_context.subject,
+            "recipients": recipients_str,
+            "body": email_context.body,
+            "thread_context": thread_context,
+            "instruction": instruction,
+        }).content
 
-        if intent == "qa":
-            reply = (_PROMPT_CACHE["general_qa"] | self.llm).invoke({
-                "subject": email_context.subject,
-                "recipients": recipients_str,
-                "body": email_context.body,
-                "thread_context": thread_context,
-                "instruction": instruction,
-            }).content
-        else:
-            instruction_note = f"User instruction: {instruction}" if instruction else ""
-            prompt_key = "refine_draft" if email_context.draft else "generate_reply"
-            reply = (_PROMPT_CACHE[prompt_key] | self.llm).invoke({
-                "subject": email_context.subject,
-                "recipients": recipients_str,
-                "body": email_context.body,
-                "thread_context": thread_context,
-                "instruction_note": instruction_note,
-                "draft": email_context.draft or "",
-            }).content
-
-        return reply, intent
+        return reply, "qa"
