@@ -1,0 +1,8 @@
+- Why not RAG
+- Idea of In Context Learning 
+- state MMLU benchmark of model used (not need to train, as can find it) 
+- why not local models?
+- why not fine tuning? why foundation models 
+- will pretty much be a report on Week 9 NLP lecture slide!
+- answer a lot of the 'why not' questions
+    - why not finetune? costs and static knowledge + not dynamic enough (think about if have one tone with one user, another tone with another)

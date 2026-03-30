@@ -42,11 +42,6 @@ class LangChainService:
         response = self.llm.invoke([HumanMessage(content="Say hello in one sentence.")])
         return response.content
 
-    def _classify_intent(self, instruction: str) -> str:
-        """Returns 'draft' or 'qa' based on the user's instruction."""
-        result = (_PROMPT_CACHE["intent_classifier"] | self.llm).invoke({"instruction": instruction}).content.strip().lower()
-        return "qa" if result.startswith("qa") else "draft"
-
     def _build_thread_context(self, graph_thread: dict | None) -> str:
         if not graph_thread:
             return ""

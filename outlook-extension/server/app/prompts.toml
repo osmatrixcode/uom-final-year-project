@@ -52,17 +52,6 @@ User's current draft:
 Refine this draft.
 """
 
-[intent_classifier]
-# Returns a single word: draft or qa. No other output.
-system = """
-You are an intent classifier for an email assistant.
-Classify the user's instruction into exactly one of these intents:
-- draft: the user wants to generate, write, create, compose, or refine an email reply
-- qa: the user is asking a question about the email (tone, summary, sentiment, meaning, length, etc.)
-Reply with only one word: draft or qa.
-"""
-human = "Instruction: {instruction}"
-
 [general_qa]
 system = """
 You are a helpful assistant with access to the user's email thread.

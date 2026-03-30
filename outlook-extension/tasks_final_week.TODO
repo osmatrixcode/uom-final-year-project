@@ -15,6 +15,7 @@
     ☐ when view a past email thread, can we use the extension to summarise the thread? (yes we can!) 
     ☐ ask AI and canvas view (to see what needs, to get a high grade!) 
         ☐ need data of course!
+        ☐ ask to dissect it bit by bit and what else to implement
     ☐ use Azure OpenAI (enterprise) for better privacy and security (and also better performance)
         ☐ also use it for testing! (as free credits)
     ☐ think of prompt generation techniques NLP
@@ -23,6 +24,16 @@
             ☐ if received past email from sender, use that as context + profileMD for that sender (can edit profileMD to change tone, etc...)
             ☐ if no past email from sender, generic professional + create a profileMD? 
             ☐ think about profileMD and if received email before from sender, if not then use general email responses user sent to make generic profileMD or for context 
+        ☐ if no email history with the sender, use THEIR email message THEY sent (find the tone AND RECIPROCATE THAT)
+    ☐ safeguarding model (for response appropiateness)
+    ☐ HITL or automatic generation (for llm guard)
+        ☐ like Claude code (can choose to automate, or review each step, etc...) provide range 
+    ☐ evaluate zero shot with few shot
+    ☐ uses document vector db to generate email reply, (link general qa with email draft)? think about it 
+    ☐ test different prompts as well etc... (for evaluation)  
+    ☐ test different local vs cloud models (time taken to generate) 
+    ☐ implement a thumbs up thumbs down system (help modify and give reason why) 
+    ☐ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) 
 
 
 ☐ __TASKS TO COMPLETE THIS WEEK__:
@@ -34,6 +45,8 @@
 ☐ -once user presses 'insert reply' in the option, will delete whatever is in the current reply body in outlook client (and then paste the one we generated).
 ☐ -also consider if have writing in the reply box in outlook client, pass that in as context when switch to email draft? (think about it)
 ☐ make email_draft text area bigger in taskpane (as right now really small) 
+☐ add dark mode? not for bubble but for background etc...
+☐ add corresponding ui coloour message boxes for each
 
 ☐ TUESDAY:
 

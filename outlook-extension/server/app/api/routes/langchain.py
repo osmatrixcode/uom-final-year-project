@@ -109,7 +109,7 @@ def generate_reply_stream(
 
     def event_stream():
         try:
-            intent = service._classify_intent(request.instruction or "")
+            intent = "draft" if request.mode == "email_draft" else "qa"
             yield f"data: {json.dumps({'type': 'intent', 'intent': intent})}\n\n"
 
             for chunk in service.stream_email_reply(request, graph_thread=graph_thread, sender_name=user.name if user else None):
