@@ -2,7 +2,6 @@ import * as React from "react";
 import { tokens } from "../theme/tokens";
 import Header from "./Header";
 import ConversationView from "./ConversationView";
-import SuggestionCards from "./SuggestionCards";
 import ChatInput, { InputMode } from "./ChatInput";
 import { Message } from "./MessageBubble";
 import { streamGenerateReply } from "../services/basicService";
@@ -180,8 +179,6 @@ const App: React.FC<AppProps> = ({ title }) => {
       ) : (
         <div style={{ flex: 1 }} />
       )}
-
-      <SuggestionCards onSend={handleSend} />
 
       <ChatInput
         value={instruction}

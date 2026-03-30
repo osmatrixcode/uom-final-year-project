@@ -12,8 +12,8 @@ const MODE_LABELS: Record<InputMode, string> = {
   sender_edit: "Sender Edit",
 };
 
-const MODE_BORDER_COLORS: Record<InputMode, string> = {
-  general_qa: tokens.colors.border,
+const MODE_COLORS: Record<InputMode, string> = {
+  general_qa: "#107C41",
   email_draft: tokens.colors.primary,
   sender_edit: tokens.colors.accent,
 };
@@ -38,7 +38,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   placeholder = "How can I help?",
 }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Tab" && e.shiftKey) {
+    if (e.key === "/" && e.ctrlKey) {
       e.preventDefault();
       onModeSwitch();
       return;
@@ -49,7 +49,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
-  const borderColor = MODE_BORDER_COLORS[mode];
+  const borderColor = MODE_COLORS[mode];
 
   return (
     <div
@@ -87,7 +87,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             color: tokens.colors.placeholder,
           }}
         >
-          ⇧Tab to switch
+          Ctrl+/ to switch
         </span>
       </div>
       <div

@@ -1,9 +1,12 @@
+import logging
 import os
 import tomllib
 import pathlib
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
+
+logger = logging.getLogger(__name__)
 
 _PROMPTS_PATH = pathlib.Path(__file__).parent.parent / "prompts.toml"
 with open(_PROMPTS_PATH, "rb") as _f:
@@ -104,7 +107,9 @@ class LangChainService:
         if mode == "email_draft":
             instruction_note = f"\nUser instruction: {instruction}\n" if instruction else ""
             if email_context.draft:
-                chain = _PROMPT_CACHE["refine_draft"] | self.llm
+                prompt_key = "refine_draft"
+                logger.info("[LangChain] mode=%s | prompt=%s (draft present)", mode, prompt_key)
+                chain = _PROMPT_CACHE[prompt_key] | self.llm
                 invoke_vars = {
                     "subject": email_context.subject,
                     "recipients": recipients_str,
@@ -114,7 +119,9 @@ class LangChainService:
                     "instruction_note": instruction_note,
                 }
             else:
-                chain = _PROMPT_CACHE["generate_reply"] | self.llm
+                prompt_key = "generate_reply"
+                logger.info("[LangChain] mode=%s | prompt=%s (no draft)", mode, prompt_key)
+                chain = _PROMPT_CACHE[prompt_key] | self.llm
                 invoke_vars = {
                     "subject": email_context.subject,
                     "recipients": recipients_str,
@@ -127,9 +134,11 @@ class LangChainService:
                     yield chunk.content
 
         elif mode == "sender_edit":
+            logger.info("[LangChain] mode=%s | prompt=none (not implemented)", mode)
             yield "Sender Edit mode is not yet implemented."
 
         else:  # general_qa (default)
+            logger.info("[LangChain] mode=%s | prompt=general_qa", mode)
             chain = _PROMPT_CACHE["general_qa"] | self.llm
             for chunk in chain.stream({
                 "subject": email_context.subject,
