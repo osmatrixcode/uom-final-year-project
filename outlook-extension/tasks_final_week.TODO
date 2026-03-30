@@ -9,7 +9,21 @@
     ☐ create README docs for evaluations
     ☐ logging and tracing (in a file and also on the console) for backend
         ☐ perhaps for frontend as well? (may not need)
-    ☐ 
+    ☐ profileMD for each email address (can edit tone, etc...) use Prompt to tell what to change and AI will modify the profileMD
+        ☐ think what to do for email groups / multiple people in thread (have profileMD for that group?)
+    ☐ general_qa mode, can query about documents sent? (vector DB -chromaDB is sqllite version) 
+    ☐ when view a past email thread, can we use the extension to summarise the thread? (yes we can!) 
+    ☐ ask AI and canvas view (to see what needs, to get a high grade!) 
+        ☐ need data of course!
+    ☐ use Azure OpenAI (enterprise) for better privacy and security (and also better performance)
+        ☐ also use it for testing! (as free credits)
+    ☐ think of prompt generation techniques NLP
+        ☐ few shot prompting (get 5 example responses from user, and pass it as context for system prompt)
+        ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response
+            ☐ if received past email from sender, use that as context + profileMD for that sender (can edit profileMD to change tone, etc...)
+            ☐ if no past email from sender, generic professional + create a profileMD? 
+            ☐ think about profileMD and if received email before from sender, if not then use general email responses user sent to make generic profileMD or for context 
+
 
 ☐ __TASKS TO COMPLETE THIS WEEK__:
     ☐ OUTLOOK EXTENSTION:
