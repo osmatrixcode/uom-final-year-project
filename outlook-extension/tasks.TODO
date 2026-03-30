@@ -7,10 +7,7 @@ DOCUMENTATION:
 
 
 FRONTEND DESIGN:
-    ☐ make it look like claude cowork (clean, simple, modern)
-        ☐ make it look like claude code (Shift + Tab to alternate)
-    ☐ Have conversation history style interface (like copilot, chatgpt, etc...) right now just generates and cannot scroll through past conversations. Have it so can scroll it
-        ☐ think however about email draft? (perhaps make it into a shift + tab thing, where shift + tab is the email draft, and then the main chat interface is the general chat interface?)
+    ☐ make it look like claude code (Shift + Tab to alternate)
     ☐ Shift + Tab to alternate between user input and response (like claude code)
 
 
@@ -18,8 +15,7 @@ BACKEND:
     VECTOR DATABASE:
         ☐ look into chromaDB (like SQLite for vector DB)
     ALL THINGS AI: 
-        ☐ use Langchain (much easier and has standard agentic architecture)
-        ☐ PROMPT: get a few (5) example responses of USER, and PASS IT AS CONTEXT (for system prompt)? 
+        ☐ PROMPT: get a few (5) example responses of USER, and PASS IT AS CONTEXT (for system prompt) (few shot prompting)? 
         ☐ Have GENERAL chat interface (can ask ANY question) and then use agentic to find out what the response is
             ☐ right now prompt just generates a response email. 
         ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response

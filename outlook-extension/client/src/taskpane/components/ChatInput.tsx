@@ -4,10 +4,26 @@ import { ShimmerButton } from "./ShimmerButton";
 
 /* global HTMLTextAreaElement */
 
+export type InputMode = "general_qa" | "email_draft" | "sender_edit";
+
+const MODE_LABELS: Record<InputMode, string> = {
+  general_qa: "General QA",
+  email_draft: "Email Draft",
+  sender_edit: "Sender Edit",
+};
+
+const MODE_BORDER_COLORS: Record<InputMode, string> = {
+  general_qa: tokens.colors.border,
+  email_draft: tokens.colors.primary,
+  sender_edit: tokens.colors.accent,
+};
+
 interface ChatInputProps {
   value: string;
   onChange: (value: string) => void;
   onSend: () => void;
+  onModeSwitch: () => void;
+  mode: InputMode;
   disabled?: boolean;
   placeholder?: string;
 }
@@ -16,15 +32,24 @@ const ChatInput: React.FC<ChatInputProps> = ({
   value,
   onChange,
   onSend,
+  onModeSwitch,
+  mode,
   disabled = false,
   placeholder = "How can I help?",
 }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Tab" && e.shiftKey) {
+      e.preventDefault();
+      onModeSwitch();
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (!disabled && value.trim()) onSend();
     }
   };
+
+  const borderColor = MODE_BORDER_COLORS[mode];
 
   return (
     <div
@@ -39,13 +64,43 @@ const ChatInput: React.FC<ChatInputProps> = ({
       <div
         style={{
           display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: tokens.spacing.xs,
+          paddingLeft: 2,
+        }}
+      >
+        <span
+          style={{
+            fontSize: tokens.font.caption.size,
+            color: borderColor,
+            fontWeight: tokens.font.label.weight,
+            letterSpacing: "0.02em",
+            transition: "color 0.15s ease",
+          }}
+        >
+          {MODE_LABELS[mode]}
+        </span>
+        <span
+          style={{
+            fontSize: tokens.font.caption.size,
+            color: tokens.colors.placeholder,
+          }}
+        >
+          ⇧Tab to switch
+        </span>
+      </div>
+      <div
+        style={{
+          display: "flex",
           alignItems: "flex-end",
           gap: tokens.spacing.sm,
           backgroundColor: tokens.colors.background,
           borderRadius: tokens.radius.lg,
           padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
-          border: `1px solid ${tokens.colors.border}`,
+          border: `1px solid ${borderColor}`,
           boxShadow: tokens.shadow.input,
+          transition: "border-color 0.15s ease",
         }}
       >
         <textarea

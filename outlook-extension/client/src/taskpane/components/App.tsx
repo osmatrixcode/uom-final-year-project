@@ -3,7 +3,7 @@ import { tokens } from "../theme/tokens";
 import Header from "./Header";
 import ConversationView from "./ConversationView";
 import SuggestionCards from "./SuggestionCards";
-import ChatInput from "./ChatInput";
+import ChatInput, { InputMode } from "./ChatInput";
 import { Message } from "./MessageBubble";
 import { streamGenerateReply } from "../services/basicService";
 import { getEmailContext, insertText } from "../taskpane";
@@ -30,6 +30,15 @@ const App: React.FC<AppProps> = ({ title }) => {
   const [instruction, setInstruction] = React.useState("");
   const [isPending, setIsPending] = React.useState(false);
   const [headerTitle, setHeaderTitle] = React.useState(title);
+  const [mode, setMode] = React.useState<InputMode>("general_qa");
+
+  const MODES: InputMode[] = ["general_qa", "email_draft", "sender_edit"];
+  const handleModeSwitch = () => {
+    setMode((prev) => {
+      const idx = MODES.indexOf(prev);
+      return MODES[(idx + 1) % MODES.length];
+    });
+  };
 
   /* Cycle loading phrases while streaming */
   React.useEffect(() => {
@@ -68,7 +77,7 @@ const App: React.FC<AppProps> = ({ title }) => {
       let resolvedIntent: "draft" | "qa" = "draft";
 
       await streamGenerateReply(
-        { ...context, draft: lastDraft?.content ?? undefined, instruction: text },
+        { ...context, draft: lastDraft?.content ?? undefined, instruction: text, mode },
         {
           onIntent: (intent) => {
             resolvedIntent = intent;
@@ -178,6 +187,8 @@ const App: React.FC<AppProps> = ({ title }) => {
         value={instruction}
         onChange={setInstruction}
         onSend={() => handleSend()}
+        onModeSwitch={handleModeSwitch}
+        mode={mode}
         disabled={isPending}
         placeholder={hasMessages ? "Refine or ask a follow-up..." : "How can I help?"}
       />

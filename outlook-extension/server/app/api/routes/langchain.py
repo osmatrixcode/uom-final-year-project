@@ -23,6 +23,7 @@ class EmailContextRequest(BaseModel):
     recipients: List[EmailRecipient]
     draft: Optional[str] = None
     instruction: Optional[str] = None
+    mode: Optional[str] = None
     # Optional: when provided, the backend fetches the full email thread from Graph
     # using the client's NAA token.
     item_rest_id: Optional[str] = None

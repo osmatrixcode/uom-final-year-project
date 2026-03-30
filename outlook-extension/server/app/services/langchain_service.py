@@ -35,64 +35,108 @@ class LangChainService:
         result = (_PROMPT_CACHE["intent_classifier"] | self.llm).invoke({"instruction": instruction}).content.strip().lower()
         return "qa" if result.startswith("qa") else "draft"
 
+    def _build_thread_context(self, graph_thread: dict | None) -> str:
+        if not graph_thread:
+            return ""
+        thread_messages = graph_thread.get("thread", [])
+        if not thread_messages:
+            return ""
+        summaries = []
+        for msg in thread_messages:
+            sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
+            preview = msg.get("bodyPreview", "")
+            date = msg.get("receivedDateTime", "")[:10]
+            summaries.append(f"[{date}] {sender}: {preview}")
+        return "\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries)
+
     def generate_email_reply(self, email_context, graph_thread: dict | None = None) -> tuple[str, str]:
         """Returns (reply_text, intent) where intent is 'draft' or 'qa'."""
         recipients_str = ", ".join(
             r.displayName or r.emailAddress for r in email_context.recipients
         ) or "the sender"
-
-        # Build a richer thread summary when Graph data is available
-        thread_context = ""
-        if graph_thread:
-            thread_messages = graph_thread.get("thread", [])
-            if thread_messages:
-                summaries = []
-                for msg in thread_messages:
-                    sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
-                    preview = msg.get("bodyPreview", "")
-                    date = msg.get("receivedDateTime", "")[:10]
-                    summaries.append(f"[{date}] {sender}: {preview}")
-                thread_context = "\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries)
-
+        thread_context = self._build_thread_context(graph_thread)
         instruction = email_context.instruction or ""
+        mode = getattr(email_context, "mode", None) or "general_qa"
 
-        reply = (_PROMPT_CACHE["general_qa"] | self.llm).invoke({
-            "subject": email_context.subject,
-            "recipients": recipients_str,
-            "body": email_context.body,
-            "thread_context": thread_context,
-            "instruction": instruction,
-        }).content
+        if mode == "email_draft":
+            instruction_note = f"\nUser instruction: {instruction}\n" if instruction else ""
+            if email_context.draft:
+                reply = (_PROMPT_CACHE["refine_draft"] | self.llm).invoke({
+                    "subject": email_context.subject,
+                    "recipients": recipients_str,
+                    "body": email_context.body,
+                    "thread_context": thread_context,
+                    "draft": email_context.draft,
+                    "instruction_note": instruction_note,
+                }).content
+            else:
+                reply = (_PROMPT_CACHE["generate_reply"] | self.llm).invoke({
+                    "subject": email_context.subject,
+                    "recipients": recipients_str,
+                    "body": email_context.body,
+                    "thread_context": thread_context,
+                    "instruction_note": instruction_note,
+                }).content
+            return reply, "draft"
 
-        return reply, "qa"
+        elif mode == "sender_edit":
+            return "Sender Edit mode is not yet implemented.", "qa"
+
+        else:  # general_qa (default)
+            reply = (_PROMPT_CACHE["general_qa"] | self.llm).invoke({
+                "subject": email_context.subject,
+                "recipients": recipients_str,
+                "body": email_context.body,
+                "thread_context": thread_context,
+                "instruction": instruction,
+            }).content
+            return reply, "qa"
 
     def stream_email_reply(self, email_context, graph_thread: dict | None = None):
         """Yields reply text chunks for streaming responses."""
         recipients_str = ", ".join(
             r.displayName or r.emailAddress for r in email_context.recipients
         ) or "the sender"
-
-        thread_context = ""
-        if graph_thread:
-            thread_messages = graph_thread.get("thread", [])
-            if thread_messages:
-                summaries = []
-                for msg in thread_messages:
-                    sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
-                    preview = msg.get("bodyPreview", "")
-                    date = msg.get("receivedDateTime", "")[:10]
-                    summaries.append(f"[{date}] {sender}: {preview}")
-                thread_context = "\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries)
-
+        thread_context = self._build_thread_context(graph_thread)
         instruction = email_context.instruction or ""
-        chain = _PROMPT_CACHE["general_qa"] | self.llm
+        mode = getattr(email_context, "mode", None) or "general_qa"
 
-        for chunk in chain.stream({
-            "subject": email_context.subject,
-            "recipients": recipients_str,
-            "body": email_context.body,
-            "thread_context": thread_context,
-            "instruction": instruction,
-        }):
-            if chunk.content:
-                yield chunk.content
+        if mode == "email_draft":
+            instruction_note = f"\nUser instruction: {instruction}\n" if instruction else ""
+            if email_context.draft:
+                chain = _PROMPT_CACHE["refine_draft"] | self.llm
+                invoke_vars = {
+                    "subject": email_context.subject,
+                    "recipients": recipients_str,
+                    "body": email_context.body,
+                    "thread_context": thread_context,
+                    "draft": email_context.draft,
+                    "instruction_note": instruction_note,
+                }
+            else:
+                chain = _PROMPT_CACHE["generate_reply"] | self.llm
+                invoke_vars = {
+                    "subject": email_context.subject,
+                    "recipients": recipients_str,
+                    "body": email_context.body,
+                    "thread_context": thread_context,
+                    "instruction_note": instruction_note,
+                }
+            for chunk in chain.stream(invoke_vars):
+                if chunk.content:
+                    yield chunk.content
+
+        elif mode == "sender_edit":
+            yield "Sender Edit mode is not yet implemented."
+
+        else:  # general_qa (default)
+            chain = _PROMPT_CACHE["general_qa"] | self.llm
+            for chunk in chain.stream({
+                "subject": email_context.subject,
+                "recipients": recipients_str,
+                "body": email_context.body,
+                "thread_context": thread_context,
+                "instruction": instruction,
+            }):
+                if chunk.content:
+                    yield chunk.content

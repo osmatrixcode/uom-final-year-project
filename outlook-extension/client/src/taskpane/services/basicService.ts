@@ -24,7 +24,7 @@ export interface StreamCallbacks {
   onError: (error: Error) => void;
 }
 
-export async function streamGenerateReply(context: EmailContext, callbacks: StreamCallbacks): Promise<void> {
+export async function streamGenerateReply(context: EmailContext & { mode?: string }, callbacks: StreamCallbacks): Promise<void> {
   const item_rest_id = getItemRestId();
   const conversation_id = getConversationId();
 
