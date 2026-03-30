@@ -1,25 +1,8 @@
-DOCUMENTATION:
-    ☐ In README...
-    ☐ add section on how to load the client
-    ☐ add section on how to load the server
-        ☐ remember the OPEN AI API
-    ☐ make the README really pretty! 
-
-
-FRONTEND DESIGN:
-    ☐ make it look like claude cowork (clean, simple, modern)
-        ☐ make it look like claude code (Shift + Tab to alternate)
-    ☐ Have conversation history style interface (like copilot, chatgpt, etc...) right now just generates and cannot scroll through past conversations. Have it so can scroll it
-        ☐ think however about email draft? (perhaps make it into a shift + tab thing, where shift + tab is the email draft, and then the main chat interface is the general chat interface?)
-    ☐ Shift + Tab to alternate between user input and response (like claude code)
-
-
 BACKEND:
     VECTOR DATABASE:
         ☐ look into chromaDB (like SQLite for vector DB)
     ALL THINGS AI: 
-        ☐ use Langchain (much easier and has standard agentic architecture)
-        ☐ PROMPT: get a few (5) example responses of USER, and PASS IT AS CONTEXT (for system prompt)? 
+        ☐ PROMPT: get a few (5) example responses of USER, and PASS IT AS CONTEXT (for system prompt) (few shot prompting)? 
         ☐ Have GENERAL chat interface (can ask ANY question) and then use agentic to find out what the response is
             ☐ right now prompt just generates a response email. 
         ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response
@@ -41,16 +24,7 @@ TESTING & EVALUATION:
 
 PRIVACY AND SECURITY: 
     ☐ Azure OpenAI has safety + privacy built in (since it's for enterprise)
-    ☐ perhaps python libraries for data anonymisation 
-
-
 
 LAST MINUTE FEATURES:
-    ☐ ProfileMD for each email address (can modify tone, give context, etc...) 
+    ☐ ProfileMD for each email address (can modify tone, give context, etc...) how a
     ☐ View past conversations with a person (and summarise?) 
-    ☐ shift+tab to alternate? 
-        ☐ use for email draft making and accept or discard etc or make edits...
-    ☐ basic testing (with llm as a judge) python results) 
-    ☐ think of ways to be better than a GPT wrapper / Copilot on outlook
-    ☐ general QA prompt
-        ☐ Can prompt inject, etc... need safeguards + privacy 

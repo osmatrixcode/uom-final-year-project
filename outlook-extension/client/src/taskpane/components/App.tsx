@@ -2,8 +2,8 @@ import * as React from "react";
 import { tokens } from "../theme/tokens";
 import Header from "./Header";
 import ConversationView from "./ConversationView";
-import SuggestionCards from "./SuggestionCards";
-import ChatInput from "./ChatInput";
+import DraftBox from "./DraftBox";
+import ChatInput, { InputMode } from "./ChatInput";
 import { Message } from "./MessageBubble";
 import { streamGenerateReply } from "../services/basicService";
 import { getEmailContext, insertText } from "../taskpane";
@@ -30,6 +30,18 @@ const App: React.FC<AppProps> = ({ title }) => {
   const [instruction, setInstruction] = React.useState("");
   const [isPending, setIsPending] = React.useState(false);
   const [headerTitle, setHeaderTitle] = React.useState(title);
+  const [mode, setMode] = React.useState<InputMode>("general_qa");
+
+  /* email_draft mode: single persistent draft — null means no draft active */
+  const [currentDraft, setCurrentDraft] = React.useState<string | null>(null);
+
+  const MODES: InputMode[] = ["general_qa", "email_draft", "sender_edit"];
+  const handleModeSwitch = () => {
+    setMode((prev) => {
+      const idx = MODES.indexOf(prev);
+      return MODES[(idx + 1) % MODES.length];
+    });
+  };
 
   /* Cycle loading phrases while streaming */
   React.useEffect(() => {
@@ -52,90 +64,126 @@ const App: React.FC<AppProps> = ({ title }) => {
     const text = (prompt ?? instruction).trim();
     if (!text || isPending) return;
 
-    const lastDraft = [...messages].reverse().find((m) => m.role === "ai" && m.isDraft);
+    const currentMode = mode;
 
-    /* Add user bubble + empty streaming AI bubble */
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", content: text },
-      { role: "ai", content: "", isStreaming: true, isDraft: false },
-    ]);
-    setInstruction("");
-    setIsPending(true);
+    if (currentMode === "email_draft") {
+      /* In email_draft mode: only add the user instruction bubble; AI response
+         goes into the persistent DraftBox rather than the message list. */
+      const draftContent = currentDraft ?? undefined;
+      setMessages((prev) => [...prev, { role: "user", content: text }]);
+      setCurrentDraft(""); // empty string = streaming in progress
+      setInstruction("");
+      setIsPending(true);
 
-    try {
-      const context = await getEmailContext();
-      let resolvedIntent: "draft" | "qa" = "draft";
+      try {
+        const context = await getEmailContext();
+        await streamGenerateReply(
+          { ...context, draft: draftContent, instruction: text, mode: currentMode },
+          {
+            onIntent: () => { /* email_draft always produces a draft */ },
+            onToken: (token) => {
+              setCurrentDraft((prev) => (prev ?? "") + token);
+            },
+            onDone: () => {
+              setIsPending(false);
+            },
+            onError: (error) => {
+              console.error("Streaming error:", error);
+              setCurrentDraft(null);
+              setIsPending(false);
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Failed to read email context:", error);
+        setCurrentDraft(null);
+        setIsPending(false);
+      }
+    } else {
+      /* general_qa / sender_edit: conversation bubble flow */
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: text },
+        { role: "ai", content: "", isStreaming: true, isDraft: false },
+      ]);
+      setInstruction("");
+      setIsPending(true);
 
-      await streamGenerateReply(
-        { ...context, draft: lastDraft?.content ?? undefined, instruction: text },
-        {
-          onIntent: (intent) => {
-            resolvedIntent = intent;
-          },
-          onToken: (token) => {
-            setMessages((prev) => {
-              const next = [...prev];
-              const last = next[next.length - 1];
-              if (last?.role === "ai") {
-                next[next.length - 1] = { ...last, content: last.content + token };
-              }
-              return next;
-            });
-          },
-          onDone: () => {
-            setMessages((prev) => {
-              const next = [...prev];
-              const last = next[next.length - 1];
-              if (last?.role === "ai") {
-                next[next.length - 1] = {
-                  ...last,
-                  isStreaming: false,
-                  isDraft: resolvedIntent !== "qa",
-                };
-              }
-              return next;
-            });
-            setIsPending(false);
-          },
-          onError: (error) => {
-            console.error("Streaming error:", error);
-            setMessages((prev) => {
-              const next = [...prev];
-              const last = next[next.length - 1];
-              if (last?.role === "ai") {
-                next[next.length - 1] = {
-                  ...last,
-                  content: `Something went wrong: ${error.message}`,
-                  isStreaming: false,
-                  isDraft: false,
-                };
-              }
-              return next;
-            });
-            setIsPending(false);
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Failed to read email context:", error);
-      setMessages((prev) => {
-        const next = [...prev];
-        const last = next[next.length - 1];
-        if (last?.role === "ai") {
-          next[next.length - 1] = {
-            ...last,
-            content: `Could not read email: ${error instanceof Error ? error.message : "Unknown error"}`,
-            isStreaming: false,
-            isDraft: false,
-          };
-        }
-        return next;
-      });
-      setIsPending(false);
+      try {
+        const context = await getEmailContext();
+        let resolvedIntent: "draft" | "qa" = "draft";
+
+        await streamGenerateReply(
+          { ...context, instruction: text, mode: currentMode },
+          {
+            onIntent: (intent) => {
+              resolvedIntent = intent;
+            },
+            onToken: (token) => {
+              setMessages((prev) => {
+                const next = [...prev];
+                const last = next[next.length - 1];
+                if (last?.role === "ai") {
+                  next[next.length - 1] = { ...last, content: last.content + token };
+                }
+                return next;
+              });
+            },
+            onDone: () => {
+              setMessages((prev) => {
+                const next = [...prev];
+                const last = next[next.length - 1];
+                if (last?.role === "ai") {
+                  next[next.length - 1] = {
+                    ...last,
+                    isStreaming: false,
+                    isDraft: resolvedIntent !== "qa",
+                  };
+                }
+                return next;
+              });
+              setIsPending(false);
+            },
+            onError: (error) => {
+              console.error("Streaming error:", error);
+              setMessages((prev) => {
+                const next = [...prev];
+                const last = next[next.length - 1];
+                if (last?.role === "ai") {
+                  next[next.length - 1] = {
+                    ...last,
+                    content: `Something went wrong: ${error.message}`,
+                    isStreaming: false,
+                    isDraft: false,
+                  };
+                }
+                return next;
+              });
+              setIsPending(false);
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Failed to read email context:", error);
+        setMessages((prev) => {
+          const next = [...prev];
+          const last = next[next.length - 1];
+          if (last?.role === "ai") {
+            next[next.length - 1] = {
+              ...last,
+              content: `Could not read email: ${error instanceof Error ? error.message : "Unknown error"}`,
+              isStreaming: false,
+              isDraft: false,
+            };
+          }
+          return next;
+        });
+        setIsPending(false);
+      }
     }
   };
 
+  /* general_qa / sender_edit draft handlers (bubble-style) */
   const handleInsert = (text: string) => {
     insertText(text);
     setMessages((prev) =>
@@ -147,6 +195,24 @@ const App: React.FC<AppProps> = ({ title }) => {
     setMessages((prev) => prev.map((m, i) => (i === index ? { ...m, isDraft: false } : m)));
   };
 
+  /* email_draft DraftBox handlers */
+  const handleDraftInsert = () => {
+    if (currentDraft) insertText(currentDraft);
+    setCurrentDraft(null);
+    setMode("general_qa");
+  };
+
+  const handleDraftDiscard = () => {
+    setCurrentDraft(null);
+    setMode("general_qa");
+  };
+
+  const handleDraftEdit = (content: string) => {
+    setCurrentDraft(content);
+  };
+
+  const modeSwitchLocked = mode === "email_draft" && currentDraft !== null;
+  const showDraftBox = mode === "email_draft" && currentDraft !== null;
   const hasMessages = messages.length > 0;
 
   return (
@@ -172,14 +238,33 @@ const App: React.FC<AppProps> = ({ title }) => {
         <div style={{ flex: 1 }} />
       )}
 
-      <SuggestionCards onSend={handleSend} />
+      {showDraftBox && (
+        <DraftBox
+          content={currentDraft}
+          isStreaming={isPending}
+          onInsert={handleDraftInsert}
+          onDiscard={handleDraftDiscard}
+          onEdit={handleDraftEdit}
+        />
+      )}
 
       <ChatInput
         value={instruction}
         onChange={setInstruction}
         onSend={() => handleSend()}
+        onModeSwitch={handleModeSwitch}
+        mode={mode}
+        modeSwitchLocked={modeSwitchLocked}
         disabled={isPending}
-        placeholder={hasMessages ? "Refine or ask a follow-up..." : "How can I help?"}
+        placeholder={
+          mode === "email_draft"
+            ? currentDraft !== null
+              ? "Refine the draft above..."
+              : "Describe the reply you want..."
+            : hasMessages
+            ? "Refine or ask a follow-up..."
+            : "How can I help?"
+        }
       />
     </div>
   );

@@ -4,10 +4,27 @@ import { ShimmerButton } from "./ShimmerButton";
 
 /* global HTMLTextAreaElement */
 
+export type InputMode = "general_qa" | "email_draft" | "sender_edit";
+
+const MODE_LABELS: Record<InputMode, string> = {
+  general_qa: "General QA",
+  email_draft: "Email Draft",
+  sender_edit: "Sender Edit",
+};
+
+const MODE_COLORS: Record<InputMode, string> = {
+  general_qa: "#107C41",
+  email_draft: tokens.colors.primary,
+  sender_edit: tokens.colors.accent,
+};
+
 interface ChatInputProps {
   value: string;
   onChange: (value: string) => void;
   onSend: () => void;
+  onModeSwitch: () => void;
+  mode: InputMode;
+  modeSwitchLocked?: boolean;
   disabled?: boolean;
   placeholder?: string;
 }
@@ -16,15 +33,32 @@ const ChatInput: React.FC<ChatInputProps> = ({
   value,
   onChange,
   onSend,
+  onModeSwitch,
+  mode,
+  modeSwitchLocked = false,
   disabled = false,
   placeholder = "How can I help?",
 }) => {
+  const [showLockHint, setShowLockHint] = React.useState(false);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "/" && e.ctrlKey) {
+      e.preventDefault();
+      if (modeSwitchLocked) {
+        setShowLockHint(true);
+        setTimeout(() => setShowLockHint(false), 1500);
+      } else {
+        onModeSwitch();
+      }
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (!disabled && value.trim()) onSend();
     }
   };
+
+  const borderColor = MODE_COLORS[mode];
 
   return (
     <div
@@ -39,13 +73,44 @@ const ChatInput: React.FC<ChatInputProps> = ({
       <div
         style={{
           display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: tokens.spacing.xs,
+          paddingLeft: 2,
+        }}
+      >
+        <span
+          style={{
+            fontSize: tokens.font.caption.size,
+            color: borderColor,
+            fontWeight: tokens.font.label.weight,
+            letterSpacing: "0.02em",
+            transition: "color 0.15s ease",
+          }}
+        >
+          {MODE_LABELS[mode]}
+        </span>
+        <span
+          style={{
+            fontSize: tokens.font.caption.size,
+            color: showLockHint ? "#C4262E" : tokens.colors.placeholder,
+            transition: "color 0.15s ease",
+          }}
+        >
+          {showLockHint ? "Insert or discard draft first" : "Ctrl+/ to switch"}
+        </span>
+      </div>
+      <div
+        style={{
+          display: "flex",
           alignItems: "flex-end",
           gap: tokens.spacing.sm,
           backgroundColor: tokens.colors.background,
           borderRadius: tokens.radius.lg,
           padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
-          border: `1px solid ${tokens.colors.border}`,
+          border: `1px solid ${borderColor}`,
           boxShadow: tokens.shadow.input,
+          transition: "border-color 0.15s ease",
         }}
       >
         <textarea

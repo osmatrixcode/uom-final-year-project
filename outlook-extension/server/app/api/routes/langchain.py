@@ -23,6 +23,7 @@ class EmailContextRequest(BaseModel):
     recipients: List[EmailRecipient]
     draft: Optional[str] = None
     instruction: Optional[str] = None
+    mode: Optional[str] = None
     # Optional: when provided, the backend fetches the full email thread from Graph
     # using the client's NAA token.
     item_rest_id: Optional[str] = None
@@ -111,7 +112,7 @@ def generate_reply_stream(
             intent = service._classify_intent(request.instruction or "")
             yield f"data: {json.dumps({'type': 'intent', 'intent': intent})}\n\n"
 
-            for chunk in service.stream_email_reply(request, graph_thread=graph_thread):
+            for chunk in service.stream_email_reply(request, graph_thread=graph_thread, sender_name=user.name if user else None):
                 yield f"data: {json.dumps({'type': 'token', 'token': chunk})}\n\n"
 
             yield f"data: {json.dumps({'type': 'done', 'user_name': user.name if user else None, 'graph_enriched': graph_thread is not None})}\n\n"
