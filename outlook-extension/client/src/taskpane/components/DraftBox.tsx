@@ -20,6 +20,9 @@ const DraftBox: React.FC<DraftBoxProps> = ({ content, isStreaming, onInsert, onD
         backgroundColor: tokens.colors.surface,
         overflow: "hidden",
         flexShrink: 0,
+        height: "40vh",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <div
@@ -69,20 +72,21 @@ const DraftBox: React.FC<DraftBoxProps> = ({ content, isStreaming, onInsert, onD
         value={content}
         onChange={(e) => onEdit(e.target.value)}
         disabled={isStreaming}
-        rows={8}
         style={{
+          flex: 1,
           display: "block",
           width: "100%",
           boxSizing: "border-box",
           padding: `${tokens.spacing.md}px`,
           border: "none",
           outline: "none",
-          resize: "vertical",
+          resize: "none",
           fontFamily: "inherit",
           fontSize: tokens.font.body.size,
           lineHeight: 1.6,
           color: isStreaming ? tokens.colors.textSecondary : tokens.colors.text,
           background: "transparent",
+          overflowY: "auto",
         }}
       />
 

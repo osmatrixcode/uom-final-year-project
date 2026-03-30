@@ -69,7 +69,7 @@ const App: React.FC<AppProps> = ({ title }) => {
     if (currentMode === "email_draft") {
       /* In email_draft mode: only add the user instruction bubble; AI response
          goes into the persistent DraftBox rather than the message list. */
-      setMessages((prev) => [...prev, { role: "user", content: text }]);
+      setMessages((prev) => [...prev, { role: "user", content: text, mode: currentMode }]);
       setCurrentDraft(""); // empty string = streaming in progress
       setInstruction("");
       setIsPending(true);
@@ -112,7 +112,7 @@ const App: React.FC<AppProps> = ({ title }) => {
       /* general_qa / sender_edit: conversation bubble flow */
       setMessages((prev) => [
         ...prev,
-        { role: "user", content: text },
+        { role: "user", content: text, mode: currentMode },
         { role: "ai", content: "", isStreaming: true, isDraft: false },
       ]);
       setInstruction("");

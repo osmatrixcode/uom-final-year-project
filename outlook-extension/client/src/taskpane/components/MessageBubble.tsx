@@ -10,11 +10,20 @@ function injectCursorStyle() {
   document.head.appendChild(s);
 }
 
+export type MessageMode = "general_qa" | "email_draft" | "sender_edit";
+
+const MODE_BUBBLE_COLOR: Record<MessageMode, string> = {
+  general_qa: "#107C41",
+  email_draft: "#0062AD",
+  sender_edit: "#C4622D",
+};
+
 export interface Message {
   role: "user" | "ai";
   content: string;
   isDraft?: boolean;
   isStreaming?: boolean;
+  mode?: MessageMode;
 }
 
 interface MessageBubbleProps {
@@ -28,11 +37,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onInsert, onDisc
   const isUser = message.role === "user";
 
   if (isUser) {
+    const bubbleColor = message.mode ? MODE_BUBBLE_COLOR[message.mode] : tokens.colors.userBubble;
     return (
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: tokens.spacing.sm }}>
         <div
           style={{
-            backgroundColor: tokens.colors.userBubble,
+            backgroundColor: bubbleColor,
             color: "#fff",
             borderRadius: `${tokens.radius.md} ${tokens.radius.md} 3px ${tokens.radius.md}`,
             padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
