@@ -6,7 +6,7 @@ import DraftBox from "./DraftBox";
 import ChatInput, { InputMode } from "./ChatInput";
 import { Message } from "./MessageBubble";
 import { streamGenerateReply } from "../services/basicService";
-import { getEmailContext, insertText } from "../taskpane";
+import { getEmailContext, insertText, getComposeBody, extractUserDraft } from "../taskpane";
 
 const LOADING_PHRASES = [
   "Herding the cats...",
@@ -69,7 +69,6 @@ const App: React.FC<AppProps> = ({ title }) => {
     if (currentMode === "email_draft") {
       /* In email_draft mode: only add the user instruction bubble; AI response
          goes into the persistent DraftBox rather than the message list. */
-      const draftContent = currentDraft ?? undefined;
       setMessages((prev) => [...prev, { role: "user", content: text }]);
       setCurrentDraft(""); // empty string = streaming in progress
       setInstruction("");
@@ -77,6 +76,16 @@ const App: React.FC<AppProps> = ({ title }) => {
 
       try {
         const context = await getEmailContext();
+
+        /* Use explicit currentDraft if set; otherwise auto-read the compose
+           body so user-written text is passed as draft context automatically. */
+        let draftContent = currentDraft ?? undefined;
+        if (!draftContent) {
+          const composeBody = await getComposeBody();
+          const userText = extractUserDraft(composeBody);
+          if (userText) draftContent = userText;
+        }
+
         await streamGenerateReply(
           { ...context, draft: draftContent, instruction: text, mode: currentMode },
           {
@@ -207,6 +216,11 @@ const App: React.FC<AppProps> = ({ title }) => {
     setMode("general_qa");
   };
 
+  const handleDraftImport = async () => {
+    const body = await getComposeBody();
+    if (body.trim()) setCurrentDraft(body.trim());
+  };
+
   const handleDraftEdit = (content: string) => {
     setCurrentDraft(content);
   };
@@ -245,6 +259,7 @@ const App: React.FC<AppProps> = ({ title }) => {
           onInsert={handleDraftInsert}
           onDiscard={handleDraftDiscard}
           onEdit={handleDraftEdit}
+          onImport={handleDraftImport}
         />
       )}
 

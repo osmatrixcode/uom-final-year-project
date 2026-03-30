@@ -13,6 +13,15 @@ with open(_PROMPTS_PATH, "rb") as _f:
     _PROMPTS = tomllib.load(_f)
 
 
+_EMAIL_HEADER_RE = __import__("re").compile(
+    r"^(Subject|To|From|Date|Cc|Bcc):.*\n?", __import__("re").IGNORECASE | __import__("re").MULTILINE
+)
+
+def _strip_email_headers(text: str) -> str:
+    """Remove any email header lines (Subject:, To:, etc.) the LLM accidentally outputs."""
+    return _EMAIL_HEADER_RE.sub("", text).lstrip("\n")
+
+
 def _build_prompt(prompt_key: str) -> ChatPromptTemplate:
     p = _PROMPTS[prompt_key]
     return ChatPromptTemplate.from_messages([("system", p["system"]), ("human", p["human"])])
@@ -132,9 +141,25 @@ class LangChainService:
                     "instruction_note": instruction_note,
                     "sender_name": sender,
                 }
+            buffer = ""
+            header_stripped = False
             for chunk in chain.stream(invoke_vars):
-                if chunk.content:
+                if not chunk.content:
+                    continue
+                if not header_stripped:
+                    buffer += chunk.content
+                    # Wait until we have enough content to detect headers
+                    if "\n" in buffer or len(buffer) > 120:
+                        clean = _strip_email_headers(buffer)
+                        if clean:
+                            yield clean
+                        header_stripped = True
+                        buffer = ""
+                else:
                     yield chunk.content
+            # Flush any remaining buffer (short responses with no newline)
+            if buffer:
+                yield _strip_email_headers(buffer)
 
         elif mode == "sender_edit":
             logger.info("[LangChain] mode=%s | prompt=none (not implemented)", mode)

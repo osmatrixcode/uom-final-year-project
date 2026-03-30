@@ -33,6 +33,7 @@
 ☐ MONDAY:
 ☐ -once user presses 'insert reply' in the option, will delete whatever is in the current reply body in outlook client (and then paste the one we generated).
 ☐ -also consider if have writing in the reply box in outlook client, pass that in as context when switch to email draft? (think about it)
+☐ make email_draft text area bigger in taskpane (as right now really small) 
 
 ☐ TUESDAY:
 

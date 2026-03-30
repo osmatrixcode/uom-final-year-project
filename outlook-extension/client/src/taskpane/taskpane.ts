@@ -91,9 +91,9 @@ function plainTextToHtml(text: string): string {
 }
 
 export async function insertText(text: string) {
-  // Convert plain text to HTML so line breaks render correctly in the compose surface.
+  // Replace the entire compose body with the generated draft.
   try {
-    Office.context.mailbox.item?.body.setSelectedDataAsync(
+    Office.context.mailbox.item?.body.setAsync(
       plainTextToHtml(text),
       { coercionType: Office.CoercionType.Html },
       (asyncResult: Office.AsyncResult<void>) => {
@@ -105,4 +105,33 @@ export async function insertText(text: string) {
   } catch (error) {
     console.log("Error: " + error);
   }
+}
+
+export function getComposeBody(): Promise<string> {
+  const item = Office.context.mailbox.item;
+  if (!item) return Promise.resolve("");
+  return new Promise<string>((resolve) => {
+    item.body.getAsync(Office.CoercionType.Text, (result: Office.AsyncResult<string>) => {
+      resolve(result.status === Office.AsyncResultStatus.Succeeded ? result.value : "");
+    });
+  });
+}
+
+/**
+ * Returns only the user-written portion of a compose body, stripping any
+ * quoted original email content that Outlook appends below the reply area.
+ */
+export function extractUserDraft(body: string): string {
+  const separators = [
+    /\r?\nFrom: /,
+    /\r?\n-----Original Message-----/,
+    /\r?\nOn .+ wrote:/,
+    /\r?\n________________________________/,
+  ];
+  let text = body;
+  for (const sep of separators) {
+    const idx = text.search(sep);
+    if (idx !== -1) text = text.slice(0, idx);
+  }
+  return text.trim();
 }
