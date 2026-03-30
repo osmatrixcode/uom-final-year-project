@@ -24,6 +24,7 @@ interface ChatInputProps {
   onSend: () => void;
   onModeSwitch: () => void;
   mode: InputMode;
+  modeSwitchLocked?: boolean;
   disabled?: boolean;
   placeholder?: string;
 }
@@ -34,13 +35,21 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   onModeSwitch,
   mode,
+  modeSwitchLocked = false,
   disabled = false,
   placeholder = "How can I help?",
 }) => {
+  const [showLockHint, setShowLockHint] = React.useState(false);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "/" && e.ctrlKey) {
       e.preventDefault();
-      onModeSwitch();
+      if (modeSwitchLocked) {
+        setShowLockHint(true);
+        setTimeout(() => setShowLockHint(false), 1500);
+      } else {
+        onModeSwitch();
+      }
       return;
     }
     if (e.key === "Enter" && !e.shiftKey) {
@@ -84,10 +93,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
         <span
           style={{
             fontSize: tokens.font.caption.size,
-            color: tokens.colors.placeholder,
+            color: showLockHint ? "#C4262E" : tokens.colors.placeholder,
+            transition: "color 0.15s ease",
           }}
         >
-          Ctrl+/ to switch
+          {showLockHint ? "Insert or discard draft first" : "Ctrl+/ to switch"}
         </span>
       </div>
       <div

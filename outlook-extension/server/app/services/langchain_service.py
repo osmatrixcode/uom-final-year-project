@@ -95,7 +95,7 @@ class LangChainService:
             }).content
             return reply, "qa"
 
-    def stream_email_reply(self, email_context, graph_thread: dict | None = None):
+    def stream_email_reply(self, email_context, graph_thread: dict | None = None, sender_name: str | None = None):
         """Yields reply text chunks for streaming responses."""
         recipients_str = ", ".join(
             r.displayName or r.emailAddress for r in email_context.recipients
@@ -106,9 +106,10 @@ class LangChainService:
 
         if mode == "email_draft":
             instruction_note = f"\nUser instruction: {instruction}\n" if instruction else ""
+            sender = sender_name or ""
             if email_context.draft:
                 prompt_key = "refine_draft"
-                logger.info("[LangChain] mode=%s | prompt=%s (draft present)", mode, prompt_key)
+                logger.info("[LangChain] mode=%s | prompt=%s (draft present) | sender=%s", mode, prompt_key, sender or "unknown")
                 chain = _PROMPT_CACHE[prompt_key] | self.llm
                 invoke_vars = {
                     "subject": email_context.subject,
@@ -117,10 +118,11 @@ class LangChainService:
                     "thread_context": thread_context,
                     "draft": email_context.draft,
                     "instruction_note": instruction_note,
+                    "sender_name": sender,
                 }
             else:
                 prompt_key = "generate_reply"
-                logger.info("[LangChain] mode=%s | prompt=%s (no draft)", mode, prompt_key)
+                logger.info("[LangChain] mode=%s | prompt=%s (no draft) | sender=%s", mode, prompt_key, sender or "unknown")
                 chain = _PROMPT_CACHE[prompt_key] | self.llm
                 invoke_vars = {
                     "subject": email_context.subject,
@@ -128,6 +130,7 @@ class LangChainService:
                     "body": email_context.body,
                     "thread_context": thread_context,
                     "instruction_note": instruction_note,
+                    "sender_name": sender,
                 }
             for chunk in chain.stream(invoke_vars):
                 if chunk.content:

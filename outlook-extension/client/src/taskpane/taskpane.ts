@@ -81,12 +81,21 @@ export function getConversationId(): string | null {
   return Office.context.mailbox.item?.conversationId ?? null;
 }
 
+function plainTextToHtml(text: string): string {
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  // Use <br><br> for paragraph breaks — Outlook compose strips <p> margins
+  return escaped.split(/\n\n+/).join("<br><br>").replace(/\n/g, "<br>");
+}
+
 export async function insertText(text: string) {
-  // Write text to the cursor point in the compose surface.
+  // Convert plain text to HTML so line breaks render correctly in the compose surface.
   try {
     Office.context.mailbox.item?.body.setSelectedDataAsync(
-      text,
-      { coercionType: Office.CoercionType.Text },
+      plainTextToHtml(text),
+      { coercionType: Office.CoercionType.Html },
       (asyncResult: Office.AsyncResult<void>) => {
         if (asyncResult.status === Office.AsyncResultStatus.Failed) {
           throw asyncResult.error.message;

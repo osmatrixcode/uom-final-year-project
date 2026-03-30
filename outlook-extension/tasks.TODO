@@ -1,16 +1,3 @@
-DOCUMENTATION:
-    ☐ In README...
-    ☐ add section on how to load the client
-    ☐ add section on how to load the server
-        ☐ remember the OPEN AI API
-    ☐ make the README really pretty! 
-
-
-FRONTEND DESIGN:
-    ☐ make it look like claude code (Shift + Tab to alternate)
-    ☐ Shift + Tab to alternate between user input and response (like claude code)
-
-
 BACKEND:
     VECTOR DATABASE:
         ☐ look into chromaDB (like SQLite for vector DB)
@@ -37,16 +24,7 @@ TESTING & EVALUATION:
 
 PRIVACY AND SECURITY: 
     ☐ Azure OpenAI has safety + privacy built in (since it's for enterprise)
-    ☐ perhaps python libraries for data anonymisation 
-
-
 
 LAST MINUTE FEATURES:
-    ☐ ProfileMD for each email address (can modify tone, give context, etc...) 
+    ☐ ProfileMD for each email address (can modify tone, give context, etc...) how a
     ☐ View past conversations with a person (and summarise?) 
-    ☐ shift+tab to alternate? 
-        ☐ use for email draft making and accept or discard etc or make edits...
-    ☐ basic testing (with llm as a judge) python results) 
-    ☐ think of ways to be better than a GPT wrapper / Copilot on outlook
-    ☐ general QA prompt
-        ☐ Can prompt inject, etc... need safeguards + privacy 

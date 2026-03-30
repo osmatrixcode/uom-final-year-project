@@ -1,4 +1,20 @@
-☐ TASKS TO COMPLETE THIS WEEK:
+☐ --consider (will implement or not)--
+    ☐ db for chat history? (sql-lite) so if exit from email thread taskpane, and come back, can see the most latest conversations for that email thread? 
+    ☐ add llm best practices for cyber attacks (prevent prompt injection)
+        ☐ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this?
+        ☐ data anonymisation for privacy (python libraries)
+    ☐ evaluations for prompt injections as well (once found a suitable general model) 
+    ☐ evals on different models: Latency, Cost, and Accuracy etc...
+    ☐ create README docs for outlook extension
+    ☐ create README docs for evaluations
+    ☐ logging and tracing (in a file and also on the console) for backend
+        ☐ perhaps for frontend as well? (may not need)
+    ☐ 
+
+☐ __TASKS TO COMPLETE THIS WEEK__:
+    ☐ OUTLOOK EXTENSTION:
+    ☐ EVALUATION:
+
 
 ☐ MONDAY:
 
