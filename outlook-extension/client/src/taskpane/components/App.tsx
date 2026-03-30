@@ -199,10 +199,12 @@ const App: React.FC<AppProps> = ({ title }) => {
   const handleDraftInsert = () => {
     if (currentDraft) insertText(currentDraft);
     setCurrentDraft(null);
+    setMode("general_qa");
   };
 
   const handleDraftDiscard = () => {
     setCurrentDraft(null);
+    setMode("general_qa");
   };
 
   const handleDraftEdit = (content: string) => {
