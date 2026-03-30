@@ -7,9 +7,10 @@ interface DraftBoxProps {
   onInsert: () => void;
   onDiscard: () => void;
   onEdit: (content: string) => void;
+  onImport?: () => void;
 }
 
-const DraftBox: React.FC<DraftBoxProps> = ({ content, isStreaming, onInsert, onDiscard, onEdit }) => {
+const DraftBox: React.FC<DraftBoxProps> = ({ content, isStreaming, onInsert, onDiscard, onEdit, onImport }) => {
   return (
     <div
       style={{
@@ -45,6 +46,22 @@ const DraftBox: React.FC<DraftBoxProps> = ({ content, isStreaming, onInsert, onD
           <span style={{ fontSize: tokens.font.caption.size, color: tokens.colors.textSecondary }}>
             Generating...
           </span>
+        )}
+        {!isStreaming && content === "" && onImport && (
+          <button
+            onClick={onImport}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              fontSize: tokens.font.caption.size,
+              color: tokens.colors.primary,
+              cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
+            Import from compose
+          </button>
         )}
       </div>
 
