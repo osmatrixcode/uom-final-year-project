@@ -76,6 +76,15 @@ export async function streamGenerateReply(context: EmailContext & { mode?: strin
   }
 }
 
+export async function fetchProfile(email: string): Promise<string> {
+  const response = await apiClient.get(`/profiles/${encodeURIComponent(email)}`);
+  return response.data.prompt_text ?? "";
+}
+
+export async function saveProfile(email: string, text: string): Promise<void> {
+  await apiClient.put(`/profiles/${encodeURIComponent(email)}`, { prompt_text: text });
+}
+
 export async function generateEmailReply(context: EmailContext): Promise<ReplyResult> {
   const item_rest_id = getItemRestId();
   const conversation_id = getConversationId();

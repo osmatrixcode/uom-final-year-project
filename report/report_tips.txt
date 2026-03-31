@@ -6,3 +6,4 @@
 - will pretty much be a report on Week 9 NLP lecture slide!
 - answer a lot of the 'why not' questions
     - why not finetune? costs and static knowledge + not dynamic enough (think about if have one tone with one user, another tone with another)
+-further improvements setion: how general QA can be filled with company info and workers can ask general info about company / project etc... but it is out of scope

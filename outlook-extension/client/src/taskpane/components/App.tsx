@@ -8,6 +8,7 @@ import { Message } from "./MessageBubble";
 import { streamGenerateReply } from "../services/basicService";
 import { getEmailContext, getSenders, insertText, getComposeBody, extractUserDraft, EmailRecipient, SendersResult } from "../taskpane";
 import SenderList from "./SenderList";
+import SenderProfilePanel from "./SenderProfilePanel";
 
 const LOADING_PHRASES = [
   "Herding the cats...",
@@ -289,6 +290,10 @@ const App: React.FC<AppProps> = ({ title }) => {
           onSelect={setSelectedSender}
           isLoading={sendersLoading}
         />
+      )}
+
+      {mode === "sender_edit" && selectedSender && (
+        <SenderProfilePanel sender={selectedSender} />
       )}
 
       <ChatInput
