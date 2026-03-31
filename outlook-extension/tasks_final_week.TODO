@@ -20,6 +20,7 @@
     ☐ __features-to-impl__:
         ☐ _taskpane_:
             ☐ profileMD for each email address (can edit tone, etc...) use Prompt to tell what to change and AI will modify the profileMD
+            ☐ if group, paste all profileMD and allow AI to determine the best prompt
             ☐ think what to do for email groups / multiple people in thread (have profileMD for that group?)
         ☐ _ai/nlp_:
             ☐ _security_:

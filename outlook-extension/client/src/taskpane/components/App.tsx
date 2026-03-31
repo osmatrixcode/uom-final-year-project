@@ -6,7 +6,8 @@ import DraftBox from "./DraftBox";
 import ChatInput, { InputMode } from "./ChatInput";
 import { Message } from "./MessageBubble";
 import { streamGenerateReply } from "../services/basicService";
-import { getEmailContext, insertText, getComposeBody, extractUserDraft } from "../taskpane";
+import { getEmailContext, getSenders, insertText, getComposeBody, extractUserDraft, EmailRecipient, SendersResult } from "../taskpane";
+import SenderList from "./SenderList";
 
 const LOADING_PHRASES = [
   "Herding the cats...",
@@ -35,11 +36,26 @@ const App: React.FC<AppProps> = ({ title }) => {
   /* email_draft mode: single persistent draft — null means no draft active */
   const [currentDraft, setCurrentDraft] = React.useState<string | null>(null);
 
+  /* sender_edit mode */
+  const [senders, setSenders] = React.useState<SendersResult>({ to: [], cc: [] });
+  const [sendersLoading, setSendersLoading] = React.useState(false);
+  const [selectedSender, setSelectedSender] = React.useState<EmailRecipient | null>(null);
+
   const MODES: InputMode[] = ["general_qa", "email_draft", "sender_edit"];
   const handleModeSwitch = () => {
     setMode((prev) => {
       const idx = MODES.indexOf(prev);
-      return MODES[(idx + 1) % MODES.length];
+      const next = MODES[(idx + 1) % MODES.length];
+      if (next === "sender_edit") {
+        setSendersLoading(true);
+        setSenders({ to: [], cc: [] });
+        setSelectedSender(null);
+        getSenders().then((list) => {
+          setSenders(list);
+          setSendersLoading(false);
+        });
+      }
+      return next;
     });
   };
 
@@ -122,8 +138,11 @@ const App: React.FC<AppProps> = ({ title }) => {
         const context = await getEmailContext();
         let resolvedIntent: "draft" | "qa" = "draft";
 
+        const senderCtx = currentMode === "sender_edit" && selectedSender
+          ? { senderName: selectedSender.displayName, senderEmail: selectedSender.emailAddress }
+          : {};
         await streamGenerateReply(
-          { ...context, instruction: text, mode: currentMode },
+          { ...context, instruction: text, mode: currentMode, ...senderCtx },
           {
             onIntent: (intent) => {
               resolvedIntent = intent;
@@ -263,6 +282,15 @@ const App: React.FC<AppProps> = ({ title }) => {
         />
       )}
 
+      {mode === "sender_edit" && (
+        <SenderList
+          senders={senders}
+          selected={selectedSender}
+          onSelect={setSelectedSender}
+          isLoading={sendersLoading}
+        />
+      )}
+
       <ChatInput
         value={instruction}
         onChange={setInstruction}
@@ -276,6 +304,10 @@ const App: React.FC<AppProps> = ({ title }) => {
             ? currentDraft !== null
               ? "Refine the draft above..."
               : "Describe the reply you want..."
+            : mode === "sender_edit"
+            ? selectedSender
+              ? `Ask about ${selectedSender.displayName || selectedSender.emailAddress}...`
+              : "Select a sender above, then ask..."
             : hasMessages
             ? "Refine or ask a follow-up..."
             : "How can I help?"

@@ -60,6 +60,75 @@ export function getEmailContext(): Promise<EmailContext> {
   );
 }
 
+export interface SendersResult {
+  to: EmailRecipient[];
+  cc: EmailRecipient[];
+}
+
+/**
+ * Parses CC addresses from the quoted original email headers in the body text.
+ * Used as a fallback when compose.cc is empty (e.g. when user clicked Reply, not Reply All).
+ */
+function parseCcFromBody(body: string): EmailRecipient[] {
+  // Case-insensitive; strip trailing \r from Windows line endings
+  const ccLineMatch = body.match(/^cc:\s*(.+?)\r?$/im);
+  if (!ccLineMatch) return [];
+
+  const results: EmailRecipient[] = [];
+  for (const part of ccLineMatch[1].split(/;\s*|,\s*/)) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const nameEmail = trimmed.match(/^(.+?)\s*<([^>]+)>$/);
+    if (nameEmail) {
+      results.push({ displayName: nameEmail[1].trim(), emailAddress: nameEmail[2].trim() });
+    } else if (trimmed.includes("@")) {
+      results.push({ displayName: "", emailAddress: trimmed });
+    }
+  }
+  return results;
+}
+
+/**
+ * Returns the To and CC participants of the current email thread separately.
+ * In simple Reply mode compose.cc is empty, so CC is parsed from the quoted body as fallback.
+ */
+export function getSenders(): Promise<SendersResult> {
+  const item = Office.context.mailbox.item;
+  if (!item) return Promise.resolve({ to: [], cc: [] });
+
+  const fetchList = (getter: Office.Recipients): Promise<EmailRecipient[]> =>
+    new Promise((resolve) => {
+      getter.getAsync((result: Office.AsyncResult<Office.EmailAddressDetails[]>) => {
+        if (result.status === Office.AsyncResultStatus.Succeeded) {
+          resolve(result.value.map((r) => ({ displayName: r.displayName, emailAddress: r.emailAddress })));
+        } else {
+          resolve([]);
+        }
+      });
+    });
+
+  const getBodyText = (): Promise<string> =>
+    new Promise((resolve) => {
+      item.body.getAsync(Office.CoercionType.Text, (r) => {
+        resolve(r.status === Office.AsyncResultStatus.Succeeded ? r.value : "");
+      });
+    });
+
+  const compose = item as Office.MessageCompose;
+  return Promise.all([fetchList(compose.to), fetchList(compose.cc), getBodyText()]).then(
+    ([toList, ccList, body]) => {
+      console.log("[getSenders] ccList:", ccList, "body snippet:", body.slice(0, 500));
+      const resolvedCc = ccList.length > 0 ? ccList : parseCcFromBody(body);
+
+      // Deduplicate cc against to
+      const toEmails = new Set(toList.map((r) => r.emailAddress.toLowerCase()));
+      const dedupedCc = resolvedCc.filter((r) => !toEmails.has(r.emailAddress.toLowerCase()));
+
+      return { to: toList, cc: dedupedCc };
+    }
+  );
+}
+
 /**
  * Returns the current email item's ID in REST format, suitable for Graph API calls.
  * Outlook's native itemId is in EWS format; Graph requires the REST-format ID.
