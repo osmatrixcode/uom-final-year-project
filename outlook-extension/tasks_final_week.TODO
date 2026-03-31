@@ -1,52 +1,63 @@
 ☐ --consider (will implement or not)--
-    ☐ db for chat history? (sql-lite) so if exit from email thread taskpane, and come back, can see the most latest conversations for that email thread? 
-    ☐ add llm best practices for cyber attacks (prevent prompt injection)
-        ☐ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this?
-        ☐ data anonymisation for privacy (python libraries)
-    ☐ evaluations for prompt injections as well (once found a suitable general model) 
-    ☐ evals on different models: Latency, Cost, and Accuracy etc...
-    ☐ create README docs for outlook extension
-    ☐ create README docs for evaluations
-    ☐ logging and tracing (in a file and also on the console) for backend
-        ☐ perhaps for frontend as well? (may not need)
-    ☐ profileMD for each email address (can edit tone, etc...) use Prompt to tell what to change and AI will modify the profileMD
-        ☐ think what to do for email groups / multiple people in thread (have profileMD for that group?)
-    ☐ general_qa mode, can query about documents sent? (vector DB -chromaDB is sqllite version) 
-    ☐ when view a past email thread, can we use the extension to summarise the thread? (yes we can!) 
-    ☐ ask AI and canvas view (to see what needs, to get a high grade!) 
-        ☐ need data of course!
-        ☐ ask to dissect it bit by bit and what else to implement
-    ☐ use Azure OpenAI (enterprise) for better privacy and security (and also better performance)
-        ☐ also use it for testing! (as free credits)
-    ☐ think of prompt generation techniques NLP
-        ☐ few shot prompting (get 5 example responses from user, and pass it as context for system prompt)
-        ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response
-            ☐ if received past email from sender, use that as context + profileMD for that sender (can edit profileMD to change tone, etc...)
-            ☐ if no past email from sender, generic professional + create a profileMD? 
-            ☐ think about profileMD and if received email before from sender, if not then use general email responses user sent to make generic profileMD or for context 
-        ☐ if no email history with the sender, use THEIR email message THEY sent (find the tone AND RECIPROCATE THAT)
-    ☐ safeguarding model (for response appropiateness)
-    ☐ HITL or automatic generation (for llm guard)
-        ☐ like Claude code (can choose to automate, or review each step, etc...) provide range 
-    ☐ evaluate zero shot with few shot
-    ☐ uses document vector db to generate email reply, (link general qa with email draft)? think about it 
-    ☐ test different prompts as well etc... (for evaluation)  
-    ☐ test different local vs cloud models (time taken to generate) 
-    ☐ implement a thumbs up thumbs down system (help modify and give reason why) 
-    ☐ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) 
+    ☐ __evaluations__:
+        ☐ evaluations for prompt injections as well (once found a suitable general model) 
+        ☐ evals on different models: Latency, Cost, and Accuracy etc...
+        ☐ evaluate zero shot with few shot
+        ☐ test different prompts as well etc... (for evaluation)  
+        ☐ test different local vs cloud models (time taken to generate) 
+        ☐ evalation: Pairwise Comparison (Arena Style)
+        ☐ llm as a judge
+        ☐ ask gemini and notebook lm for how to evaluate it 
+        ☐ test 3 different things (general_qa, email draft, profileMD, Safety and Prompt Injection) 
+        ☐ azure ai credits as free 200 usd given!
+
+    ☐ __documentation__:
+        ☐ create README docs for outlook extension
+        ☐ create README docs for evaluations
+        ☐ can use AI to generate the docs (as can read your codebase)
 
 
-☐ __TASKS TO COMPLETE THIS WEEK__:
-    ☐ OUTLOOK EXTENSTION:
-    ☐ EVALUATION:
+    ☐ __features-to-impl__:
+        ☐ _taskpane_:
+            ☐ profileMD for each email address (can edit tone, etc...) use Prompt to tell what to change and AI will modify the profileMD
+            ☐ think what to do for email groups / multiple people in thread (have profileMD for that group?)
+        ☐ _ai/nlp_:
+            ☐ _security_:
+                ☐ add llm best practices for cyber attacks (prevent prompt injection)
+                ☐ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this?
+                ☐ data anonymisation for privacy (python libraries)
+                ☐ safeguarding model (for response appropiateness)
+                ☐ HITL or automatic generation (for llm guard)
+                ☐ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) (can only ask relevant questions) 
+                ☐ use Azure OpenAI (enterprise) for better privacy and security (and also better performance)
+            ☐ _general_:
+                ☐ think of prompt generation techniques NLP
+                ☐ few shot prompting (get 5 example responses from user, and pass it as context for system prompt)
+                ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response
+                    ☐ if received past email from sender, use that as context + profileMD for that sender (can edit profileMD to change tone, etc...)
+                    ☐ if no past email from sender, generic professional + create a profileMD? 
+                    ☐ think about profileMD and if received email before from sender, if not then use general email responses user sent to make generic profileMD or for context 
+                    ☐ if no email history with the sender, use THEIR email message THEY sent (find the tone AND RECIPROCATE THAT)
+                    ☐ use past email ai drafts made that user like, as the FEW SHOT examples! (tailors to them)
+                    ☐ after few times user uses it and makes modifications, will modify it to users taste
+
+        ☐ _nice-to-have_:
+            ☐ uses document vector db to generate email reply, (link general qa with email draft)? think about it 
+            ☐ implement a thumbs up thumbs down system (help modify and give reason why) 
+            ☐ when first download app, will walk through generated email responses, you approve or modify THEN can use this for ICL / Few Shot PERSONAL examples (makes it personal to them!) 
+            ☐ db for chat history? (sql-lite) so if exit from email thread taskpane, and come back, can see the most latest conversations for that email thread? 
+            ☐ general_qa mode, can query about documents sent? (vector DB -chromaDB is sqllite version) 
 
 
-☐ MONDAY:
-☐ -once user presses 'insert reply' in the option, will delete whatever is in the current reply body in outlook client (and then paste the one we generated).
-☐ -also consider if have writing in the reply box in outlook client, pass that in as context when switch to email draft? (think about it)
-☐ make email_draft text area bigger in taskpane (as right now really small) 
-☐ add dark mode? not for bubble but for background etc...
-☐ add corresponding ui coloour message boxes for each
+
+
+
+
+✔ MONDAY: @done(26-03-31 10:43)
+✔ -once user presses 'insert reply' in the option, will delete whatever is in the current reply body in outlook client (and then paste the one we generated). @done(26-03-31 15:02)
+✔ -also consider if have writing in the reply box in outlook client, pass that in as context when switch to email draft? (think about it) @done(26-03-31 15:02)
+✔ make email_draft text area bigger in taskpane (as right now really small) @done(26-03-31 10:43)
+✔ add corresponding ui coloour message boxes for each @done(26-03-31 10:43)
 
 ☐ TUESDAY:
 
