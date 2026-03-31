@@ -23,6 +23,8 @@
             ☐ if group, paste all profileMD and allow AI to determine the best prompt
             ☐ think what to do for email groups / multiple people in thread (have profileMD for that group?)
             ☐ profileMD idea, can create a 'text prompt' FOR THAT EMAIL THREAD (so even can have it for that email thread) so have specific for that email thread 
+            ☐ emailthreadMD idea, can have specific prompt as dont need to load all other profile MDs? 
+                ☐ for group people, will have general prompt? but think if address to specific people in that group thread, nice to have specific profileMD for that person (as personalised)
         ☐ _ai/nlp_:
             ☐ _security_:
                 ☐ add llm best practices for cyber attacks (prevent prompt injection)
@@ -32,6 +34,10 @@
                 ☐ HITL or automatic generation (for llm guard)
                 ☐ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) (can only ask relevant questions) 
                 ☐ use Azure OpenAI (enterprise) for better privacy and security (and also better performance)
+                ☐ add guards for generalqa, sender edit, email draft 
+                    ☐ sender_edit (user can add malicious profileMD) 
+                    ☐ general_qa (user can ask any question, even if not relevant to the email thread
+                    ☐ email draft (user can add malicious prompt + privatisation)
             ☐ _general_:
                 ☐ think of prompt generation techniques NLP
                 ☐ few shot prompting (get 5 example responses from user, and pass it as context for system prompt)

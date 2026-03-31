@@ -6,9 +6,10 @@ import DraftBox from "./DraftBox";
 import ChatInput, { InputMode } from "./ChatInput";
 import { Message } from "./MessageBubble";
 import { streamGenerateReply } from "../services/basicService";
-import { getEmailContext, getSenders, insertText, getComposeBody, extractUserDraft, EmailRecipient, SendersResult } from "../taskpane";
+import { getEmailContext, getSenders, getConversationId, insertText, getComposeBody, extractUserDraft, EmailRecipient, SendersResult } from "../taskpane";
 import SenderList from "./SenderList";
 import SenderProfilePanel from "./SenderProfilePanel";
+import ThreadNotePanel from "./ThreadNotePanel";
 
 const LOADING_PHRASES = [
   "Herding the cats...",
@@ -41,6 +42,7 @@ const App: React.FC<AppProps> = ({ title }) => {
   const [senders, setSenders] = React.useState<SendersResult>({ to: [], cc: [] });
   const [sendersLoading, setSendersLoading] = React.useState(false);
   const [selectedSender, setSelectedSender] = React.useState<EmailRecipient | null>(null);
+  const [conversationId, setConversationId] = React.useState<string | null>(null);
 
   const MODES: InputMode[] = ["general_qa", "email_draft", "sender_edit"];
   const handleModeSwitch = () => {
@@ -51,6 +53,7 @@ const App: React.FC<AppProps> = ({ title }) => {
         setSendersLoading(true);
         setSenders({ to: [], cc: [] });
         setSelectedSender(null);
+        setConversationId(getConversationId());
         getSenders().then((list) => {
           setSenders(list);
           setSendersLoading(false);
@@ -281,6 +284,10 @@ const App: React.FC<AppProps> = ({ title }) => {
           onEdit={handleDraftEdit}
           onImport={handleDraftImport}
         />
+      )}
+
+      {mode === "sender_edit" && conversationId && (
+        <ThreadNotePanel conversationId={conversationId} />
       )}
 
       {mode === "sender_edit" && (

@@ -18,6 +18,14 @@ def _connect() -> sqlite3.Connection:
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS thread_notes (
+            conversation_id TEXT PRIMARY KEY,
+            note_text TEXT NOT NULL DEFAULT ''
+        )
+        """
+    )
     conn.commit()
     return conn
 
@@ -64,3 +72,33 @@ def delete_profile(email: str) -> None:
             conn.commit()
     except Exception:
         logger.exception("profile_service.delete_profile failed for %s", email)
+
+
+# ── Thread notes ──────────────────────────────────────────────────────────────
+
+def get_thread_note(conversation_id: str) -> str:
+    """Return the stored note_text for the given conversation_id, or '' if none."""
+    try:
+        with _connect() as conn:
+            row = conn.execute(
+                "SELECT note_text FROM thread_notes WHERE conversation_id = ?",
+                (conversation_id.strip(),),
+            ).fetchone()
+            return row[0] if row else ""
+    except Exception:
+        logger.exception("profile_service.get_thread_note failed for %s", conversation_id)
+        return ""
+
+
+def save_thread_note(conversation_id: str, text: str) -> None:
+    """Upsert the note_text for the given conversation_id."""
+    try:
+        with _connect() as conn:
+            conn.execute(
+                "INSERT INTO thread_notes (conversation_id, note_text) VALUES (?, ?) "
+                "ON CONFLICT(conversation_id) DO UPDATE SET note_text = excluded.note_text",
+                (conversation_id.strip(), text),
+            )
+            conn.commit()
+    except Exception:
+        logger.exception("profile_service.save_thread_note failed for %s", conversation_id)
