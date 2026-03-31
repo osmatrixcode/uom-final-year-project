@@ -27,6 +27,7 @@
             ☐ emailthreadMD idea, can have specific prompt as dont need to load all other profile MDs? 
                 ☐ for group people, will have general prompt? but think if address to specific people in that group thread, nice to have specific profileMD for that person (as personalised)
             ☐ MD idea, if have more recent emails, will continually update? 
+            ☐ seems like MD idea when auto-fill, will fill with example of email thread (may be bad if general profileMD)
         ☐ _ai/nlp_:
             ☐ _security_:
                 ☐ add llm best practices for cyber attacks (prevent prompt injection)
@@ -53,8 +54,8 @@
 
         ☐ _nice-to-have_:
             ☐ uses document vector db to generate email reply, (link general qa with email draft)? think about it 
-            ☐ implement a thumbs up thumbs down system (help modify and give reason why) 
-            ☐ when first download app, will walk through generated email responses, you approve or modify THEN can use this for ICL / Few Shot PERSONAL examples (makes it personal to them!) 
+            ✘ implement a thumbs up thumbs down system (help modify and give reason why) @cancelled(26-03-31 19:33)
+            ✘ when first download app, will walk through generated email responses, you approve or modify THEN can use this for ICL / Few Shot PERSONAL examples (makes it personal to them!) @cancelled(26-03-31 19:32)
             ☐ db for chat history? (sql-lite) so if exit from email thread taskpane, and come back, can see the most latest conversations for that email thread? 
             ☐ general_qa mode, can query about documents sent? (vector DB -chromaDB is sqllite version) 
 

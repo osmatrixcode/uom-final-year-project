@@ -27,8 +27,9 @@ def _build_prompt(prompt_key: str) -> ChatPromptTemplate:
     return ChatPromptTemplate.from_messages([("system", p["system"]), ("human", p["human"])])
 
 
-# Cache all prompts at import time — avoids rebuilding on every request
-_PROMPT_CACHE = {key: _build_prompt(key) for key in _PROMPTS}
+# Cache only chat-style prompts (those with system/human keys) at import time
+_CHAT_PROMPT_KEYS = {"generate_reply", "refine_draft", "general_qa"}
+_PROMPT_CACHE = {key: _build_prompt(key) for key in _CHAT_PROMPT_KEYS}
 
 
 class LangChainService:
@@ -64,32 +65,21 @@ class LangChainService:
         mode: "sender" — summarise user's tone when writing to this person
               "thread" — summarise the user's tone within this thread
         Falls back to fallback_body if history_preview is empty.
+        Prompt templates are loaded from prompts.toml.
         """
+        toml_key = "generate_sender_profile" if mode == "sender" else "generate_thread_note"
+        section = _PROMPTS[toml_key]
+
         if history_preview:
-            if mode == "sender":
-                prompt = (
-                    f"Based on these emails the user previously sent to {name or 'this person'}:\n\n"
-                    f"{history_preview}\n\n"
-                    "Summarise the user's typical tone, formality level, and relationship with this person "
-                    "in 2-3 sentences. Write in second person (e.g. 'You tend to...'). "
-                    "This will be used as context when generating future email replies."
-                )
-            else:  # thread
-                prompt = (
-                    "Based on these messages the user sent in this email thread:\n\n"
-                    f"{history_preview}\n\n"
-                    "Summarise the user's tone and communication style in this thread in 2-3 sentences. "
-                    "Write in second person (e.g. 'You tend to...'). "
-                    "This will be used as context when generating future replies in this thread."
-                )
-        else:
-            prompt = (
-                "The user has no prior email history with this person. "
-                "Based on the following incoming email, suggest how the user should reply "
-                "in terms of tone and formality in 2-3 sentences. "
-                "Write in second person (e.g. 'You should...').\n\n"
-                f"{fallback_body}"
+            template = section["with_history"]
+            prompt = template.format(
+                name=name or "this person",
+                history_preview=history_preview,
             )
+        else:
+            template = section["without_history"]
+            prompt = template.format(fallback_body=fallback_body)
+
         response = self.llm.invoke([HumanMessage(content=prompt)])
         return response.content.strip()
 
