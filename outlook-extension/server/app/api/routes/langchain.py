@@ -7,6 +7,7 @@ from typing import List, Literal, Optional
 from app.services.langchain_service import LangChainService
 from app.services.token_validator import try_validate_token, ValidatedToken
 from app.services.graph_service import get_email_thread, get_thread_by_conversation_id
+from app.services.profile_service import get_profile, get_thread_note
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -29,6 +30,8 @@ class EmailContextRequest(BaseModel):
     item_rest_id: Optional[str] = None
     # conversationId is available in compose/reply mode when itemId is not yet set
     conversation_id: Optional[str] = None
+    # Personalisation context injected from SQLite profiles + thread notes
+    injected_context: Optional[str] = None
 
 
 class GenerateReplyResponse(BaseModel):
@@ -40,6 +43,22 @@ class GenerateReplyResponse(BaseModel):
 
 def get_langchain_service():
     return LangChainService()
+
+
+def _build_injected_context(request: "EmailContextRequest") -> str | None:
+    """Load per-sender profiles and thread note from SQLite and combine into a context block."""
+    blocks = []
+    for r in request.recipients:
+        p = get_profile(r.emailAddress)
+        if p:
+            blocks.append(f"Notes on {r.displayName or r.emailAddress}: {p}")
+    if request.conversation_id:
+        tn = get_thread_note(request.conversation_id)
+        if tn:
+            blocks.append(f"Thread note: {tn}")
+    if not blocks:
+        return None
+    return "\n\n---\nPersonalisation context (use to tailor tone and style):\n" + "\n".join(blocks)
 
 
 def _extract_bearer_token(request: Request) -> str | None:
@@ -79,6 +98,7 @@ def generate_reply(
             # Non-fatal: fall back to the email context provided by the client
             logger.warning("Could not fetch email thread from Graph: %s", e)
 
+    request.injected_context = _build_injected_context(request)
     reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
     return GenerateReplyResponse(
         reply=reply,
@@ -106,6 +126,8 @@ def generate_reply_stream(
                 graph_thread = get_thread_by_conversation_id(request.conversation_id, token)
         except Exception as e:
             logger.warning("Could not fetch email thread from Graph: %s", e)
+
+    request.injected_context = _build_injected_context(request)
 
     def event_stream():
         try:

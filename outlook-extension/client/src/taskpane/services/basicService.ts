@@ -76,6 +76,22 @@ export async function streamGenerateReply(context: EmailContext & { mode?: strin
   }
 }
 
+export async function generateProfile(email: string, subject: string, body: string): Promise<string> {
+  const response = await apiClient.post(`/profiles/${encodeURIComponent(email)}/generate`, {
+    current_email_subject: subject,
+    current_email_body: body,
+  });
+  return response.data.prompt_text ?? "";
+}
+
+export async function generateThreadNote(conversationId: string, subject: string, body: string): Promise<string> {
+  const response = await apiClient.post(`/threads/${encodeURIComponent(conversationId)}/generate`, {
+    current_email_subject: subject,
+    current_email_body: body,
+  });
+  return response.data.note_text ?? "";
+}
+
 export async function fetchThreadNote(conversationId: string): Promise<string> {
   const response = await apiClient.get(`/threads/${encodeURIComponent(conversationId)}`);
   return response.data.note_text ?? "";

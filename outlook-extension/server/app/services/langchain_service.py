@@ -42,26 +42,63 @@ class LangChainService:
         response = self.llm.invoke([HumanMessage(content="Say hello in one sentence.")])
         return response.content
 
-    def _build_thread_context(self, graph_thread: dict | None) -> str:
-        if not graph_thread:
-            return ""
-        thread_messages = graph_thread.get("thread", [])
-        if not thread_messages:
-            return ""
-        summaries = []
-        for msg in thread_messages:
-            sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
-            preview = msg.get("bodyPreview", "")
-            date = msg.get("receivedDateTime", "")[:10]
-            summaries.append(f"[{date}] {sender}: {preview}")
-        return "\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries)
+    def _build_thread_context(self, graph_thread: dict | None, injected_context: str | None = None) -> str:
+        parts = []
+        if graph_thread:
+            thread_messages = graph_thread.get("thread", [])
+            if thread_messages:
+                summaries = []
+                for msg in thread_messages:
+                    sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
+                    preview = msg.get("bodyPreview", "")
+                    date = msg.get("receivedDateTime", "")[:10]
+                    summaries.append(f"[{date}] {sender}: {preview}")
+                parts.append("\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries))
+        if injected_context:
+            parts.append(injected_context)
+        return "".join(parts)
+
+    def generate_profile_text(self, history_preview: str, fallback_body: str, mode: str, name: str = "") -> str:
+        """
+        Generate a 2-3 sentence tone/style summary.
+        mode: "sender" — summarise user's tone when writing to this person
+              "thread" — summarise the user's tone within this thread
+        Falls back to fallback_body if history_preview is empty.
+        """
+        if history_preview:
+            if mode == "sender":
+                prompt = (
+                    f"Based on these emails the user previously sent to {name or 'this person'}:\n\n"
+                    f"{history_preview}\n\n"
+                    "Summarise the user's typical tone, formality level, and relationship with this person "
+                    "in 2-3 sentences. Write in second person (e.g. 'You tend to...'). "
+                    "This will be used as context when generating future email replies."
+                )
+            else:  # thread
+                prompt = (
+                    "Based on these messages the user sent in this email thread:\n\n"
+                    f"{history_preview}\n\n"
+                    "Summarise the user's tone and communication style in this thread in 2-3 sentences. "
+                    "Write in second person (e.g. 'You tend to...'). "
+                    "This will be used as context when generating future replies in this thread."
+                )
+        else:
+            prompt = (
+                "The user has no prior email history with this person. "
+                "Based on the following incoming email, suggest how the user should reply "
+                "in terms of tone and formality in 2-3 sentences. "
+                "Write in second person (e.g. 'You should...').\n\n"
+                f"{fallback_body}"
+            )
+        response = self.llm.invoke([HumanMessage(content=prompt)])
+        return response.content.strip()
 
     def generate_email_reply(self, email_context, graph_thread: dict | None = None) -> tuple[str, str]:
         """Returns (reply_text, intent) where intent is 'draft' or 'qa'."""
         recipients_str = ", ".join(
             r.displayName or r.emailAddress for r in email_context.recipients
         ) or "the sender"
-        thread_context = self._build_thread_context(graph_thread)
+        thread_context = self._build_thread_context(graph_thread, getattr(email_context, "injected_context", None))
         instruction = email_context.instruction or ""
         mode = getattr(email_context, "mode", None) or "general_qa"
 
@@ -104,7 +141,7 @@ class LangChainService:
         recipients_str = ", ".join(
             r.displayName or r.emailAddress for r in email_context.recipients
         ) or "the sender"
-        thread_context = self._build_thread_context(graph_thread)
+        thread_context = self._build_thread_context(graph_thread, getattr(email_context, "injected_context", None))
         instruction = email_context.instruction or ""
         mode = getattr(email_context, "mode", None) or "general_qa"
 

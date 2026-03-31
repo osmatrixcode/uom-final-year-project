@@ -1,6 +1,7 @@
 import * as React from "react";
 import { tokens } from "../theme/tokens";
-import { fetchThreadNote, saveThreadNote } from "../services/basicService";
+import { fetchThreadNote, saveThreadNote, generateThreadNote as generateThreadNoteApi } from "../services/basicService";
+import { getEmailContext } from "../taskpane";
 
 interface ThreadNotePanelProps {
   conversationId: string;
@@ -10,6 +11,7 @@ const ThreadNotePanel: React.FC<ThreadNotePanelProps> = ({ conversationId }) => 
   const [text, setText] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
+  const [isGenerating, setIsGenerating] = React.useState(false);
 
   /* Load note whenever the conversation changes */
   React.useEffect(() => {
@@ -37,6 +39,18 @@ const ThreadNotePanel: React.FC<ThreadNotePanelProps> = ({ conversationId }) => 
     }, 450);
     return () => clearTimeout(timer);
   }, [text]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleAutoFill = async () => {
+    setIsGenerating(true);
+    try {
+      const ctx = await getEmailContext();
+      const generated = await generateThreadNoteApi(conversationId, ctx.subject, ctx.body);
+      setText(generated);
+    } catch (e) {
+      console.error("Auto-fill failed:", e);
+    }
+    setIsGenerating(false);
+  };
 
   const primaryColor = tokens.colors.primary;
 
@@ -80,6 +94,23 @@ const ThreadNotePanel: React.FC<ThreadNotePanelProps> = ({ conversationId }) => 
             <span style={{ fontSize: tokens.font.caption.size, color: "#107C41" }}>
               Saved ✓
             </span>
+          )}
+          {!text && !isLoading && (
+            <button
+              onClick={handleAutoFill}
+              disabled={isGenerating}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                fontSize: tokens.font.caption.size,
+                color: isGenerating ? tokens.colors.placeholder : primaryColor,
+                cursor: isGenerating ? "wait" : "pointer",
+                fontWeight: tokens.font.label.weight,
+              }}
+            >
+              {isGenerating ? "Generating..." : "Auto-fill"}
+            </button>
           )}
           {text && (
             <button

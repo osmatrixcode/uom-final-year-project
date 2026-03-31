@@ -20,11 +20,13 @@
     ☐ __features-to-impl__:
         ☐ _taskpane_:
             ☐ profileMD for each email address (can edit tone, etc...) use Prompt to tell what to change and AI will modify the profileMD
+            ☐ profileMD idea, make sure cannot change modes until saved (and passed through llm-guard)
             ☐ if group, paste all profileMD and allow AI to determine the best prompt
             ☐ think what to do for email groups / multiple people in thread (have profileMD for that group?)
             ☐ profileMD idea, can create a 'text prompt' FOR THAT EMAIL THREAD (so even can have it for that email thread) so have specific for that email thread 
             ☐ emailthreadMD idea, can have specific prompt as dont need to load all other profile MDs? 
                 ☐ for group people, will have general prompt? but think if address to specific people in that group thread, nice to have specific profileMD for that person (as personalised)
+            ☐ MD idea, if have more recent emails, will continually update? 
         ☐ _ai/nlp_:
             ☐ _security_:
                 ☐ add llm best practices for cyber attacks (prevent prompt injection)

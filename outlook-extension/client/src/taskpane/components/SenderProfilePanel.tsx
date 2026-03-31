@@ -1,7 +1,8 @@
 import * as React from "react";
 import { tokens } from "../theme/tokens";
 import { EmailRecipient } from "../taskpane";
-import { fetchProfile, saveProfile } from "../services/basicService";
+import { fetchProfile, saveProfile, generateProfile } from "../services/basicService";
+import { getEmailContext } from "../taskpane";
 
 interface SenderProfilePanelProps {
   sender: EmailRecipient;
@@ -11,6 +12,7 @@ const SenderProfilePanel: React.FC<SenderProfilePanelProps> = ({ sender }) => {
   const [text, setText] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
+  const [isGenerating, setIsGenerating] = React.useState(false);
 
   /* Load profile whenever the selected sender changes */
   React.useEffect(() => {
@@ -38,6 +40,18 @@ const SenderProfilePanel: React.FC<SenderProfilePanelProps> = ({ sender }) => {
     }, 450);
     return () => clearTimeout(timer);
   }, [text]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleAutoFill = async () => {
+    setIsGenerating(true);
+    try {
+      const ctx = await getEmailContext();
+      const generated = await generateProfile(sender.emailAddress, ctx.subject, ctx.body);
+      setText(generated);
+    } catch (e) {
+      console.error("Auto-fill failed:", e);
+    }
+    setIsGenerating(false);
+  };
 
   const accentColor = tokens.colors.accent;
 
@@ -94,6 +108,23 @@ const SenderProfilePanel: React.FC<SenderProfilePanelProps> = ({ sender }) => {
             <span style={{ fontSize: tokens.font.caption.size, color: "#107C41" }}>
               Saved ✓
             </span>
+          )}
+          {!text && !isLoading && (
+            <button
+              onClick={handleAutoFill}
+              disabled={isGenerating}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                fontSize: tokens.font.caption.size,
+                color: isGenerating ? tokens.colors.placeholder : accentColor,
+                cursor: isGenerating ? "wait" : "pointer",
+                fontWeight: tokens.font.label.weight,
+              }}
+            >
+              {isGenerating ? "Generating..." : "Auto-fill"}
+            </button>
           )}
           {text && (
             <button
