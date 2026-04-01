@@ -88,3 +88,36 @@ def log_moderation_block(
 
     path.write_text("\n".join(lines), encoding="utf-8")
     return path
+
+
+def log_safety_block(
+    *,
+    instruction: str,
+    llm_output: str,
+    reason: str,
+    mode: str | None = None,
+):
+    """Write a log entry when the safety classifier blocks an interaction."""
+    ts = datetime.datetime.now()
+    filename = f"{ts:%Y-%m-%d_%H-%M-%S}_safety_block.txt"
+    path = _LOG_DIR / filename
+
+    lines = []
+    lines.append(f"Timestamp : {ts.isoformat()}")
+    lines.append(f"Event     : SAFETY BLOCK (independent classifier)")
+    if mode:
+        lines.append(f"Mode      : {mode}")
+
+    lines.append(_separator("USER INSTRUCTION"))
+    lines.append(f"  {instruction}")
+
+    lines.append(_separator("LLM OUTPUT (blocked)"))
+    lines.append(llm_output)
+
+    lines.append(_separator("SAFETY VERDICT"))
+    lines.append(f"  {reason}")
+
+    lines.append(f"\n{'='*60}\n  END\n{'='*60}\n")
+
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path

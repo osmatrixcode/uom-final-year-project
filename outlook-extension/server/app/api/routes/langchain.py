@@ -216,6 +216,9 @@ def generate_reply_stream(
             yield f"data: {json.dumps({'type': 'intent', 'intent': intent})}\n\n"
 
             for chunk in service.stream_email_reply(request, graph_thread=graph_thread, sender_name=user.name if user else None):
+                if chunk == "__SAFETY_BLOCK__":
+                    yield f"data: {json.dumps({'type': 'error', 'message': 'Your question appears to be outside the scope of this email thread. I can only help with questions about this email or email-related tasks.'})}\n\n"
+                    return
                 yield f"data: {json.dumps({'type': 'token', 'token': chunk})}\n\n"
 
             yield f"data: {json.dumps({'type': 'done', 'user_name': user.name if user else None, 'graph_enriched': graph_thread is not None})}\n\n"

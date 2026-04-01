@@ -41,4 +41,8 @@ Do you want a Few-Shot version of your generate_sender_profile prompt to ensure 
 
 Moderation API, have general impl but if in a company and working on sensitive stuff (think police cases etc...) then need to implement your own personal content policy? 
 
-go through 
+go through .TODO and explain everything
+
+talk about defence and security, and OWASP and how number one threat is llm-guard
+
+https://ailuminate.mlcommons.org/benchmarks/general_purpose_ai_chat/1.0-en_us-official-ensemble

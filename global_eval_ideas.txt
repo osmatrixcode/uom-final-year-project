@@ -1,3 +1,5 @@
 SECURITY / PRIVATISATION / PII / SCOPE / SAFEGUARDING:
 - Gpt vs more complex model FOR SAFEGUARDING 
     -gpt40 mini is really cheap, achieve similiar score to more advanced models yet cheaper 
+-test before add scope_classifier and moderation_api and after
+-test llm-guard before and after 

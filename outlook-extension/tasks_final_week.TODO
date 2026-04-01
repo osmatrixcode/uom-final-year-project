@@ -48,6 +48,8 @@
                     ☐ sender_edit (user can add malicious profileMD) 
                     ☐ general_qa (user can ask any question, even if not relevant to the email thread
                     ☐ email draft (user can add malicious prompt + privatisation)
+                ☐ security roadmap:
+                    ☐ OpenAI Moderation API (for content moderation)
             ☐ _general_:
                 ☐ think of prompt generation techniques NLP
                 ☐ make thread text more important than sender text? 
