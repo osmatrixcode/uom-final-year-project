@@ -61,6 +61,29 @@ def _build_injected_context(request: "EmailContextRequest") -> str | None:
     return "\n\n---\nPersonalisation context (use to tailor tone and style):\n" + "\n".join(blocks)
 
 
+def _fix_body_from_graph(request: "EmailContextRequest", graph_thread: dict | None, user_email: str | None):
+    """
+    Office.js body in reply-compose mode contains the user's own draft / quoted text,
+    not the incoming email.  When Graph thread data is available, replace request.body
+    with the most recent message actually sent BY the recipient so the prompt
+    correctly says '{recipients} wrote this email'.
+    """
+    if not graph_thread or not user_email:
+        return
+    thread_msgs = graph_thread.get("thread", [])
+    if not thread_msgs:
+        return
+    user = user_email.lower()
+    # Most recent message NOT from the user = the incoming email
+    for msg in reversed(thread_msgs):
+        sender_addr = msg.get("from", {}).get("emailAddress", {}).get("address", "").lower()
+        if sender_addr and sender_addr != user:
+            body_text = msg.get("bodyFull") or msg.get("bodyPreview", "")
+            if body_text:
+                request.body = body_text
+            return
+
+
 def _extract_bearer_token(request: Request) -> str | None:
     auth_header = request.headers.get("Authorization", "")
     return auth_header.removeprefix("Bearer ").strip() if auth_header.startswith("Bearer ") else None
@@ -98,6 +121,7 @@ def generate_reply(
             # Non-fatal: fall back to the email context provided by the client
             logger.warning("Could not fetch email thread from Graph: %s", e)
 
+    _fix_body_from_graph(request, graph_thread, user.email if user else None)
     if request.mode != "general_qa":
         request.injected_context = _build_injected_context(request)
     reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
@@ -128,6 +152,7 @@ def generate_reply_stream(
         except Exception as e:
             logger.warning("Could not fetch email thread from Graph: %s", e)
 
+    _fix_body_from_graph(request, graph_thread, user.email if user else None)
     if request.mode != "general_qa":
         request.injected_context = _build_injected_context(request)
 

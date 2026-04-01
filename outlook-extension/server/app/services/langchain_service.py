@@ -14,13 +14,26 @@ with open(_PROMPTS_PATH, "rb") as _f:
     _PROMPTS = tomllib.load(_f)
 
 
-_EMAIL_HEADER_RE = __import__("re").compile(
-    r"^(Subject|To|From|Date|Cc|Bcc):.*\n?", __import__("re").IGNORECASE | __import__("re").MULTILINE
+import re as _re
+
+_EMAIL_HEADER_RE = _re.compile(
+    r"^(Subject|To|From|Date|Cc|Bcc):.*\n?", _re.IGNORECASE | _re.MULTILINE
+)
+
+# Matches the inline header block that Office.js prepends in reply-compose mode:
+# "From: Name <email>Sent: ...To: ...Subject: ...  Body text"
+_OFFICEJS_HEADER_PREFIX_RE = _re.compile(
+    r"^From:\s.*?Subject:\s*(?:Re:\s*)?[^\s].*?\s{2,}", _re.IGNORECASE | _re.DOTALL
 )
 
 def _strip_email_headers(text: str) -> str:
     """Remove any email header lines (Subject:, To:, etc.) the LLM accidentally outputs."""
     return _EMAIL_HEADER_RE.sub("", text).lstrip("\n")
+
+
+def _strip_officejs_header_prefix(text: str) -> str:
+    """Strip the inline header block Office.js prepends in reply-compose bodies."""
+    return _OFFICEJS_HEADER_PREFIX_RE.sub("", text).lstrip()
 
 
 def _build_prompt(prompt_key: str) -> ChatPromptTemplate:
@@ -139,7 +152,7 @@ class LangChainService:
                     "recipients": recipients_str,
                     "body": email_context.body,
                     "thread_context": thread_context,
-                    "draft": email_context.draft,
+                    "draft": _strip_officejs_header_prefix(email_context.draft),
                     "instruction_note": instruction_note,
                 }
                 reply = (_PROMPT_CACHE[prompt_key] | self.llm).invoke(variables).content
@@ -201,7 +214,7 @@ class LangChainService:
                     "recipients": recipients_str,
                     "body": email_context.body,
                     "thread_context": thread_context,
-                    "draft": email_context.draft,
+                    "draft": _strip_officejs_header_prefix(email_context.draft),
                     "instruction_note": instruction_note,
                     "sender_name": sender,
                 }

@@ -89,6 +89,7 @@
         ✘ tool calling for getting past emails, getting sender id text, etc... @cancelled(26-04-01 13:49)
     ☐ start designing the benchmarking stuff! 
     ☐ option for local model use? 
+    ☐ use Sender text to help influeence tone decision for Thread text 
     ☐ print out logs / traces! 
     ☐ sender edit section, user can write prompt to edit the profileMD for that sender 
 
