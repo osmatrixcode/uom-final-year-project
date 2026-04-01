@@ -7,9 +7,11 @@
         ☐ test different local vs cloud models (time taken to generate) 
         ☐ evalation: Pairwise Comparison (Arena Style)
         ☐ llm as a judge
+        ☐ PromptFoo (generate test cases)
+        ☐ DeepEval (evaluate)
         ☐ ask gemini and notebook lm for how to evaluate it 
         ☐ test 3 different things (general_qa, email draft, profileMD, Safety and Prompt Injection) 
-        ☐ azure ai credits as free 200 usd given!
+        ✘ azure ai credits as free 20 usd given! @cancelled(26-04-01 13:01)
 
     ☐ __documentation__:
         ☐ create README docs for outlook extension
@@ -20,12 +22,12 @@
     ☐ __features-to-impl__:
         ☐ _taskpane_:
             ☐ profileMD for each email address (can edit tone, etc...) use Prompt to tell what to change and AI will modify the profileMD
-            ☐ profileMD idea, make sure cannot change modes until saved (and passed through llm-guard)
-            ☐ if group, paste all profileMD and allow AI to determine the best prompt
-            ☐ think what to do for email groups / multiple people in thread (have profileMD for that group?)
-            ☐ profileMD idea, can create a 'text prompt' FOR THAT EMAIL THREAD (so even can have it for that email thread) so have specific for that email thread 
-            ☐ emailthreadMD idea, can have specific prompt as dont need to load all other profile MDs? 
-                ☐ for group people, will have general prompt? but think if address to specific people in that group thread, nice to have specific profileMD for that person (as personalised)
+            ☐ profileMD idea, make sure canno change modes until saved (and passed through llm-guard)
+            ✔ if group, paste all profileMD and allow AI to determine the best prompt @done(26-04-01 13:20)
+            ✔ think what to do for email groups / multiple people in thread (have profileMD for that group?) @done(26-04-01 13:20)
+            ✔ profileMD idea, can create a 'text prompt' FOR THAT EMAIL THREAD (so even can have it for that email thread) so have specific for that email thread @done(26-04-01 13:20)
+            ✔ emailthreadMD idea, can have specific prompt as dont need to load all other profile MDs? @done(26-04-01 13:20)
+                ✔ for group people, will have general prompt? but think if address to specific people in that group thread, nice to have specific profileMD for that person (as personalised) @done(26-04-01 13:20)
             ☐ MD idea, if have more recent emails, will continually update? 
             ☐ seems like MD idea when auto-fill, will fill with example of email thread (may be bad if general profileMD)
         ☐ _ai/nlp_:
@@ -33,6 +35,7 @@
                 ☐ add llm best practices for cyber attacks (prevent prompt injection)
                 ☐ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this?
                 ☐ data anonymisation for privacy (python libraries)
+                ☐ llm guard and privatisation for every mode / option (look at prompts.toml)
                 ☐ safeguarding model (for response appropiateness)
                 ☐ HITL or automatic generation (for llm guard)
                 ☐ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) (can only ask relevant questions) 
@@ -46,18 +49,17 @@
                 ☐ few shot prompting (get 5 example responses from user, and pass it as context for system prompt)
                 ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response
                     ☐ if received past email from sender, use that as context + profileMD for that sender (can edit profileMD to change tone, etc...)
-                    ☐ if no past email from sender, generic professional + create a profileMD? 
                     ☐ think about profileMD and if received email before from sender, if not then use general email responses user sent to make generic profileMD or for context 
                     ☐ if no email history with the sender, use THEIR email message THEY sent (find the tone AND RECIPROCATE THAT)
                     ☐ use past email ai drafts made that user like, as the FEW SHOT examples! (tailors to them)
-                    ☐ after few times user uses it and makes modifications, will modify it to users taste
+                    ✘ after few times user uses it and makes modifications, will modify it to users taste @cancelled(26-04-01 12:53)
 
         ☐ _nice-to-have_:
-            ☐ uses document vector db to generate email reply, (link general qa with email draft)? think about it 
+            ✘ uses document vector db to generate email reply, (link general qa with email draft)? think about it @cancelled(26-04-01 12:53)
             ✘ implement a thumbs up thumbs down system (help modify and give reason why) @cancelled(26-03-31 19:33)
             ✘ when first download app, will walk through generated email responses, you approve or modify THEN can use this for ICL / Few Shot PERSONAL examples (makes it personal to them!) @cancelled(26-03-31 19:32)
             ☐ db for chat history? (sql-lite) so if exit from email thread taskpane, and come back, can see the most latest conversations for that email thread? 
-            ☐ general_qa mode, can query about documents sent? (vector DB -chromaDB is sqllite version) 
+            ✘ general_qa mode, can query about documents sent? (vector DB -chromaDB is sqllite version) @cancelled(26-04-01 13:20)
 
 
 

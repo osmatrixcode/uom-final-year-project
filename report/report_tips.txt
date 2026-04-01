@@ -21,3 +21,6 @@ Unload the embedding model and load the Llama 3.2 Question Answering model
 This adds significant overhead. 
 
 talk about literature on how structured formatting and tool calling was made
+
+
+-talk about synthetic data generation stuff (how moved to know 'persona generation) 
