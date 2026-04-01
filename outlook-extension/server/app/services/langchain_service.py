@@ -65,7 +65,7 @@ class LangChainService:
                 summaries = []
                 for msg in thread_messages:
                     sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
-                    preview = msg.get("bodyPreview", "")
+                    preview = msg.get("bodyFull") or msg.get("bodyPreview", "")
                     date = msg.get("receivedDateTime", "")[:10]
                     summaries.append(f"[{date}] {sender}: {preview}")
                 parts.append("\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries))
