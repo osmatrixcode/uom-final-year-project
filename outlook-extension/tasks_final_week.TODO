@@ -62,6 +62,14 @@
                     ☐ use past email ai drafts made that user like, as the FEW SHOT examples! (tailors to them)
                     ✘ after few times user uses it and makes modifications, will modify it to users taste @cancelled(26-04-01 12:53)
 
+            ☐ __security-final__:
+                ☐ _general-qa_:
+                    ☐ OpenAI Moderation API (for content moderation)
+                    ☐ Classifier for relevancy 
+                    ☐ llm-guard for prompt injection 
+                    ☐ llm-guard for pii as well? (or use something else) 
+                    ☐ decide order of it (before or after etc... variaous stages)
+
         ☐ _nice-to-have_:
             ✘ uses document vector db to generate email reply, (link general qa with email draft)? think about it @cancelled(26-04-01 12:53)
             ✘ implement a thumbs up thumbs down system (help modify and give reason why) @cancelled(26-03-31 19:33)

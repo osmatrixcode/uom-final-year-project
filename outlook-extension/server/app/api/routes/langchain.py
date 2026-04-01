@@ -9,7 +9,8 @@ from app.services.token_validator import try_validate_token, ValidatedToken
 from app.services.graph_service import get_email_thread, get_thread_by_conversation_id
 from app.services.profile_service import get_profile, get_thread_note
 from app.services.moderation_service import check_moderation, ModerationFailure
-from app.services.prompt_logger import log_moderation_block
+from app.services.injection_service import check_injection, InjectionFailure
+from app.services.prompt_logger import log_moderation_block, log_injection_block
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -159,6 +160,19 @@ def generate_reply(
                 status_code=422,
                 detail=f"Your message was flagged by our content policy ({', '.join(exc.categories)}). Please rephrase.",
             )
+        try:
+            check_injection(request.instruction)
+        except InjectionFailure as exc:
+            log_injection_block(
+                instruction=request.instruction or "",
+                scanner_name=exc.scanner_name,
+                risk_score=exc.risk_score,
+                mode=request.mode or "general_qa",
+            )
+            raise HTTPException(
+                status_code=422,
+                detail="Your message was flagged by our security filter. Please rephrase.",
+            )
 
     if request.mode != "general_qa":
         request.injected_context = _build_injected_context(request)
@@ -205,6 +219,19 @@ def generate_reply_stream(
             raise HTTPException(
                 status_code=422,
                 detail=f"Your message was flagged by our content policy ({', '.join(exc.categories)}). Please rephrase.",
+            )
+        try:
+            check_injection(request.instruction)
+        except InjectionFailure as exc:
+            log_injection_block(
+                instruction=request.instruction or "",
+                scanner_name=exc.scanner_name,
+                risk_score=exc.risk_score,
+                mode=request.mode or "general_qa",
+            )
+            raise HTTPException(
+                status_code=422,
+                detail="Your message was flagged by our security filter. Please rephrase.",
             )
 
     if request.mode != "general_qa":

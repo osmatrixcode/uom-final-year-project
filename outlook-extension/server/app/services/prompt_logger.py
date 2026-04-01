@@ -121,3 +121,34 @@ def log_safety_block(
 
     path.write_text("\n".join(lines), encoding="utf-8")
     return path
+
+
+def log_injection_block(
+    *,
+    instruction: str,
+    scanner_name: str,
+    risk_score: float,
+    mode: str | None = None,
+):
+    """Write a log entry when an LLM Guard scanner blocks a request."""
+    ts = datetime.datetime.now()
+    filename = f"{ts:%Y-%m-%d_%H-%M-%S}_injection_block.txt"
+    path = _LOG_DIR / filename
+
+    lines = []
+    lines.append(f"Timestamp : {ts.isoformat()}")
+    lines.append(f"Event     : INJECTION BLOCK (LLM Guard)")
+    if mode:
+        lines.append(f"Mode      : {mode}")
+
+    lines.append(_separator("USER INSTRUCTION"))
+    lines.append(f"  {instruction}")
+
+    lines.append(_separator("SCANNER DETAILS"))
+    lines.append(f"  Scanner   : {scanner_name}")
+    lines.append(f"  Risk score: {risk_score:.4f}")
+
+    lines.append(f"\n{'='*60}\n  END\n{'='*60}\n")
+
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path
