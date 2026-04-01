@@ -98,7 +98,8 @@ def generate_reply(
             # Non-fatal: fall back to the email context provided by the client
             logger.warning("Could not fetch email thread from Graph: %s", e)
 
-    request.injected_context = _build_injected_context(request)
+    if request.mode != "general_qa":
+        request.injected_context = _build_injected_context(request)
     reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
     return GenerateReplyResponse(
         reply=reply,
@@ -127,7 +128,8 @@ def generate_reply_stream(
         except Exception as e:
             logger.warning("Could not fetch email thread from Graph: %s", e)
 
-    request.injected_context = _build_injected_context(request)
+    if request.mode != "general_qa":
+        request.injected_context = _build_injected_context(request)
 
     def event_stream():
         try:

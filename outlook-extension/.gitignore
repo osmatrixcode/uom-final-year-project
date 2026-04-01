@@ -11,3 +11,4 @@ client/Interactive Eye-Following Card (Community)/
 report/
 report/report_tips.txt
 *.db
+server/llm_logs/

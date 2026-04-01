@@ -86,7 +86,7 @@ def get_thread_by_conversation_id(conversation_id: str, token: str) -> dict:
     """
     result = graph_get_with_token(
         f"{GRAPH_BASE}/me/messages"
-        f"?$filter=conversationId eq '{conversation_id}'"
+        f"?$filter=conversationId eq '{conversation_id}' and isDraft eq false"
         f"&$select=subject,bodyPreview,from,receivedDateTime,conversationId"
         f"&$top=10",
         token,
@@ -117,7 +117,7 @@ def get_email_thread(item_rest_id: str, token: str) -> dict:
     if conversation_id:
         result = graph_get_with_token(
             f"{GRAPH_BASE}/me/messages"
-            f"?$filter=conversationId eq '{conversation_id}'"
+            f"?$filter=conversationId eq '{conversation_id}' and isDraft eq false"
             f"&$select=subject,bodyPreview,from,receivedDateTime"
             f"&$top=10",
             token,
