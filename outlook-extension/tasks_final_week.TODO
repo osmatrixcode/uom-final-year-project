@@ -38,7 +38,7 @@
                 ☐ Microsoft Presidio
                 ☐ llm guard and privatisation for every mode / option (look at prompts.toml)
                 ☐ safeguarding model (for response appropiateness)
-                ☐ openAI moderation API --> 40 mini scope, --> MS Presido for PII
+                ☐ openAI moderation API --> 40 mini scope, --> MS Presido for
                 ✘ HITL or automatic generation (for llm guard) @cancelled(26-04-01 13:49)
                 ☐ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) (can only ask relevant questions) 
                 ☐ allow 3. Advanced: Custom Rules (The "Outlook" Case) In a professional setting, you often have specific patterns (like Employee IDs or Internal Project Codes) that standard models miss. You can add a PatternRecognizer for these.
@@ -51,6 +51,7 @@
             ☐ _general_:
                 ☐ think of prompt generation techniques NLP
                 ☐ make thread text more important than sender text? 
+                ☐ profileMD idea, user "email" instead of name
                 ☐ few shot prompting (get 5 example responses from user, and pass it as context for system prompt)
                 ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response
                     ☐ if received past email from sender, use that as context + profileMD for that sender (can edit profileMD to change tone, etc...)
@@ -65,6 +66,8 @@
             ✘ when first download app, will walk through generated email responses, you approve or modify THEN can use this for ICL / Few Shot PERSONAL examples (makes it personal to them!) @cancelled(26-03-31 19:32)
             ☐ db for chat history? (sql-lite) so if exit from email thread taskpane, and come back, can see the most latest conversations for that email thread? 
             ✘ general_qa mode, can query about documents sent? (vector DB -chromaDB is sqllite version) @cancelled(26-04-01 13:20)
+            ☐ mock company and project info in vector db, can query and use in email drafts and general qa 
+                ☐ think about consequences and how dont want people to leak it. also out of the scope of the project
 
 
 
@@ -86,6 +89,7 @@
         ✘ tool calling for getting past emails, getting sender id text, etc... @cancelled(26-04-01 13:49)
     ☐ start designing the benchmarking stuff! 
     ☐ option for local model use? 
+    ☐ use Sender text to help influeence tone decision for Thread text 
     ☐ print out logs / traces! 
     ☐ sender edit section, user can write prompt to edit the profileMD for that sender 
 

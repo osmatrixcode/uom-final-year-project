@@ -30,3 +30,10 @@ talk about literature on how structured formatting and tool calling was made
 The system prompt needs to be crystal clear that the tone profile only affects style, not the factual content of the reply. And the factual understanding needs reinforcing:
 
   ☐ allow user to create these custom rules, however in report mention how further additions is allowing IT people to set custom data anonymisation rules (as have access to the backend)
+
+
+For your Outlook Prototype, I recommend staying Zero-Shot for general_qa to keep it fast and responsive.
+
+BUT, you should use Few-Shot for your generate_sender_profile and generate_thread_note prompts. Why? Because you want those notes to be exactly 2-3 sentences and follow a very specific "style-only" rule. Examples are the best way to ensure the model doesn't start writing sample replies or long biographies.
+
+Do you want a Few-Shot version of your generate_sender_profile prompt to ensure it stays strictly 2-3 sentences?

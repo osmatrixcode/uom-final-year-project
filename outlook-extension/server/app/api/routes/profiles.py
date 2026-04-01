@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from app.services.profile_service import get_profile, save_profile, delete_profile
-from app.services.graph_service import graph_get_with_token, GRAPH_BASE
+from app.services.graph_service import graph_get_with_token, html_to_text, GRAPH_BASE
 from app.services.langchain_service import LangChainService
 
 logger = logging.getLogger(__name__)
@@ -62,21 +62,33 @@ def generate_profile(email: str, body: GenerateProfileRequest, request: Request)
 
     if token:
         try:
+            # Graph rejects toRecipients/any() on consumer mailboxes,
+            # so fetch recent sent items and filter client-side.
             result = graph_get_with_token(
                 f"{GRAPH_BASE}/me/mailFolders/SentItems/messages"
-                f"?$filter=toRecipients/any(r:r/emailAddress/address eq '{email}')"
-                f"&$top=5"
-                f"&$select=bodyPreview,subject,sentDateTime"
+                f"?$top=50"
+                f"&$select=bodyPreview,body,subject,sentDateTime,toRecipients"
                 f"&$orderby=sentDateTime desc",
                 token,
             )
-            messages = result.get("value", [])
+            target = email.lower()
+            messages = [
+                m for m in result.get("value", [])
+                if any(
+                    r.get("emailAddress", {}).get("address", "").lower() == target
+                    for r in m.get("toRecipients", [])
+                )
+            ][:5]
             if messages:
                 previews = []
                 for m in messages:
                     date = m.get("sentDateTime", "")[:10]
                     subj = m.get("subject", "")
-                    body_text = m.get("bodyPreview", "")
+                    body_obj = m.get("body", {})
+                    if body_obj.get("contentType") == "html":
+                        body_text = html_to_text(body_obj.get("content", ""))
+                    else:
+                        body_text = body_obj.get("content", "").strip() or m.get("bodyPreview", "")
                     previews.append(f"[{date}] Subject: {subj}\n{body_text}")
                 history_preview = "\n\n".join(previews)
         except Exception as e:

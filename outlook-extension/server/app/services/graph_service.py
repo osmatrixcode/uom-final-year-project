@@ -1,6 +1,16 @@
 import os
+import re
 import msal
 import requests
+from html import unescape
+from urllib.parse import quote
+
+
+def html_to_text(html: str) -> str:
+    """Rough HTML-to-plaintext conversion for Graph message bodies."""
+    text = re.sub(r"<br\s*/?>", "\n", html, flags=re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", "", text)
+    return unescape(text).strip()
 
 # In-memory token cache (sufficient for dev/testing; replace with DB for production)
 _token_cache: dict = {}
@@ -84,16 +94,26 @@ def get_thread_by_conversation_id(conversation_id: str, token: str) -> dict:
     conversationId is available in Outlook compose/reply mode even before the draft is saved,
     making this the preferred path when replying to an existing email.
     """
+    safe_cid = quote(conversation_id, safe="")
     result = graph_get_with_token(
         f"{GRAPH_BASE}/me/messages"
-        f"?$filter=conversationId eq '{conversation_id}'"
-        f"&$select=subject,bodyPreview,from,receivedDateTime,conversationId"
+        f"?$filter=conversationId eq '{safe_cid}'"
+        f"&$select=subject,bodyPreview,body,from,receivedDateTime,conversationId,isDraft"
         f"&$top=10",
         token,
     )
+    # Filter out drafts client-side — consumer Graph API rejects isDraft in $filter
+    sent_messages = [m for m in result.get("value", []) if not m.get("isDraft", False)]
+    # Add plaintext body for callers that need the full content
+    for m in sent_messages:
+        body_obj = m.get("body", {})
+        if body_obj.get("contentType") == "html":
+            m["bodyFull"] = html_to_text(body_obj.get("content", ""))
+        else:
+            m["bodyFull"] = body_obj.get("content", "").strip()
     # Sort client-side — Graph rejects $orderby combined with $filter on messages
     thread_messages = sorted(
-        result.get("value", []),
+        sent_messages,
         key=lambda m: m.get("receivedDateTime", ""),
     )
     primary = thread_messages[-1] if thread_messages else {}
@@ -115,15 +135,16 @@ def get_email_thread(item_rest_id: str, token: str) -> dict:
     conversation_id = message.get("conversationId", "")
     thread_messages: list = []
     if conversation_id:
+        safe_cid = quote(conversation_id, safe="")
         result = graph_get_with_token(
             f"{GRAPH_BASE}/me/messages"
-            f"?$filter=conversationId eq '{conversation_id}'"
-            f"&$select=subject,bodyPreview,from,receivedDateTime"
+            f"?$filter=conversationId eq '{safe_cid}'"
+            f"&$select=subject,bodyPreview,from,receivedDateTime,isDraft"
             f"&$top=10",
             token,
         )
         thread_messages = sorted(
-            result.get("value", []),
+            [m for m in result.get("value", []) if not m.get("isDraft", False)],
             key=lambda m: m.get("receivedDateTime", ""),
         )
 

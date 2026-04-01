@@ -61,6 +61,49 @@ def _build_injected_context(request: "EmailContextRequest") -> str | None:
     return "\n\n---\nPersonalisation context (use to tailor tone and style):\n" + "\n".join(blocks)
 
 
+def _normalize(text: str) -> str:
+    """Strip all whitespace and punctuation for fuzzy comparison."""
+    return "".join(text.lower().split())
+
+
+def _fix_body_from_graph(request: "EmailContextRequest", graph_thread: dict | None, user_email: str | None):
+    """
+    Office.js body in reply-compose mode contains the user's own draft / quoted text,
+    not the incoming email.  When Graph thread data is available, replace request.body
+    with the most recent message actually sent BY the recipient so the prompt
+    correctly says '{recipients} wrote this email'.
+
+    Also clears request.draft if it's just the quoted incoming email (no actual user draft).
+    """
+    if not graph_thread or not user_email:
+        return
+    thread_msgs = graph_thread.get("thread", [])
+    if not thread_msgs:
+        return
+    user = user_email.lower()
+    incoming_body = ""
+    # Most recent message NOT from the user = the incoming email
+    for msg in reversed(thread_msgs):
+        sender_addr = msg.get("from", {}).get("emailAddress", {}).get("address", "").lower()
+        if sender_addr and sender_addr != user:
+            incoming_body = msg.get("bodyFull") or msg.get("bodyPreview", "")
+            if incoming_body:
+                request.body = incoming_body
+            break
+
+    # If the draft is essentially the quoted incoming email, clear it so the
+    # system uses generate_reply (new draft) instead of refine_draft.
+    if request.draft and incoming_body:
+        from app.services.langchain_service import _strip_officejs_header_prefix
+        cleaned_draft = _strip_officejs_header_prefix(request.draft)
+        norm_draft = _normalize(cleaned_draft)
+        norm_body = _normalize(incoming_body)
+        # Exact match, or one contains the other (quoted text may be subset)
+        if norm_draft == norm_body or norm_body in norm_draft or norm_draft in norm_body:
+            logger.info("[fix-body] Clearing draft — it matches the incoming email (not a user draft)")
+            request.draft = None
+
+
 def _extract_bearer_token(request: Request) -> str | None:
     auth_header = request.headers.get("Authorization", "")
     return auth_header.removeprefix("Bearer ").strip() if auth_header.startswith("Bearer ") else None
@@ -98,7 +141,9 @@ def generate_reply(
             # Non-fatal: fall back to the email context provided by the client
             logger.warning("Could not fetch email thread from Graph: %s", e)
 
-    request.injected_context = _build_injected_context(request)
+    _fix_body_from_graph(request, graph_thread, user.email if user else None)
+    if request.mode != "general_qa":
+        request.injected_context = _build_injected_context(request)
     reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
     return GenerateReplyResponse(
         reply=reply,
@@ -127,7 +172,9 @@ def generate_reply_stream(
         except Exception as e:
             logger.warning("Could not fetch email thread from Graph: %s", e)
 
-    request.injected_context = _build_injected_context(request)
+    _fix_body_from_graph(request, graph_thread, user.email if user else None)
+    if request.mode != "general_qa":
+        request.injected_context = _build_injected_context(request)
 
     def event_stream():
         try:

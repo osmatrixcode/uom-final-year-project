@@ -5,6 +5,7 @@ import pathlib
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
+from app.services.prompt_logger import log_prompt_and_response
 
 logger = logging.getLogger(__name__)
 
@@ -13,13 +14,26 @@ with open(_PROMPTS_PATH, "rb") as _f:
     _PROMPTS = tomllib.load(_f)
 
 
-_EMAIL_HEADER_RE = __import__("re").compile(
-    r"^(Subject|To|From|Date|Cc|Bcc):.*\n?", __import__("re").IGNORECASE | __import__("re").MULTILINE
+import re as _re
+
+_EMAIL_HEADER_RE = _re.compile(
+    r"^(Subject|To|From|Date|Cc|Bcc):.*\n?", _re.IGNORECASE | _re.MULTILINE
+)
+
+# Matches the inline header block that Office.js prepends in reply-compose mode:
+# "From: Name <email>Sent: ...To: ...Subject: ...  Body text"
+_OFFICEJS_HEADER_PREFIX_RE = _re.compile(
+    r"^From:\s.*?Subject:\s*(?:Re:\s*)?[^\s].*?\s{2,}", _re.IGNORECASE | _re.DOTALL
 )
 
 def _strip_email_headers(text: str) -> str:
     """Remove any email header lines (Subject:, To:, etc.) the LLM accidentally outputs."""
     return _EMAIL_HEADER_RE.sub("", text).lstrip("\n")
+
+
+def _strip_officejs_header_prefix(text: str) -> str:
+    """Strip the inline header block Office.js prepends in reply-compose bodies."""
+    return _OFFICEJS_HEADER_PREFIX_RE.sub("", text).lstrip()
 
 
 def _build_prompt(prompt_key: str) -> ChatPromptTemplate:
@@ -30,6 +44,19 @@ def _build_prompt(prompt_key: str) -> ChatPromptTemplate:
 # Cache only chat-style prompts (those with system/human keys) at import time
 _CHAT_PROMPT_KEYS = {"generate_reply", "refine_draft", "general_qa", "refine_profile_text"}
 _PROMPT_CACHE = {key: _build_prompt(key) for key in _CHAT_PROMPT_KEYS}
+
+
+def _render_prompt(prompt_key: str, variables: dict) -> tuple[str | None, str]:
+    """Render a cached ChatPromptTemplate and return (system_text, human_text)."""
+    messages = _PROMPT_CACHE[prompt_key].format_messages(**variables)
+    system_text = None
+    human_text = ""
+    for msg in messages:
+        if msg.type == "system":
+            system_text = msg.content
+        elif msg.type == "human":
+            human_text = msg.content
+    return system_text, human_text
 
 
 class LangChainService:
@@ -51,7 +78,7 @@ class LangChainService:
                 summaries = []
                 for msg in thread_messages:
                     sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
-                    preview = msg.get("bodyPreview", "")
+                    preview = msg.get("bodyFull") or msg.get("bodyPreview", "")
                     date = msg.get("receivedDateTime", "")[:10]
                     summaries.append(f"[{date}] {sender}: {preview}")
                 parts.append("\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries))
@@ -81,16 +108,31 @@ class LangChainService:
             prompt = template.format(fallback_body=fallback_body)
 
         response = self.llm.invoke([HumanMessage(content=prompt)])
-        return response.content.strip()
+        output = response.content.strip()
+        log_prompt_and_response(
+            prompt_key=toml_key,
+            variables={"name": name, "history_preview": history_preview, "fallback_body": fallback_body, "mode": mode},
+            rendered_system=None,
+            rendered_human=prompt,
+            output=output,
+        )
+        return output
 
     def refine_profile_text(self, current_text: str, instruction: str) -> str:
         """Refine a sender profile or thread note based on user instruction."""
+        variables = {"current_text": current_text, "instruction": instruction}
         chain = _PROMPT_CACHE["refine_profile_text"] | self.llm
-        result = chain.invoke({
-            "current_text": current_text,
-            "instruction": instruction,
-        })
-        return result.content.strip()
+        result = chain.invoke(variables)
+        output = result.content.strip()
+        sys_text, human_text = _render_prompt("refine_profile_text", variables)
+        log_prompt_and_response(
+            prompt_key="refine_profile_text",
+            variables=variables,
+            rendered_system=sys_text,
+            rendered_human=human_text,
+            output=output,
+        )
+        return output
 
     def generate_email_reply(self, email_context, graph_thread: dict | None = None) -> tuple[str, str]:
         """Returns (reply_text, intent) where intent is 'draft' or 'qa'."""
@@ -104,35 +146,51 @@ class LangChainService:
         if mode == "email_draft":
             instruction_note = f"\nUser instruction: {instruction}\n" if instruction else ""
             if email_context.draft:
-                reply = (_PROMPT_CACHE["refine_draft"] | self.llm).invoke({
+                prompt_key = "refine_draft"
+                variables = {
                     "subject": email_context.subject,
                     "recipients": recipients_str,
                     "body": email_context.body,
                     "thread_context": thread_context,
-                    "draft": email_context.draft,
+                    "draft": _strip_officejs_header_prefix(email_context.draft),
                     "instruction_note": instruction_note,
-                }).content
+                }
+                reply = (_PROMPT_CACHE[prompt_key] | self.llm).invoke(variables).content
             else:
-                reply = (_PROMPT_CACHE["generate_reply"] | self.llm).invoke({
+                prompt_key = "generate_reply"
+                variables = {
                     "subject": email_context.subject,
                     "recipients": recipients_str,
                     "body": email_context.body,
                     "thread_context": thread_context,
                     "instruction_note": instruction_note,
-                }).content
+                }
+                reply = (_PROMPT_CACHE[prompt_key] | self.llm).invoke(variables).content
+            sys_text, human_text = _render_prompt(prompt_key, variables)
+            log_prompt_and_response(
+                prompt_key=prompt_key, variables=variables, mode=mode,
+                rendered_system=sys_text, rendered_human=human_text, output=reply,
+            )
             return reply, "draft"
 
         elif mode == "sender_edit":
             return "Sender Edit mode is not yet implemented.", "qa"
 
         else:  # general_qa (default)
-            reply = (_PROMPT_CACHE["general_qa"] | self.llm).invoke({
+            prompt_key = "general_qa"
+            variables = {
                 "subject": email_context.subject,
                 "recipients": recipients_str,
                 "body": email_context.body,
                 "thread_context": thread_context,
                 "instruction": instruction,
-            }).content
+            }
+            reply = (_PROMPT_CACHE[prompt_key] | self.llm).invoke(variables).content
+            sys_text, human_text = _render_prompt(prompt_key, variables)
+            log_prompt_and_response(
+                prompt_key=prompt_key, variables=variables, mode=mode,
+                rendered_system=sys_text, rendered_human=human_text, output=reply,
+            )
             return reply, "qa"
 
     def stream_email_reply(self, email_context, graph_thread: dict | None = None, sender_name: str | None = None):
@@ -156,7 +214,7 @@ class LangChainService:
                     "recipients": recipients_str,
                     "body": email_context.body,
                     "thread_context": thread_context,
-                    "draft": email_context.draft,
+                    "draft": _strip_officejs_header_prefix(email_context.draft),
                     "instruction_note": instruction_note,
                     "sender_name": sender,
                 }
@@ -174,23 +232,33 @@ class LangChainService:
                 }
             buffer = ""
             header_stripped = False
+            full_output_chunks = []
             for chunk in chain.stream(invoke_vars):
                 if not chunk.content:
                     continue
                 if not header_stripped:
                     buffer += chunk.content
-                    # Wait until we have enough content to detect headers
                     if "\n" in buffer or len(buffer) > 120:
                         clean = _strip_email_headers(buffer)
                         if clean:
+                            full_output_chunks.append(clean)
                             yield clean
                         header_stripped = True
                         buffer = ""
                 else:
+                    full_output_chunks.append(chunk.content)
                     yield chunk.content
-            # Flush any remaining buffer (short responses with no newline)
             if buffer:
-                yield _strip_email_headers(buffer)
+                clean = _strip_email_headers(buffer)
+                full_output_chunks.append(clean)
+                yield clean
+            # Log after streaming completes
+            sys_text, human_text = _render_prompt(prompt_key, invoke_vars)
+            log_prompt_and_response(
+                prompt_key=prompt_key, variables=invoke_vars, mode=mode,
+                rendered_system=sys_text, rendered_human=human_text,
+                output="".join(full_output_chunks),
+            )
 
         elif mode == "sender_edit":
             logger.info("[LangChain] mode=%s | prompt=none (not implemented)", mode)
@@ -198,13 +266,24 @@ class LangChainService:
 
         else:  # general_qa (default)
             logger.info("[LangChain] mode=%s | prompt=general_qa", mode)
-            chain = _PROMPT_CACHE["general_qa"] | self.llm
-            for chunk in chain.stream({
+            prompt_key = "general_qa"
+            invoke_vars = {
                 "subject": email_context.subject,
                 "recipients": recipients_str,
                 "body": email_context.body,
                 "thread_context": thread_context,
                 "instruction": instruction,
-            }):
+            }
+            chain = _PROMPT_CACHE[prompt_key] | self.llm
+            full_output_chunks = []
+            for chunk in chain.stream(invoke_vars):
                 if chunk.content:
+                    full_output_chunks.append(chunk.content)
                     yield chunk.content
+            # Log after streaming completes
+            sys_text, human_text = _render_prompt(prompt_key, invoke_vars)
+            log_prompt_and_response(
+                prompt_key=prompt_key, variables=invoke_vars, mode=mode,
+                rendered_system=sys_text, rendered_human=human_text,
+                output="".join(full_output_chunks),
+            )

@@ -60,25 +60,32 @@ def generate_thread_note(conversation_id: str, body: GenerateThreadNoteRequest, 
             # Get the user's email address for filtering
             me = graph_get_with_token(f"{GRAPH_BASE}/me?$select=mail,userPrincipalName", token)
             user_email = (me.get("mail") or me.get("userPrincipalName", "")).lower()
+            logger.info("[thread-note] user_email=%s, conversation_id=%s", user_email, conversation_id)
 
             # Get all thread messages
             thread_data = get_thread_by_conversation_id(conversation_id, token)
             thread_msgs = thread_data.get("thread", [])
+            logger.info("[thread-note] thread_msgs count=%d", len(thread_msgs))
+            for m in thread_msgs:
+                addr = m.get("from", {}).get("emailAddress", {}).get("address", "")
+                logger.info("[thread-note]   from=%s isDraft=%s", addr, m.get("isDraft"))
 
             # Filter to messages sent BY the user
             user_msgs = [
                 m for m in thread_msgs
                 if m.get("from", {}).get("emailAddress", {}).get("address", "").lower() == user_email
             ]
+            logger.info("[thread-note] user_msgs count=%d", len(user_msgs))
 
-            source_msgs = user_msgs if user_msgs else thread_msgs
-            if source_msgs:
+            # Only use the user's own messages — don't fall back to other
+            # people's messages, as the prompt says "messages the user sent".
+            if user_msgs:
                 previews = []
-                for m in source_msgs:
+                for m in user_msgs:
                     sender = m.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
                     date = m.get("receivedDateTime", "")[:10]
-                    preview = m.get("bodyPreview", "")
-                    previews.append(f"[{date}] {sender}: {preview}")
+                    body_text = m.get("bodyFull") or m.get("bodyPreview", "")
+                    previews.append(f"[{date}] {sender}: {body_text}")
                 history_preview = "\n\n".join(previews)
         except Exception as e:
             logger.warning("Could not fetch thread from Graph for %s: %s", conversation_id, e)
