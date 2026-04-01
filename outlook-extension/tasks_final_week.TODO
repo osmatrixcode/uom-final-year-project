@@ -20,7 +20,14 @@
     ☐ __features-to-impl__:
         ☐ _taskpane_:
             ☐ profileMD for each email address (can edit tone, etc...) use Prompt to tell what to change and AI will modify the profileMD
+            ☐ profileMD idea, make sure cannot change modes until saved (and passed through llm-guard)
+            ☐ if group, paste all profileMD and allow AI to determine the best prompt
             ☐ think what to do for email groups / multiple people in thread (have profileMD for that group?)
+            ☐ profileMD idea, can create a 'text prompt' FOR THAT EMAIL THREAD (so even can have it for that email thread) so have specific for that email thread 
+            ☐ emailthreadMD idea, can have specific prompt as dont need to load all other profile MDs? 
+                ☐ for group people, will have general prompt? but think if address to specific people in that group thread, nice to have specific profileMD for that person (as personalised)
+            ☐ MD idea, if have more recent emails, will continually update? 
+            ☐ seems like MD idea when auto-fill, will fill with example of email thread (may be bad if general profileMD)
         ☐ _ai/nlp_:
             ☐ _security_:
                 ☐ add llm best practices for cyber attacks (prevent prompt injection)
@@ -30,6 +37,10 @@
                 ☐ HITL or automatic generation (for llm guard)
                 ☐ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) (can only ask relevant questions) 
                 ☐ use Azure OpenAI (enterprise) for better privacy and security (and also better performance)
+                ☐ add guards for generalqa, sender edit, email draft 
+                    ☐ sender_edit (user can add malicious profileMD) 
+                    ☐ general_qa (user can ask any question, even if not relevant to the email thread
+                    ☐ email draft (user can add malicious prompt + privatisation)
             ☐ _general_:
                 ☐ think of prompt generation techniques NLP
                 ☐ few shot prompting (get 5 example responses from user, and pass it as context for system prompt)
@@ -43,8 +54,8 @@
 
         ☐ _nice-to-have_:
             ☐ uses document vector db to generate email reply, (link general qa with email draft)? think about it 
-            ☐ implement a thumbs up thumbs down system (help modify and give reason why) 
-            ☐ when first download app, will walk through generated email responses, you approve or modify THEN can use this for ICL / Few Shot PERSONAL examples (makes it personal to them!) 
+            ✘ implement a thumbs up thumbs down system (help modify and give reason why) @cancelled(26-03-31 19:33)
+            ✘ when first download app, will walk through generated email responses, you approve or modify THEN can use this for ICL / Few Shot PERSONAL examples (makes it personal to them!) @cancelled(26-03-31 19:32)
             ☐ db for chat history? (sql-lite) so if exit from email thread taskpane, and come back, can see the most latest conversations for that email thread? 
             ☐ general_qa mode, can query about documents sent? (vector DB -chromaDB is sqllite version) 
 
@@ -62,6 +73,15 @@
 ☐ TUESDAY:
 
 ☐ WEDNESDAY:
+    ☐ add option to past context (autofill) to refine draft as well!
+    ☐ start adding llm-guard and safety stuff now! (start with graft_qa)
+    ☐ add structured formating (instead of k-NN technique) and tool calling? (if needed)
+        ☐ tool calling for getting past emails, getting sender id text, etc...
+    ☐ start designing the benchmarking stuff! 
+    ☐ option for local model use? 
+    ☐ sender edit section, user can write prompt to edit the profileMD for that sender 
+
+        ☐ use logging to output what the email thread looks like, what sender_text and thread_text look like, what does current email look like etc... (so no variables for the prompt) 
 
 ☐ THURSDAY:
 

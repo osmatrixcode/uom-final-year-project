@@ -6,7 +6,10 @@ import DraftBox from "./DraftBox";
 import ChatInput, { InputMode } from "./ChatInput";
 import { Message } from "./MessageBubble";
 import { streamGenerateReply } from "../services/basicService";
-import { getEmailContext, insertText, getComposeBody, extractUserDraft } from "../taskpane";
+import { getEmailContext, getSenders, getConversationId, insertText, getComposeBody, extractUserDraft, EmailRecipient, SendersResult } from "../taskpane";
+import SenderList from "./SenderList";
+import SenderProfilePanel, { SenderProfilePanelHandle } from "./SenderProfilePanel";
+import ThreadNotePanel, { ThreadNotePanelHandle } from "./ThreadNotePanel";
 
 const LOADING_PHRASES = [
   "Herding the cats...",
@@ -35,11 +38,33 @@ const App: React.FC<AppProps> = ({ title }) => {
   /* email_draft mode: single persistent draft — null means no draft active */
   const [currentDraft, setCurrentDraft] = React.useState<string | null>(null);
 
+  /* sender_edit mode */
+  const [senders, setSenders] = React.useState<SendersResult>({ to: [], cc: [] });
+  const [sendersLoading, setSendersLoading] = React.useState(false);
+  const [selectedSender, setSelectedSender] = React.useState<EmailRecipient | null>(null);
+  const [conversationId, setConversationId] = React.useState<string | null>(null);
+  const [profileDirty, setProfileDirty] = React.useState(false);
+  const [threadNoteDirty, setThreadNoteDirty] = React.useState(false);
+  const [saveFlash, setSaveFlash] = React.useState(false);
+  const profileRef = React.useRef<SenderProfilePanelHandle>(null);
+  const threadNoteRef = React.useRef<ThreadNotePanelHandle>(null);
+
   const MODES: InputMode[] = ["general_qa", "email_draft", "sender_edit"];
   const handleModeSwitch = () => {
     setMode((prev) => {
       const idx = MODES.indexOf(prev);
-      return MODES[(idx + 1) % MODES.length];
+      const next = MODES[(idx + 1) % MODES.length];
+      if (next === "sender_edit") {
+        setSendersLoading(true);
+        setSenders({ to: [], cc: [] });
+        setSelectedSender(null);
+        setConversationId(getConversationId());
+        getSenders().then((list) => {
+          setSenders(list);
+          setSendersLoading(false);
+        });
+      }
+      return next;
     });
   };
 
@@ -122,8 +147,11 @@ const App: React.FC<AppProps> = ({ title }) => {
         const context = await getEmailContext();
         let resolvedIntent: "draft" | "qa" = "draft";
 
+        const senderCtx = currentMode === "sender_edit" && selectedSender
+          ? { senderName: selectedSender.displayName, senderEmail: selectedSender.emailAddress }
+          : {};
         await streamGenerateReply(
-          { ...context, instruction: text, mode: currentMode },
+          { ...context, instruction: text, mode: currentMode, ...senderCtx },
           {
             onIntent: (intent) => {
               resolvedIntent = intent;
@@ -225,7 +253,18 @@ const App: React.FC<AppProps> = ({ title }) => {
     setCurrentDraft(content);
   };
 
-  const modeSwitchLocked = mode === "email_draft" && currentDraft !== null;
+  /* Global save for sender_edit mode */
+  const handleSenderEditSave = async () => {
+    const saves: Promise<void>[] = [];
+    if (profileDirty && profileRef.current) saves.push(profileRef.current.save());
+    if (threadNoteDirty && threadNoteRef.current) saves.push(threadNoteRef.current.save());
+    await Promise.all(saves);
+    setSaveFlash(true);
+    setTimeout(() => setSaveFlash(false), 1500);
+  };
+
+  const senderEditDirty = mode === "sender_edit" && (profileDirty || threadNoteDirty);
+  const modeSwitchLocked = (mode === "email_draft" && currentDraft !== null) || senderEditDirty;
   const showDraftBox = mode === "email_draft" && currentDraft !== null;
   const hasMessages = messages.length > 0;
 
@@ -263,6 +302,61 @@ const App: React.FC<AppProps> = ({ title }) => {
         />
       )}
 
+      {mode === "sender_edit" && conversationId && (
+        <ThreadNotePanel ref={threadNoteRef} conversationId={conversationId} onDirtyChange={setThreadNoteDirty} />
+      )}
+
+      {mode === "sender_edit" && (
+        <SenderList
+          senders={senders}
+          selected={selectedSender}
+          onSelect={setSelectedSender}
+          isLoading={sendersLoading}
+          selectionLocked={profileDirty}
+        />
+      )}
+
+      {mode === "sender_edit" && selectedSender && (
+        <SenderProfilePanel ref={profileRef} sender={selectedSender} onDirtyChange={setProfileDirty} />
+      )}
+
+      {mode === "sender_edit" && (
+        <div
+          style={{
+            padding: `${tokens.spacing.xs}px ${tokens.spacing.lg}px`,
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            gap: tokens.spacing.sm,
+            flexShrink: 0,
+          }}
+        >
+          {saveFlash && (
+            <span style={{ fontSize: tokens.font.caption.size, color: "#107C41" }}>
+              Saved ✓
+            </span>
+          )}
+          <button
+            onClick={handleSenderEditSave}
+            disabled={!senderEditDirty}
+            style={{
+              background: senderEditDirty ? tokens.colors.accent : tokens.colors.border,
+              color: senderEditDirty ? "#fff" : tokens.colors.placeholder,
+              border: "none",
+              borderRadius: tokens.radius.pill,
+              padding: `${tokens.spacing.xs}px ${tokens.spacing.lg}px`,
+              fontSize: tokens.font.label.size,
+              fontWeight: tokens.font.label.weight,
+              cursor: senderEditDirty ? "pointer" : "not-allowed",
+              opacity: senderEditDirty ? 1 : 0.5,
+              transition: "all 0.15s ease",
+            }}
+          >
+            Save
+          </button>
+        </div>
+      )}
+
       <ChatInput
         value={instruction}
         onChange={setInstruction}
@@ -270,12 +364,17 @@ const App: React.FC<AppProps> = ({ title }) => {
         onModeSwitch={handleModeSwitch}
         mode={mode}
         modeSwitchLocked={modeSwitchLocked}
+        lockHintMessage={senderEditDirty ? "Save changes first" : "Insert or discard draft first"}
         disabled={isPending}
         placeholder={
           mode === "email_draft"
             ? currentDraft !== null
               ? "Refine the draft above..."
               : "Describe the reply you want..."
+            : mode === "sender_edit"
+            ? selectedSender
+              ? `Ask about ${selectedSender.displayName || selectedSender.emailAddress}...`
+              : "Select a sender above, then ask..."
             : hasMessages
             ? "Refine or ask a follow-up..."
             : "How can I help?"

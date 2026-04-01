@@ -12,7 +12,10 @@ Always include an appropriate greeting at the start (e.g. "Hi Alex," or "Dear Al
 and an appropriate sign-off at the end (e.g. "Cheers," or "Best regards,") — \
 both must match the tone of the original email (casual or formal). \
 If a sender name is provided, include it on the line after the sign-off. \
-If a user instruction is provided, follow it precisely.
+If a user instruction is provided, follow it precisely. \
+If personalisation context is provided (sender profile or thread notes), \
+use it to tailor the tone, formality, and style of the reply — \
+treat it as the user's preferred voice for this recipient or thread.
 """
 
 human = """
@@ -35,7 +38,10 @@ Output ONLY the reply body text. Start directly with the greeting. \
 Never output email headers such as "Subject:", "To:", "From:", or "Date:". \
 Always include an appropriate greeting at the start and sign-off at the end matching the tone. \
 If a sender name is provided, include it on the line after the sign-off. \
-If a user instruction is provided, follow it precisely.
+If a user instruction is provided, follow it precisely. \
+If personalisation context is provided (sender profile or thread notes), \
+use it to match the user's typical tone and style for this recipient or thread \
+while preserving the substance of their draft edits.
 """
 
 human = """
@@ -65,4 +71,58 @@ Email thread:
 {body}{thread_context}
 
 User question: {instruction}
+"""
+
+# ── Auto-fill prompts for sender profiles and thread notes ──────────
+
+[generate_sender_profile]
+# Used by POST /profiles/{email}/generate
+# Variables: {name}, {history_preview}
+with_history = """
+Based on these emails the user previously sent to {name}:
+
+{history_preview}
+
+Describe the user's typical tone and formality level with this person. \
+Write exactly 2-3 short sentences in second person (e.g. 'You tend to be casual and direct.'). \
+ONLY describe the style. NEVER write example replies, sample phrases, quotes, or any suggested wording.
+"""
+
+# Variables: {fallback_body}
+without_history = """
+The user has no prior email history with this person. \
+Based on the tone of the incoming email below, describe what tone and formality level \
+would be appropriate for the user's reply. Write exactly 2-3 short sentences in second person. \
+ONLY describe the style (e.g. 'You should keep a friendly, informal tone. \
+Use short sentences and a conversational register.'). \
+NEVER write example replies, sample phrases, quotes, or any suggested wording.
+
+Incoming email:
+{fallback_body}
+"""
+
+[generate_thread_note]
+# Used by POST /threads/{conversation_id}/generate
+# Variables: {history_preview}
+with_history = """
+Based on these messages the user sent in this email thread:
+
+{history_preview}
+
+Describe the user's tone and communication style in this thread. \
+Write exactly 2-3 short sentences in second person (e.g. 'You tend to be brief and professional.'). \
+ONLY describe the style. NEVER write example replies, sample phrases, quotes, or any suggested wording.
+"""
+
+# Variables: {fallback_body}
+without_history = """
+The user has no prior messages in this thread. \
+Based on the tone of the incoming email below, describe what tone and formality level \
+would be appropriate for the user's reply. Write exactly 2-3 short sentences in second person. \
+ONLY describe the style (e.g. 'You should keep a friendly, informal tone. \
+Use short sentences and a conversational register.'). \
+NEVER write example replies, sample phrases, quotes, or any suggested wording.
+
+Incoming email:
+{fallback_body}
 """

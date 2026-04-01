@@ -27,8 +27,9 @@ def _build_prompt(prompt_key: str) -> ChatPromptTemplate:
     return ChatPromptTemplate.from_messages([("system", p["system"]), ("human", p["human"])])
 
 
-# Cache all prompts at import time — avoids rebuilding on every request
-_PROMPT_CACHE = {key: _build_prompt(key) for key in _PROMPTS}
+# Cache only chat-style prompts (those with system/human keys) at import time
+_CHAT_PROMPT_KEYS = {"generate_reply", "refine_draft", "general_qa"}
+_PROMPT_CACHE = {key: _build_prompt(key) for key in _CHAT_PROMPT_KEYS}
 
 
 class LangChainService:
@@ -42,26 +43,52 @@ class LangChainService:
         response = self.llm.invoke([HumanMessage(content="Say hello in one sentence.")])
         return response.content
 
-    def _build_thread_context(self, graph_thread: dict | None) -> str:
-        if not graph_thread:
-            return ""
-        thread_messages = graph_thread.get("thread", [])
-        if not thread_messages:
-            return ""
-        summaries = []
-        for msg in thread_messages:
-            sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
-            preview = msg.get("bodyPreview", "")
-            date = msg.get("receivedDateTime", "")[:10]
-            summaries.append(f"[{date}] {sender}: {preview}")
-        return "\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries)
+    def _build_thread_context(self, graph_thread: dict | None, injected_context: str | None = None) -> str:
+        parts = []
+        if graph_thread:
+            thread_messages = graph_thread.get("thread", [])
+            if thread_messages:
+                summaries = []
+                for msg in thread_messages:
+                    sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
+                    preview = msg.get("bodyPreview", "")
+                    date = msg.get("receivedDateTime", "")[:10]
+                    summaries.append(f"[{date}] {sender}: {preview}")
+                parts.append("\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries))
+        if injected_context:
+            parts.append(injected_context)
+        return "".join(parts)
+
+    def generate_profile_text(self, history_preview: str, fallback_body: str, mode: str, name: str = "") -> str:
+        """
+        Generate a 2-3 sentence tone/style summary.
+        mode: "sender" — summarise user's tone when writing to this person
+              "thread" — summarise the user's tone within this thread
+        Falls back to fallback_body if history_preview is empty.
+        Prompt templates are loaded from prompts.toml.
+        """
+        toml_key = "generate_sender_profile" if mode == "sender" else "generate_thread_note"
+        section = _PROMPTS[toml_key]
+
+        if history_preview:
+            template = section["with_history"]
+            prompt = template.format(
+                name=name or "this person",
+                history_preview=history_preview,
+            )
+        else:
+            template = section["without_history"]
+            prompt = template.format(fallback_body=fallback_body)
+
+        response = self.llm.invoke([HumanMessage(content=prompt)])
+        return response.content.strip()
 
     def generate_email_reply(self, email_context, graph_thread: dict | None = None) -> tuple[str, str]:
         """Returns (reply_text, intent) where intent is 'draft' or 'qa'."""
         recipients_str = ", ".join(
             r.displayName or r.emailAddress for r in email_context.recipients
         ) or "the sender"
-        thread_context = self._build_thread_context(graph_thread)
+        thread_context = self._build_thread_context(graph_thread, getattr(email_context, "injected_context", None))
         instruction = email_context.instruction or ""
         mode = getattr(email_context, "mode", None) or "general_qa"
 
@@ -104,7 +131,7 @@ class LangChainService:
         recipients_str = ", ".join(
             r.displayName or r.emailAddress for r in email_context.recipients
         ) or "the sender"
-        thread_context = self._build_thread_context(graph_thread)
+        thread_context = self._build_thread_context(graph_thread, getattr(email_context, "injected_context", None))
         instruction = email_context.instruction or ""
         mode = getattr(email_context, "mode", None) or "general_qa"
 
