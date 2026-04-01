@@ -29,3 +29,4 @@ talk about literature on how structured formatting and tool calling was made
 
 The system prompt needs to be crystal clear that the tone profile only affects style, not the factual content of the reply. And the factual understanding needs reinforcing:
 
+  ☐ allow user to create these custom rules, however in report mention how further additions is allowing IT people to set custom data anonymisation rules (as have access to the backend)

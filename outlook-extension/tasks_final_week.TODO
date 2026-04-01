@@ -7,7 +7,7 @@
         ☐ test different local vs cloud models (time taken to generate) 
         ☐ evalation: Pairwise Comparison (Arena Style)
         ☐ llm as a judge
-        ☐ PromptFoo (generate test cases)
+        ✘ PromptFoo (generate test cases) @cancelled(26-04-01 13:50)
         ☐ DeepEval (evaluate)
         ☐ ask gemini and notebook lm for how to evaluate it 
         ☐ test 3 different things (general_qa, email draft, profileMD, Safety and Prompt Injection) 
@@ -21,7 +21,7 @@
 
     ☐ __features-to-impl__:
         ☐ _taskpane_:
-            ☐ profileMD for each email address (can edit tone, etc...) use Prompt to tell what to change and AI will modify the profileMD
+            ✔ profileMD for each email address (can edit tone, etc...) use Prompt to tell what to change and AI will modify the profileMD @done(26-04-01 13:48)
             ✔ profileMD idea, make sure canno change modes until saved (and passed through llm-guard) @done(26-04-01 13:42)
             ✔ if group, paste all profileMD and allow AI to determine the best prompt @done(26-04-01 13:20)
             ✔ think what to do for email groups / multiple people in thread (have profileMD for that group?) @done(26-04-01 13:20)
@@ -33,20 +33,24 @@
         ☐ _ai/nlp_:
             ☐ _security_:
                 ☐ add llm best practices for cyber attacks (prevent prompt injection)
-                ☐ make thread text more important than sender text? 
                 ☐ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this?
                 ☐ data anonymisation for privacy (python libraries)
+                ☐ Microsoft Presidio
                 ☐ llm guard and privatisation for every mode / option (look at prompts.toml)
                 ☐ safeguarding model (for response appropiateness)
-                ☐ HITL or automatic generation (for llm guard)
+                ☐ openAI moderation API --> 40 mini scope, --> MS Presido for PII
+                ✘ HITL or automatic generation (for llm guard) @cancelled(26-04-01 13:49)
                 ☐ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) (can only ask relevant questions) 
-                ☐ use Azure OpenAI (enterprise) for better privacy and security (and also better performance)
+                ☐ allow 3. Advanced: Custom Rules (The "Outlook" Case) In a professional setting, you often have specific patterns (like Employee IDs or Internal Project Codes) that standard models miss. You can add a PatternRecognizer for these.
+                    ☐ allow user to create these custom rules, however in report mention how further additions is allowing IT people to set custom data anonymisation rules (as have access to the backend)
+                ✘ use Azure OpenAI (enterprise) for better privacy and security (and also better performance) @cancelled(26-04-01 13:49)
                 ☐ add guards for generalqa, sender edit, email draft 
                     ☐ sender_edit (user can add malicious profileMD) 
                     ☐ general_qa (user can ask any question, even if not relevant to the email thread
                     ☐ email draft (user can add malicious prompt + privatisation)
             ☐ _general_:
                 ☐ think of prompt generation techniques NLP
+                ☐ make thread text more important than sender text? 
                 ☐ few shot prompting (get 5 example responses from user, and pass it as context for system prompt)
                 ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response
                     ☐ if received past email from sender, use that as context + profileMD for that sender (can edit profileMD to change tone, etc...)
@@ -78,10 +82,11 @@
 ☐ WEDNESDAY:
     ☐ add option to past context (autofill) to refine draft as well!
     ☐ start adding llm-guard and safety stuff now! (start with graft_qa)
-    ☐ add structured formating (instead of k-NN technique) and tool calling? (if needed)
-        ☐ tool calling for getting past emails, getting sender id text, etc...
+    ✘ add structured formating (instead of k-NN technique) and tool calling? (if needed) @cancelled(26-04-01 13:49)
+        ✘ tool calling for getting past emails, getting sender id text, etc... @cancelled(26-04-01 13:49)
     ☐ start designing the benchmarking stuff! 
     ☐ option for local model use? 
+    ☐ print out logs / traces! 
     ☐ sender edit section, user can write prompt to edit the profileMD for that sender 
 
         ☐ use logging to output what the email thread looks like, what sender_text and thread_text look like, what does current email look like etc... (so no variables for the prompt) 
