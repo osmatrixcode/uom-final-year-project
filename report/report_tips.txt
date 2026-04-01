@@ -24,3 +24,8 @@ talk about literature on how structured formatting and tool calling was made
 
 
 -talk about synthetic data generation stuff (how moved to know 'persona generation) 
+    https://www.youtube.com/watch?v=HIusawrGBN4
+-why 'you are a general ai assistant' is not enough
+
+The system prompt needs to be crystal clear that the tone profile only affects style, not the factual content of the reply. And the factual understanding needs reinforcing:
+

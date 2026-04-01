@@ -28,7 +28,7 @@ def _build_prompt(prompt_key: str) -> ChatPromptTemplate:
 
 
 # Cache only chat-style prompts (those with system/human keys) at import time
-_CHAT_PROMPT_KEYS = {"generate_reply", "refine_draft", "general_qa"}
+_CHAT_PROMPT_KEYS = {"generate_reply", "refine_draft", "general_qa", "refine_profile_text"}
 _PROMPT_CACHE = {key: _build_prompt(key) for key in _CHAT_PROMPT_KEYS}
 
 
@@ -82,6 +82,15 @@ class LangChainService:
 
         response = self.llm.invoke([HumanMessage(content=prompt)])
         return response.content.strip()
+
+    def refine_profile_text(self, current_text: str, instruction: str) -> str:
+        """Refine a sender profile or thread note based on user instruction."""
+        chain = _PROMPT_CACHE["refine_profile_text"] | self.llm
+        result = chain.invoke({
+            "current_text": current_text,
+            "instruction": instruction,
+        })
+        return result.content.strip()
 
     def generate_email_reply(self, email_context, graph_thread: dict | None = None) -> tuple[str, str]:
         """Returns (reply_text, intent) where intent is 'draft' or 'qa'."""

@@ -5,7 +5,7 @@ import ConversationView from "./ConversationView";
 import DraftBox from "./DraftBox";
 import ChatInput, { InputMode } from "./ChatInput";
 import { Message } from "./MessageBubble";
-import { streamGenerateReply } from "../services/basicService";
+import { streamGenerateReply, refineProfile, refineThreadNote } from "../services/basicService";
 import { getEmailContext, getSenders, getConversationId, insertText, getComposeBody, extractUserDraft, EmailRecipient, SendersResult } from "../taskpane";
 import SenderList from "./SenderList";
 import SenderProfilePanel, { SenderProfilePanelHandle } from "./SenderProfilePanel";
@@ -46,6 +46,7 @@ const App: React.FC<AppProps> = ({ title }) => {
   const [profileDirty, setProfileDirty] = React.useState(false);
   const [threadNoteDirty, setThreadNoteDirty] = React.useState(false);
   const [saveFlash, setSaveFlash] = React.useState(false);
+  const [activePanel, setActivePanel] = React.useState<"profile" | "thread" | null>(null);
   const profileRef = React.useRef<SenderProfilePanelHandle>(null);
   const threadNoteRef = React.useRef<ThreadNotePanelHandle>(null);
 
@@ -90,6 +91,27 @@ const App: React.FC<AppProps> = ({ title }) => {
     if (!text || isPending) return;
 
     const currentMode = mode;
+
+    if (currentMode === "sender_edit" && activePanel) {
+      /* sender_edit: refine the active panel's text via AI */
+      setInstruction("");
+      setIsPending(true);
+      try {
+        if (activePanel === "profile" && selectedSender && profileRef.current) {
+          const currentText = profileRef.current.getText();
+          const refined = await refineProfile(selectedSender.emailAddress, currentText, text);
+          profileRef.current.setText(refined);
+        } else if (activePanel === "thread" && conversationId && threadNoteRef.current) {
+          const currentText = threadNoteRef.current.getText();
+          const refined = await refineThreadNote(conversationId, currentText, text);
+          threadNoteRef.current.setText(refined);
+        }
+      } catch (error) {
+        console.error("Refine failed:", error);
+      }
+      setIsPending(false);
+      return;
+    }
 
     if (currentMode === "email_draft") {
       /* In email_draft mode: only add the user instruction bubble; AI response
@@ -303,7 +325,7 @@ const App: React.FC<AppProps> = ({ title }) => {
       )}
 
       {mode === "sender_edit" && conversationId && (
-        <ThreadNotePanel ref={threadNoteRef} conversationId={conversationId} onDirtyChange={setThreadNoteDirty} />
+        <ThreadNotePanel ref={threadNoteRef} conversationId={conversationId} onDirtyChange={setThreadNoteDirty} onFocus={() => setActivePanel("thread")} />
       )}
 
       {mode === "sender_edit" && (
@@ -317,7 +339,7 @@ const App: React.FC<AppProps> = ({ title }) => {
       )}
 
       {mode === "sender_edit" && selectedSender && (
-        <SenderProfilePanel ref={profileRef} sender={selectedSender} onDirtyChange={setProfileDirty} />
+        <SenderProfilePanel ref={profileRef} sender={selectedSender} onDirtyChange={setProfileDirty} onFocus={() => setActivePanel("profile")} />
       )}
 
       {mode === "sender_edit" && (
@@ -372,9 +394,11 @@ const App: React.FC<AppProps> = ({ title }) => {
               ? "Refine the draft above..."
               : "Describe the reply you want..."
             : mode === "sender_edit"
-            ? selectedSender
-              ? `Ask about ${selectedSender.displayName || selectedSender.emailAddress}...`
-              : "Select a sender above, then ask..."
+            ? activePanel === "profile" && selectedSender
+              ? `Refine profile for ${selectedSender.displayName || selectedSender.emailAddress}...`
+              : activePanel === "thread"
+              ? "Refine thread notes..."
+              : "Click a text box above, then type an instruction..."
             : hasMessages
             ? "Refine or ask a follow-up..."
             : "How can I help?"

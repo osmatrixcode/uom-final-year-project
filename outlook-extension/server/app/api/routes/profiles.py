@@ -91,3 +91,16 @@ def generate_profile(email: str, body: GenerateProfileRequest, request: Request)
     )
     save_profile(email, generated)
     return ProfileResponse(email=email, prompt_text=generated)
+
+
+class RefineProfileRequest(BaseModel):
+    current_text: str
+    instruction: str
+
+
+@router.post("/{email}/refine", response_model=ProfileResponse)
+def refine_profile(email: str, body: RefineProfileRequest):
+    """Refine the prompt_text for a sender using an AI instruction."""
+    service = LangChainService()
+    refined = service.refine_profile_text(body.current_text, body.instruction)
+    return ProfileResponse(email=email, prompt_text=refined)

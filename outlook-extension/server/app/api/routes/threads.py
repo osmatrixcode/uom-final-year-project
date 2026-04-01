@@ -91,3 +91,16 @@ def generate_thread_note(conversation_id: str, body: GenerateThreadNoteRequest, 
     )
     save_thread_note(conversation_id, generated)
     return ThreadNoteResponse(conversation_id=conversation_id, note_text=generated)
+
+
+class RefineThreadNoteRequest(BaseModel):
+    current_text: str
+    instruction: str
+
+
+@router.post("/{conversation_id}/refine", response_model=ThreadNoteResponse)
+def refine_thread_note(conversation_id: str, body: RefineThreadNoteRequest):
+    """Refine the note for a thread using an AI instruction."""
+    service = LangChainService()
+    refined = service.refine_profile_text(body.current_text, body.instruction)
+    return ThreadNoteResponse(conversation_id=conversation_id, note_text=refined)

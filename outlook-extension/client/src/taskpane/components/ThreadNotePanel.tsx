@@ -5,15 +5,18 @@ import { getEmailContext } from "../taskpane";
 
 export interface ThreadNotePanelHandle {
   save: () => Promise<void>;
+  getText: () => string;
+  setText: (text: string) => void;
 }
 
 interface ThreadNotePanelProps {
   conversationId: string;
   onDirtyChange?: (dirty: boolean) => void;
+  onFocus?: () => void;
 }
 
 const ThreadNotePanel = React.forwardRef<ThreadNotePanelHandle, ThreadNotePanelProps>(
-  ({ conversationId, onDirtyChange }, ref) => {
+  ({ conversationId, onDirtyChange, onFocus }, ref) => {
   const [text, setText] = React.useState("");
   const [savedText, setSavedText] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -42,12 +45,14 @@ const ThreadNotePanel = React.forwardRef<ThreadNotePanelHandle, ThreadNotePanelP
     return () => { cancelled = true; };
   }, [conversationId]);
 
-  /* Expose save to parent via ref */
+  /* Expose save/getText/setText to parent via ref */
   React.useImperativeHandle(ref, () => ({
     save: async () => {
       await saveThreadNote(conversationId, text);
       setSavedText(text);
     },
+    getText: () => text,
+    setText: (newText: string) => setText(newText),
   }), [conversationId, text]);
 
   const handleAutoFill = async () => {
@@ -145,6 +150,7 @@ const ThreadNotePanel = React.forwardRef<ThreadNotePanelHandle, ThreadNotePanelP
       <textarea
         value={isLoading ? "" : text}
         onChange={(e) => setText(e.target.value)}
+        onFocus={onFocus}
         disabled={isLoading}
         placeholder={isLoading ? "Loading..." : "Add notes about this email thread..."}
         style={{

@@ -6,15 +6,18 @@ import { getEmailContext } from "../taskpane";
 
 export interface SenderProfilePanelHandle {
   save: () => Promise<void>;
+  getText: () => string;
+  setText: (text: string) => void;
 }
 
 interface SenderProfilePanelProps {
   sender: EmailRecipient;
   onDirtyChange?: (dirty: boolean) => void;
+  onFocus?: () => void;
 }
 
 const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProfilePanelProps>(
-  ({ sender, onDirtyChange }, ref) => {
+  ({ sender, onDirtyChange, onFocus }, ref) => {
   const [text, setText] = React.useState("");
   const [savedText, setSavedText] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -43,12 +46,14 @@ const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProf
     return () => { cancelled = true; };
   }, [sender.emailAddress]);
 
-  /* Expose save to parent via ref */
+  /* Expose save/getText/setText to parent via ref */
   React.useImperativeHandle(ref, () => ({
     save: async () => {
       await saveProfile(sender.emailAddress, text);
       setSavedText(text);
     },
+    getText: () => text,
+    setText: (newText: string) => setText(newText),
   }), [sender.emailAddress, text]);
 
   const handleAutoFill = async () => {
@@ -159,6 +164,7 @@ const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProf
       <textarea
         value={isLoading ? "" : text}
         onChange={(e) => setText(e.target.value)}
+        onFocus={onFocus}
         disabled={isLoading}
         placeholder={isLoading ? "Loading..." : "Add notes about this sender (tone, preferences, context)..."}
         style={{
