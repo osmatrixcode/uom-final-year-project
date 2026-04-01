@@ -22,7 +22,7 @@
     ☐ __features-to-impl__:
         ☐ _taskpane_:
             ☐ profileMD for each email address (can edit tone, etc...) use Prompt to tell what to change and AI will modify the profileMD
-            ☐ profileMD idea, make sure canno change modes until saved (and passed through llm-guard)
+            ✔ profileMD idea, make sure canno change modes until saved (and passed through llm-guard) @done(26-04-01 13:42)
             ✔ if group, paste all profileMD and allow AI to determine the best prompt @done(26-04-01 13:20)
             ✔ think what to do for email groups / multiple people in thread (have profileMD for that group?) @done(26-04-01 13:20)
             ✔ profileMD idea, can create a 'text prompt' FOR THAT EMAIL THREAD (so even can have it for that email thread) so have specific for that email thread @done(26-04-01 13:20)
@@ -33,6 +33,7 @@
         ☐ _ai/nlp_:
             ☐ _security_:
                 ☐ add llm best practices for cyber attacks (prevent prompt injection)
+                ☐ make thread text more important than sender text? 
                 ☐ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this?
                 ☐ data anonymisation for privacy (python libraries)
                 ☐ llm guard and privatisation for every mode / option (look at prompts.toml)

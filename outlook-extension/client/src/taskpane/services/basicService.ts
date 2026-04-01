@@ -110,6 +110,22 @@ export async function saveProfile(email: string, text: string): Promise<void> {
   await apiClient.put(`/profiles/${encodeURIComponent(email)}`, { prompt_text: text });
 }
 
+export async function refineProfile(email: string, currentText: string, instruction: string): Promise<string> {
+  const response = await apiClient.post(`/profiles/${encodeURIComponent(email)}/refine`, {
+    current_text: currentText,
+    instruction,
+  });
+  return response.data.prompt_text ?? "";
+}
+
+export async function refineThreadNote(conversationId: string, currentText: string, instruction: string): Promise<string> {
+  const response = await apiClient.post(`/threads/${encodeURIComponent(conversationId)}/refine`, {
+    current_text: currentText,
+    instruction,
+  });
+  return response.data.note_text ?? "";
+}
+
 export async function generateEmailReply(context: EmailContext): Promise<ReplyResult> {
   const item_rest_id = getItemRestId();
   const conversation_id = getConversationId();
