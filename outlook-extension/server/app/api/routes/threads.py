@@ -77,14 +77,15 @@ def generate_thread_note(conversation_id: str, body: GenerateThreadNoteRequest, 
             ]
             logger.info("[thread-note] user_msgs count=%d", len(user_msgs))
 
-            source_msgs = user_msgs if user_msgs else thread_msgs
-            if source_msgs:
+            # Only use the user's own messages — don't fall back to other
+            # people's messages, as the prompt says "messages the user sent".
+            if user_msgs:
                 previews = []
-                for m in source_msgs:
+                for m in user_msgs:
                     sender = m.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
                     date = m.get("receivedDateTime", "")[:10]
-                    preview = m.get("bodyPreview", "")
-                    previews.append(f"[{date}] {sender}: {preview}")
+                    body_text = m.get("bodyFull") or m.get("bodyPreview", "")
+                    previews.append(f"[{date}] {sender}: {body_text}")
                 history_preview = "\n\n".join(previews)
         except Exception as e:
             logger.warning("Could not fetch thread from Graph for %s: %s", conversation_id, e)
