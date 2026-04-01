@@ -62,15 +62,23 @@ def generate_profile(email: str, body: GenerateProfileRequest, request: Request)
 
     if token:
         try:
+            # Graph rejects toRecipients/any() on consumer mailboxes,
+            # so fetch recent sent items and filter client-side.
             result = graph_get_with_token(
                 f"{GRAPH_BASE}/me/mailFolders/SentItems/messages"
-                f"?$filter=toRecipients/any(r:r/emailAddress/address eq '{email}')"
-                f"&$top=5"
-                f"&$select=bodyPreview,subject,sentDateTime"
+                f"?$top=50"
+                f"&$select=bodyPreview,subject,sentDateTime,toRecipients"
                 f"&$orderby=sentDateTime desc",
                 token,
             )
-            messages = result.get("value", [])
+            target = email.lower()
+            messages = [
+                m for m in result.get("value", [])
+                if any(
+                    r.get("emailAddress", {}).get("address", "").lower() == target
+                    for r in m.get("toRecipients", [])
+                )
+            ][:5]
             if messages:
                 previews = []
                 for m in messages:

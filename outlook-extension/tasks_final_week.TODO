@@ -66,6 +66,8 @@
             ✘ when first download app, will walk through generated email responses, you approve or modify THEN can use this for ICL / Few Shot PERSONAL examples (makes it personal to them!) @cancelled(26-03-31 19:32)
             ☐ db for chat history? (sql-lite) so if exit from email thread taskpane, and come back, can see the most latest conversations for that email thread? 
             ✘ general_qa mode, can query about documents sent? (vector DB -chromaDB is sqllite version) @cancelled(26-04-01 13:20)
+            ☐ mock company and project info in vector db, can query and use in email drafts and general qa 
+                ☐ think about consequences and how dont want people to leak it. also out of the scope of the project
 
 
 
