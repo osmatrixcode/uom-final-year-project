@@ -7,6 +7,7 @@ interface SenderListProps {
   selected: EmailRecipient | null;
   onSelect: (sender: EmailRecipient) => void;
   isLoading: boolean;
+  selectionLocked?: boolean;
 }
 
 const SenderRow: React.FC<{
@@ -98,7 +99,11 @@ const SectionLabel: React.FC<{ label: string }> = ({ label }) => (
   </div>
 );
 
-const SenderList: React.FC<SenderListProps> = ({ senders, selected, onSelect, isLoading }) => {
+const SenderList: React.FC<SenderListProps> = ({ senders, selected, onSelect, isLoading, selectionLocked = false }) => {
+  const handleSelect = (sender: EmailRecipient) => {
+    if (selectionLocked) return;
+    onSelect(sender);
+  };
   const hasAny = senders.to.length > 0 || senders.cc.length > 0;
 
   return (
@@ -142,7 +147,7 @@ const SenderList: React.FC<SenderListProps> = ({ senders, selected, onSelect, is
                   key={s.emailAddress}
                   sender={s}
                   isSelected={selected?.emailAddress === s.emailAddress}
-                  onSelect={() => onSelect(s)}
+                  onSelect={() => handleSelect(s)}
                 />
               ))}
             </>
@@ -155,7 +160,7 @@ const SenderList: React.FC<SenderListProps> = ({ senders, selected, onSelect, is
                   key={s.emailAddress}
                   sender={s}
                   isSelected={selected?.emailAddress === s.emailAddress}
-                  onSelect={() => onSelect(s)}
+                  onSelect={() => handleSelect(s)}
                 />
               ))}
             </>

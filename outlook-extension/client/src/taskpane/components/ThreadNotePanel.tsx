@@ -3,42 +3,52 @@ import { tokens } from "../theme/tokens";
 import { fetchThreadNote, saveThreadNote, generateThreadNote as generateThreadNoteApi } from "../services/basicService";
 import { getEmailContext } from "../taskpane";
 
-interface ThreadNotePanelProps {
-  conversationId: string;
+export interface ThreadNotePanelHandle {
+  save: () => Promise<void>;
 }
 
-const ThreadNotePanel: React.FC<ThreadNotePanelProps> = ({ conversationId }) => {
+interface ThreadNotePanelProps {
+  conversationId: string;
+  onDirtyChange?: (dirty: boolean) => void;
+}
+
+const ThreadNotePanel = React.forwardRef<ThreadNotePanelHandle, ThreadNotePanelProps>(
+  ({ conversationId, onDirtyChange }, ref) => {
   const [text, setText] = React.useState("");
+  const [savedText, setSavedText] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const [saved, setSaved] = React.useState(false);
   const [isGenerating, setIsGenerating] = React.useState(false);
+
+  const isDirty = !isLoading && text !== savedText;
+
+  /* Notify parent of dirty state changes */
+  React.useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Load note whenever the conversation changes */
   React.useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
     setText("");
-    setSaved(false);
+    setSavedText("");
     fetchThreadNote(conversationId).then((noteText) => {
       if (!cancelled) {
         setText(noteText);
+        setSavedText(noteText);
         setIsLoading(false);
       }
     });
     return () => { cancelled = true; };
   }, [conversationId]);
 
-  /* Auto-save with 450ms debounce */
-  React.useEffect(() => {
-    if (isLoading) return () => {};
-    const timer = setTimeout(() => {
-      saveThreadNote(conversationId, text).then(() => {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1500);
-      });
-    }, 450);
-    return () => clearTimeout(timer);
-  }, [text]); // eslint-disable-line react-hooks/exhaustive-deps
+  /* Expose save to parent via ref */
+  React.useImperativeHandle(ref, () => ({
+    save: async () => {
+      await saveThreadNote(conversationId, text);
+      setSavedText(text);
+    },
+  }), [conversationId, text]);
 
   const handleAutoFill = async () => {
     setIsGenerating(true);
@@ -90,9 +100,9 @@ const ThreadNotePanel: React.FC<ThreadNotePanelProps> = ({ conversationId }) => 
           Thread Notes
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing.sm }}>
-          {saved && (
-            <span style={{ fontSize: tokens.font.caption.size, color: "#107C41" }}>
-              Saved ✓
+          {isDirty && (
+            <span style={{ fontSize: tokens.font.caption.size, color: tokens.colors.accent }}>
+              Unsaved
             </span>
           )}
           {!text && !isLoading && (
@@ -156,6 +166,6 @@ const ThreadNotePanel: React.FC<ThreadNotePanelProps> = ({ conversationId }) => 
       />
     </div>
   );
-};
+});
 
 export default ThreadNotePanel;

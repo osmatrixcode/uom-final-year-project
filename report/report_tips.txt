@@ -7,3 +7,17 @@
 - answer a lot of the 'why not' questions
     - why not finetune? costs and static knowledge + not dynamic enough (think about if have one tone with one user, another tone with another)
 -further improvements setion: how general QA can be filled with company info and workers can ask general info about company / project etc... but it is out of scope
+-look at nlp week 9 additional materials
+    -critique of k-nn method as have strong models, so many trained on 
+- talk about structured formatting and tool calling (instead of cot and few shot) etc... (trade offs of each) 
+-really bad for local deployment (k-nn method_)
+    Implementing k-NN means that for every single incoming email, your system would have to:
+Load an embedding model to vectorize the email
+.
+Query the ChromaDB vector database to calculate similarities
+.
+Unload the embedding model and load the Llama 3.2 Question Answering model
+.
+This adds significant overhead. 
+
+talk about literature on how structured formatting and tool calling was made

@@ -25,6 +25,7 @@ interface ChatInputProps {
   onModeSwitch: () => void;
   mode: InputMode;
   modeSwitchLocked?: boolean;
+  lockHintMessage?: string;
   disabled?: boolean;
   placeholder?: string;
 }
@@ -36,6 +37,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onModeSwitch,
   mode,
   modeSwitchLocked = false,
+  lockHintMessage = "Insert or discard draft first",
   disabled = false,
   placeholder = "How can I help?",
 }) => {
@@ -97,7 +99,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             transition: "color 0.15s ease",
           }}
         >
-          {showLockHint ? "Insert or discard draft first" : "Ctrl+/ to switch"}
+          {showLockHint ? lockHintMessage : "Ctrl+/ to switch"}
         </span>
       </div>
       <div

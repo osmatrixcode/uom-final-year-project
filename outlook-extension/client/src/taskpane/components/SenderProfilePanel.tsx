@@ -4,42 +4,52 @@ import { EmailRecipient } from "../taskpane";
 import { fetchProfile, saveProfile, generateProfile } from "../services/basicService";
 import { getEmailContext } from "../taskpane";
 
-interface SenderProfilePanelProps {
-  sender: EmailRecipient;
+export interface SenderProfilePanelHandle {
+  save: () => Promise<void>;
 }
 
-const SenderProfilePanel: React.FC<SenderProfilePanelProps> = ({ sender }) => {
+interface SenderProfilePanelProps {
+  sender: EmailRecipient;
+  onDirtyChange?: (dirty: boolean) => void;
+}
+
+const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProfilePanelProps>(
+  ({ sender, onDirtyChange }, ref) => {
   const [text, setText] = React.useState("");
+  const [savedText, setSavedText] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const [saved, setSaved] = React.useState(false);
   const [isGenerating, setIsGenerating] = React.useState(false);
+
+  const isDirty = !isLoading && text !== savedText;
+
+  /* Notify parent of dirty state changes */
+  React.useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Load profile whenever the selected sender changes */
   React.useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
     setText("");
-    setSaved(false);
+    setSavedText("");
     fetchProfile(sender.emailAddress).then((profileText) => {
       if (!cancelled) {
         setText(profileText);
+        setSavedText(profileText);
         setIsLoading(false);
       }
     });
     return () => { cancelled = true; };
   }, [sender.emailAddress]);
 
-  /* Auto-save with 450ms debounce; cleans up on sender change or unmount */
-  React.useEffect(() => {
-    if (isLoading) return () => {};
-    const timer = setTimeout(() => {
-      saveProfile(sender.emailAddress, text).then(() => {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1500);
-      });
-    }, 450);
-    return () => clearTimeout(timer);
-  }, [text]);   // eslint-disable-line react-hooks/exhaustive-deps
+  /* Expose save to parent via ref */
+  React.useImperativeHandle(ref, () => ({
+    save: async () => {
+      await saveProfile(sender.emailAddress, text);
+      setSavedText(text);
+    },
+  }), [sender.emailAddress, text]);
 
   const handleAutoFill = async () => {
     setIsGenerating(true);
@@ -104,9 +114,9 @@ const SenderProfilePanel: React.FC<SenderProfilePanelProps> = ({ sender }) => {
           )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing.sm, flexShrink: 0 }}>
-          {saved && (
-            <span style={{ fontSize: tokens.font.caption.size, color: "#107C41" }}>
-              Saved ✓
+          {isDirty && (
+            <span style={{ fontSize: tokens.font.caption.size, color: tokens.colors.accent }}>
+              Unsaved
             </span>
           )}
           {!text && !isLoading && (
@@ -170,6 +180,6 @@ const SenderProfilePanel: React.FC<SenderProfilePanelProps> = ({ sender }) => {
       />
     </div>
   );
-};
+});
 
 export default SenderProfilePanel;
