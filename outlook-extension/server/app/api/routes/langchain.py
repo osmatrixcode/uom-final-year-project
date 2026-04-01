@@ -1,6 +1,6 @@
 import json
 import logging
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List, Literal, Optional
@@ -8,6 +8,8 @@ from app.services.langchain_service import LangChainService
 from app.services.token_validator import try_validate_token, ValidatedToken
 from app.services.graph_service import get_email_thread, get_thread_by_conversation_id
 from app.services.profile_service import get_profile, get_thread_note
+from app.services.moderation_service import check_moderation, ModerationFailure
+from app.services.prompt_logger import log_moderation_block
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -142,6 +144,22 @@ def generate_reply(
             logger.warning("Could not fetch email thread from Graph: %s", e)
 
     _fix_body_from_graph(request, graph_thread, user.email if user else None)
+
+    # --- Moderation gate (general_qa only): check user instruction BEFORE template rendering ---
+    if request.mode == "general_qa" or request.mode is None:
+        try:
+            check_moderation(request.instruction)
+        except ModerationFailure as exc:
+            log_moderation_block(
+                instruction=request.instruction or "",
+                categories=exc.categories,
+                mode=request.mode or "general_qa",
+            )
+            raise HTTPException(
+                status_code=422,
+                detail=f"Your message was flagged by our content policy ({', '.join(exc.categories)}). Please rephrase.",
+            )
+
     if request.mode != "general_qa":
         request.injected_context = _build_injected_context(request)
     reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
@@ -173,6 +191,22 @@ def generate_reply_stream(
             logger.warning("Could not fetch email thread from Graph: %s", e)
 
     _fix_body_from_graph(request, graph_thread, user.email if user else None)
+
+    # --- Moderation gate (general_qa only): check user instruction BEFORE template rendering ---
+    if request.mode == "general_qa" or request.mode is None:
+        try:
+            check_moderation(request.instruction)
+        except ModerationFailure as exc:
+            log_moderation_block(
+                instruction=request.instruction or "",
+                categories=exc.categories,
+                mode=request.mode or "general_qa",
+            )
+            raise HTTPException(
+                status_code=422,
+                detail=f"Your message was flagged by our content policy ({', '.join(exc.categories)}). Please rephrase.",
+            )
+
     if request.mode != "general_qa":
         request.injected_context = _build_injected_context(request)
 

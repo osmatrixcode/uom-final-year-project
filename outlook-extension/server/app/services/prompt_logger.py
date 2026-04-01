@@ -58,3 +58,33 @@ def log_prompt_and_response(
 
     path.write_text("\n".join(lines), encoding="utf-8")
     return path
+
+
+def log_moderation_block(
+    *,
+    instruction: str,
+    categories: list[str],
+    mode: str | None = None,
+):
+    """Write a log entry when the moderation API blocks a request."""
+    ts = datetime.datetime.now()
+    filename = f"{ts:%Y-%m-%d_%H-%M-%S}_moderation_block.txt"
+    path = _LOG_DIR / filename
+
+    lines = []
+    lines.append(f"Timestamp : {ts.isoformat()}")
+    lines.append(f"Event     : MODERATION BLOCK")
+    if mode:
+        lines.append(f"Mode      : {mode}")
+
+    lines.append(_separator("USER INSTRUCTION"))
+    lines.append(f"  {instruction}")
+
+    lines.append(_separator("FLAGGED CATEGORIES"))
+    for cat in categories:
+        lines.append(f"  - {cat}")
+
+    lines.append(f"\n{'='*60}\n  END\n{'='*60}\n")
+
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path

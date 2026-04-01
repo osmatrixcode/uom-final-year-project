@@ -64,10 +64,10 @@
             ✘ uses document vector db to generate email reply, (link general qa with email draft)? think about it @cancelled(26-04-01 12:53)
             ✘ implement a thumbs up thumbs down system (help modify and give reason why) @cancelled(26-03-31 19:33)
             ✘ when first download app, will walk through generated email responses, you approve or modify THEN can use this for ICL / Few Shot PERSONAL examples (makes it personal to them!) @cancelled(26-03-31 19:32)
-            ☐ db for chat history? (sql-lite) so if exit from email thread taskpane, and come back, can see the most latest conversations for that email thread? 
+            ✘ db for chat history? (sql-lite) so if exit from email thread taskpane, and come back, can see the most latest conversations for that email thread? @cancelled(26-04-01 17:14)
             ✘ general_qa mode, can query about documents sent? (vector DB -chromaDB is sqllite version) @cancelled(26-04-01 13:20)
-            ☐ mock company and project info in vector db, can query and use in email drafts and general qa 
-                ☐ think about consequences and how dont want people to leak it. also out of the scope of the project
+            ✘ mock company and project info in vector db, can query and use in email drafts and general qa @cancelled(26-04-01 17:14)
+                ✘ think about consequences and how dont want people to leak it. also out of the scope of the project @cancelled(26-04-01 17:14)
 
 
 
@@ -83,13 +83,13 @@
 ☐ TUESDAY:
 
 ☐ WEDNESDAY:
-    ☐ add option to past context (autofill) to refine draft as well!
+    ✔ add option to past context (autofill) to refine draft as well! @done(26-04-01 17:01)
     ☐ start adding llm-guard and safety stuff now! (start with graft_qa)
     ✘ add structured formating (instead of k-NN technique) and tool calling? (if needed) @cancelled(26-04-01 13:49)
         ✘ tool calling for getting past emails, getting sender id text, etc... @cancelled(26-04-01 13:49)
     ☐ start designing the benchmarking stuff! 
     ☐ option for local model use? 
-    ☐ use Sender text to help influeence tone decision for Thread text 
+    ☐ use Sender text to help influeence tone decision for Thread text (yes look at previous emails from senders / people ccd AND ALSO email current thread?) OR JUST STICK WITH THAT CURRENT THREAD CONTEXT? 
     ☐ print out logs / traces! 
     ☐ sender edit section, user can write prompt to edit the profileMD for that sender 
 
