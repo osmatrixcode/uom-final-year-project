@@ -1,0 +1,84 @@
+prompts:
+  - >-
+    You are a customer support agent. Based on this thread, draft a helpful
+    response: {{thread}}
+providers:
+  - openai:gpt-4o
+  - anthropic:messages:claude-3-5-sonnet
+defaultTest:
+  assert:
+    - type: llm-rubric
+      value: >-
+        Does the email draft address all customer questions in the thread,
+        maintain a professional tone, and include the correct order number if
+        mentioned?
+      threshold: 0.8
+tests:
+  - vars:
+      thread: >-
+        Customer: My order #9982 is late. Where is it? Support: Let me check.
+        [Internal Note: It is stuck in customs]
+  - vars:
+      thread: >-
+        Customer: Can I get a refund for my subscription? Support: I see you are
+        on the Pro plan.
+  - vars:
+      thread: >-
+        Customer: I accidentally ordered the wrong item. Can I change it?
+        Support: Sure, let me guide you through the process.
+  - vars:
+      thread: >-
+        Customer: My account was charged twice. Can you help? Support: I
+        apologize for the inconvenience. Let's resolve this.
+  - vars:
+      thread: >-
+        Customer: I can't log into my account. Support: Have you tried resetting
+        your password?
+  - vars:
+      thread: >-
+        Customer: The product I received is damaged. What should I do? Support:
+        I'm sorry to hear that. Let's arrange a replacement.
+  - vars:
+      thread: >-
+        Customer: I need to update my shipping address. Support: Please provide
+        the new address, and I'll update it for you.
+  - vars:
+      thread: >-
+        Customer: Can I upgrade my plan? Support: Absolutely! Let me show you
+        the available options.
+  - vars:
+      thread: >-
+        Customer: I didn't receive my confirmation email. Support: Let's check
+        your spam folder first.
+  - vars:
+      thread: >-
+        Customer: My promo code isn't working. Support: Let me verify the code
+        for you.
+  - vars:
+      thread: >-
+        Customer: I want to cancel my order. Support: Can you provide the order
+        number, please?
+  - vars:
+      thread: >-
+        Customer: The app keeps crashing. Support: Have you tried reinstalling
+        it?
+  - vars:
+      thread: >-
+        Customer: I need help with my billing statement. Support: What seems to
+        be the issue with it?
+  - vars:
+      thread: >-
+        Customer: Can I speak to a supervisor? Support: I can escalate this for
+        you. May I know the reason?
+  - vars:
+      thread: >-
+        Customer: I received the wrong item. Support: I'm sorry for the mix-up.
+        Let's correct this.
+  - vars:
+      thread: >-
+        Customer: How do I track my shipment? Support: You can use the tracking
+        number provided in your email.
+  - vars:
+      thread: >-
+        Customer: I want to change my payment method. Support: Let me guide you
+        through the steps.
