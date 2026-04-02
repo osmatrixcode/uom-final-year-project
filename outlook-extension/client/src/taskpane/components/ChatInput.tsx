@@ -43,17 +43,24 @@ const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
   const [showLockHint, setShowLockHint] = React.useState(false);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "/" && e.ctrlKey) {
-      e.preventDefault();
-      if (modeSwitchLocked) {
-        setShowLockHint(true);
-        setTimeout(() => setShowLockHint(false), 1500);
-      } else {
-        onModeSwitch();
+  /* Ctrl+/ must work even when the textarea is disabled, so listen globally */
+  React.useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "/" && e.ctrlKey) {
+        e.preventDefault();
+        if (modeSwitchLocked) {
+          setShowLockHint(true);
+          setTimeout(() => setShowLockHint(false), 1500);
+        } else {
+          onModeSwitch();
+        }
       }
-      return;
-    }
+    };
+    document.addEventListener("keydown", handleGlobalKeyDown);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [modeSwitchLocked, onModeSwitch]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (!disabled && value.trim()) onSend();
@@ -107,12 +114,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
           display: "flex",
           alignItems: "flex-end",
           gap: tokens.spacing.sm,
-          backgroundColor: tokens.colors.background,
+          backgroundColor: disabled ? tokens.colors.border : tokens.colors.background,
           borderRadius: tokens.radius.lg,
           padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
-          border: `1px solid ${borderColor}`,
-          boxShadow: tokens.shadow.input,
-          transition: "border-color 0.15s ease",
+          border: `1px solid ${disabled ? tokens.colors.border : borderColor}`,
+          boxShadow: disabled ? "none" : tokens.shadow.input,
+          transition: "all 0.15s ease",
+          opacity: disabled ? 0.6 : 1,
         }}
       >
         <textarea

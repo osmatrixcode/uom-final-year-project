@@ -414,7 +414,7 @@ const App: React.FC<AppProps> = ({ title }) => {
         mode={mode}
         modeSwitchLocked={modeSwitchLocked}
         lockHintMessage={senderEditDirty ? "Save changes first" : "Insert or discard draft first"}
-        disabled={isPending}
+        disabled={isPending || (mode === "sender_edit" && !activePanel)}
         placeholder={
           mode === "email_draft"
             ? currentDraft !== null
