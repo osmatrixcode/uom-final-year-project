@@ -92,7 +92,7 @@ export async function generateProfile(email: string, subject: string, body: stri
 }
 
 export async function generateThreadNote(conversationId: string, subject: string, body: string): Promise<string> {
-  const response = await apiClient.post(`/threads/${encodeURIComponent(conversationId)}/generate`, {
+  const response = await apiClient.post(`/threads/generate?conversation_id=${encodeURIComponent(conversationId)}`, {
     current_email_subject: subject,
     current_email_body: body,
   });
@@ -100,12 +100,12 @@ export async function generateThreadNote(conversationId: string, subject: string
 }
 
 export async function fetchThreadNote(conversationId: string): Promise<string> {
-  const response = await apiClient.get(`/threads/${encodeURIComponent(conversationId)}`);
+  const response = await apiClient.get(`/threads?conversation_id=${encodeURIComponent(conversationId)}`);
   return response.data.note_text ?? "";
 }
 
 export async function saveThreadNote(conversationId: string, text: string): Promise<void> {
-  await apiClient.put(`/threads/${encodeURIComponent(conversationId)}`, { note_text: text });
+  await apiClient.put(`/threads?conversation_id=${encodeURIComponent(conversationId)}`, { note_text: text });
 }
 
 export async function fetchProfile(email: string): Promise<string> {
@@ -126,7 +126,7 @@ export async function refineProfile(email: string, currentText: string, instruct
 }
 
 export async function refineThreadNote(conversationId: string, currentText: string, instruction: string): Promise<string> {
-  const response = await apiClient.post(`/threads/${encodeURIComponent(conversationId)}/refine`, {
+  const response = await apiClient.post(`/threads/refine?conversation_id=${encodeURIComponent(conversationId)}`, {
     current_text: currentText,
     instruction,
   });

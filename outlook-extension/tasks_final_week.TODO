@@ -134,6 +134,7 @@
     ☐ what if have thread tone, and is opposite to sender profiles tone! Make sure thread tone takes precedence!
     ☐ still taking too long for sender_edit! (longer timeout on frontend?)
     ☐ STILL TAKING TOO LONG FOR SENDER EDIT! WHY (compare to general_qa which is much faster))
+    ☐ in sender_edit, make sure click a thread or sender for prompt text box to open
 
 
 

@@ -156,20 +156,27 @@ You will be given:
 Your job: decide if the response is about EMAIL WRITING STYLE or not.
 
 SAFE — the response talks about any of these (in any phrasing):
-- Tone (formal, casual, friendly, professional, warm, direct, etc.)
+- Tone (formal, casual, friendly, professional, warm, playful, direct, etc.)
 - Formality level, register, politeness
 - Sentence structure, brevity, clarity, conciseness
 - Greeting/sign-off conventions
 - Language choices (avoid jargon, use precise language, etc.)
 - Communication approach (be respectful, show empathy, be thorough, etc.)
+- Personality traits in writing (humorous, witty, encouraging, supportive, etc.)
 
 Both descriptive ("You tend to be formal") and prescriptive \
 ("Maintain a formal tone", "Use clear language", "Avoid slang") \
 are SAFE. Telling the user HOW to write is the entire point of \
 this feature — it is NOT personal advice.
 
+A tone profile that uses vivid or colorful language to describe a \
+writing STYLE is still SAFE. The test is: does the text describe a \
+persona/approach to writing, or is it an actual email someone would \
+send? If it describes how the user communicates (even in a lively way), \
+it is SAFE.
+
 UNSAFE — the response is:
-- A full email draft or reply text
+- An actual email or reply that could be sent as-is (has a greeting, body, sign-off addressed to a specific person)
 - Example phrases or sample wording (e.g. "You could say: Dear Mr Smith...")
 - Advice about non-email topics (gifts, life decisions, holidays, etc.)
 - General knowledge answers
