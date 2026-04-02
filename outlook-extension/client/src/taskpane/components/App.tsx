@@ -347,7 +347,9 @@ const App: React.FC<AppProps> = ({ title }) => {
       )}
 
       {mode === "sender_edit" && conversationId && (
-        <ThreadNotePanel ref={threadNoteRef} conversationId={conversationId} onDirtyChange={setThreadNoteDirty} onGeneratingChange={setThreadNoteGenerating} onFocus={() => setActivePanel("thread")} onError={showError} />
+        <div style={{ opacity: activePanel === "thread" || !activePanel ? 1 : 0.5, transition: "opacity 0.15s ease" }}>
+          <ThreadNotePanel ref={threadNoteRef} conversationId={conversationId} onDirtyChange={setThreadNoteDirty} onGeneratingChange={setThreadNoteGenerating} onFocus={() => setActivePanel("thread")} onError={showError} />
+        </div>
       )}
 
       {mode === "sender_edit" && (
@@ -361,7 +363,9 @@ const App: React.FC<AppProps> = ({ title }) => {
       )}
 
       {mode === "sender_edit" && selectedSender && (
-        <SenderProfilePanel ref={profileRef} sender={selectedSender} onDirtyChange={setProfileDirty} onGeneratingChange={setProfileGenerating} onFocus={() => setActivePanel("profile")} onError={showError} />
+        <div style={{ opacity: activePanel === "profile" || !activePanel ? 1 : 0.5, transition: "opacity 0.15s ease" }}>
+          <SenderProfilePanel ref={profileRef} sender={selectedSender} onDirtyChange={setProfileDirty} onGeneratingChange={setProfileGenerating} onFocus={() => setActivePanel("profile")} onError={showError} />
+        </div>
       )}
 
       {mode === "sender_edit" && (
