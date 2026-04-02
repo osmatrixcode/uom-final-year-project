@@ -106,3 +106,6 @@ The fix: update the classifier prompt to accept both descriptive and prescriptiv
     -it is very sensitive to prompts! (which can be a good and bad things) 
 
 few shot regards structure more than output? 
+
+
+Taking so long, had to use ONNYX

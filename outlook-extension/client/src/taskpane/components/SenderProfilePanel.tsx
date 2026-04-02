@@ -8,7 +8,7 @@ export interface SenderProfilePanelHandle {
   save: () => Promise<void>;
   getText: () => string;
   setText: (text: string) => void;
-  markSaved: () => void;
+  markSaved: (text: string) => void;
 }
 
 interface SenderProfilePanelProps {
@@ -56,7 +56,7 @@ const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProf
     },
     getText: () => text,
     setText: (newText: string) => setText(newText),
-    markSaved: () => setSavedText(text),
+    markSaved: (val: string) => setSavedText(val),
   }), [sender.emailAddress, text]);
 
   const handleAutoFill = async () => {

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 # Initialised once at module level — PromptInjection downloads/loads
 # its ML model here (~200 MB on first run, cached afterwards).
 _invisible_text_scanner = InvisibleText()
-_injection_scanner = PromptInjection(threshold=0.92)
+_injection_scanner = PromptInjection(threshold=0.92, use_onnx=True)
 
 
 class InjectionFailure(Exception):

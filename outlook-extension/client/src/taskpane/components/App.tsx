@@ -104,12 +104,12 @@ const App: React.FC<AppProps> = ({ title }) => {
           const currentText = profileRef.current.getText();
           const refined = await refineProfile(selectedSender.emailAddress, currentText, text);
           profileRef.current.setText(refined);
-          profileRef.current.markSaved(); // server auto-saved after refine
+          profileRef.current.markSaved(refined); // server auto-saved after refine
         } else if (activePanel === "thread" && conversationId && threadNoteRef.current) {
           const currentText = threadNoteRef.current.getText();
           const refined = await refineThreadNote(conversationId, currentText, text);
           threadNoteRef.current.setText(refined);
-          threadNoteRef.current.markSaved(); // server auto-saved after refine
+          threadNoteRef.current.markSaved(refined); // server auto-saved after refine
         }
       } catch (error: any) {
         const msg = error?.response?.data?.detail || "Refine failed. Please try again.";
@@ -291,7 +291,7 @@ const App: React.FC<AppProps> = ({ title }) => {
     try {
       await Promise.all(saves);
       setSaveFlash(true);
-      setTimeout(() => setSaveFlash(false), 1500);
+      setTimeout(() => setSaveFlash(false), 3000);
     } catch (error: any) {
       const msg = error?.response?.data?.detail || "Save failed. Please revise your text.";
       showError(msg);

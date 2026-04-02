@@ -7,7 +7,7 @@ export interface ThreadNotePanelHandle {
   save: () => Promise<void>;
   getText: () => string;
   setText: (text: string) => void;
-  markSaved: () => void;
+  markSaved: (text: string) => void;
 }
 
 interface ThreadNotePanelProps {
@@ -55,7 +55,7 @@ const ThreadNotePanel = React.forwardRef<ThreadNotePanelHandle, ThreadNotePanelP
     },
     getText: () => text,
     setText: (newText: string) => setText(newText),
-    markSaved: () => setSavedText(text),
+    markSaved: (val: string) => setSavedText(val),
   }), [conversationId, text]);
 
   const handleAutoFill = async () => {

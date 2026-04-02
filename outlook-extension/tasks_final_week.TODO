@@ -107,6 +107,8 @@
 
 ☐ THURSDAY:
     ☐ implement toxicity? think what else? 
+    ☐ make sure UI makes sense? (sender edit 'saving' greyed out when trying, etc...) 
+    ☐ why does security take so god damn long on Macbook!
     ☐ make word movements when generating to show on cursor (not on top of page) SIMILIAR TO CLAUDE CODE
     ☐ make sure if any errors in sender_edit mode, the current text is not deleted! (but shows error somewhere else)! 
         ☐ when user has filled thread_text and asks AI prompt to expand it
@@ -136,7 +138,7 @@
     
 
     ☐ evals on classifier! (as too strict, too hard) --> USE FEW SHOT EXAMPLES ON THE THINGS I WAS SUPRISED I GOT BLOCKED ON 
-
+    ☐ why those values for thresholds? (test) 
 
 ☐ FRIDAY:
 
