@@ -7,9 +7,9 @@ import { ShimmerButton } from "./ShimmerButton";
 export type InputMode = "general_qa" | "email_draft" | "sender_edit";
 
 const MODE_LABELS: Record<InputMode, string> = {
-  general_qa: "General QA",
-  email_draft: "Email Draft",
-  sender_edit: "Sender Edit",
+  general_qa: "General QA Mode",
+  email_draft: "Email Draft Mode",
+  sender_edit: "Sender Edit Mode",
 };
 
 const MODE_COLORS: Record<InputMode, string> = {
@@ -99,7 +99,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             transition: "color 0.15s ease",
           }}
         >
-          {showLockHint ? lockHintMessage : "Ctrl+/ to switch"}
+          {showLockHint ? lockHintMessage : "press 'Ctrl' + '/' to switch"}
         </span>
       </div>
       <div

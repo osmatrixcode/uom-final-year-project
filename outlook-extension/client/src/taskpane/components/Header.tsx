@@ -70,8 +70,15 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
             boxShadow: tokens.shadow.cardHover,
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: tokens.spacing.xs }}>
-            <strong>Help</strong>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "start",
+              marginBottom: tokens.spacing.xs,
+            }}
+          >
+            <strong style={{ textDecoration: "underline" }}>Help</strong>
             <button
               onClick={() => setShowHelp(false)}
               aria-label="Close help"
@@ -88,17 +95,42 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
               ✕
             </button>
           </div>
-          <p style={{ margin: `0 0 ${tokens.spacing.xs}px` }}>
-            <strong>General Q&amp;A</strong> — Ask questions about the email thread.
+          <p style={{ margin: `0 0 ${tokens.spacing.sm}px` }}>
+            <strong>General QA Mode: </strong>
+            Ask questions about the current email thread. Useful for summarising lengthy
+            conversations, clarifying context, or extracting key details before you reply.
           </p>
-          <p style={{ margin: `0 0 ${tokens.spacing.xs}px` }}>
-            <strong>Email Draft</strong> — Generate or refine a reply draft, then insert it.
+          <p style={{ margin: `0 0 ${tokens.spacing.sm}px` }}>
+            <strong>Email Draft Mode: </strong>
+            Generate a full reply draft based on your instructions. You can refine the draft
+            iteratively, edit it manually, and insert the final version directly into your compose
+            window.
           </p>
-          <p style={{ margin: `0 0 ${tokens.spacing.xs}px` }}>
-            <strong>Sender Edit</strong> — Manage per-sender tone profiles and thread notes.
+          <p style={{ margin: `0 0 ${tokens.spacing.sm}px` }}>
+            <strong>Sender Edit Mode: </strong>
+            Set up tone profiles for individual senders and for specific threads. These tell the AI
+            how you prefer to write when replying to a particular person or within a particular
+            conversation. If both a sender profile and a thread profile exist, the thread profile
+            takes priority. You can edit or remove either at any time. Note: changes in this mode
+            may take longer as they are validated by AI and saved to a server.
           </p>
-          <p style={{ margin: 0 }}>
-            Press <strong>Ctrl+/</strong> to switch between modes.
+          <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.3)", margin: `${tokens.spacing.sm}px 0` }} />
+
+          <p style={{ margin: `0 0 ${tokens.spacing.sm}px` }}>
+            Switch between modes by pressing <strong>Ctrl</strong> and <strong>/</strong> together
+            while focused on the input box.
+          </p>
+          <p
+            style={{
+              margin: 0,
+              fontSize: tokens.font.caption.size,
+              opacity: 0.85,
+              lineHeight: 1.4,
+            }}
+          >
+            Security: Every submission is automatically checked for prompt injection and other
+            threats before it reaches the AI. Sensitive information such as names and emails is
+            anonymised during processing. Your data is handled safely at every step.
           </p>
         </div>
       )}
