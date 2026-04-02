@@ -53,13 +53,13 @@
             ☐ _general_:
                 ☐ think of prompt generation techniques NLP
                 ☐ make thread text more important than sender text? 
-                ☐ profileMD idea, user "email" instead of name
+                ✘ profileMD idea, user "email" instead of name @cancelled(26-04-02 11:09)
                 ☐ few shot prompting (get 5 example responses from user, and pass it as context for system prompt)
                 ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response
                     ☐ if received past email from sender, use that as context + profileMD for that sender (can edit profileMD to change tone, etc...)
                     ☐ think about profileMD and if received email before from sender, if not then use general email responses user sent to make generic profileMD or for context 
                     ☐ if no email history with the sender, use THEIR email message THEY sent (find the tone AND RECIPROCATE THAT)
-                    ☐ use past email ai drafts made that user like, as the FEW SHOT examples! (tailors to them)
+                    ✘ use past email ai drafts made that user like, as the FEW SHOT examples! (tailors to them) @cancelled(26-04-02 11:10)
                     ✘ after few times user uses it and makes modifications, will modify it to users taste @cancelled(26-04-01 12:53)
 
             ☐ __security-final__:
@@ -102,10 +102,11 @@
     ✔ use Sender text to help influeence tone decision for Thread text (yes look at previous emails from senders / people ccd AND ALSO email current thread?) OR JUST STICK WITH THAT CURRENT THREAD CONTEXT? @done(26-04-02 09:45)
     ☐ print out logs / traces! 
     ✔ sender edit section, user can write prompt to edit the profileMD for that sender @done(26-04-02 09:44)
-
-        ☐ use logging to output what the email thread looks like, what sender_text and thread_text look like, what does current email look like etc... (so no variables for the prompt) 
+        ✘ use logging to output what the email thread looks like, what sender_text and thread_text look like, what does current email look like etc... (so no variables for the prompt) @cancelled(26-04-02 11:08)
 
 ☐ THURSDAY:
+    ☐ implement toxicity? think what else? 
+    ☐ make word movements when generating to show on cursor (not on top of page) SIMILIAR TO CLAUDE CODE
 
 ☐ FRIDAY:
 

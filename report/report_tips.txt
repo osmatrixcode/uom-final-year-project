@@ -68,3 +68,5 @@ Noah initiates...    ← newline before "Noah"
 Root cause: The NER scanner detected "Noah" in the signature Respectfully,\nNoah and captured the preceding newline as part of the entity span. So the Vault stored \nNoah as the original value for [REDACTED_PERSON_1]. When deanonymization replaces every [REDACTED_PERSON_1], it inserts \nNoah (with the newline) everywhere.
 
 Let me fix this by stripping whitespace from restored values in deanonymize_text:
+
+run red team evals via promptfoo (dont need to write code) 

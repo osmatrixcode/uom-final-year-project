@@ -126,16 +126,35 @@ def _collect_known_names(request: "EmailContextRequest", user_name: str | None) 
     return names
 
 
+def _snapshot_thread_context(graph_thread: dict | None) -> str:
+    """Build a human-readable thread context string (same format as the service)."""
+    if not graph_thread:
+        return ""
+    thread_messages = graph_thread.get("thread", [])
+    if not thread_messages:
+        return ""
+    summaries = []
+    for msg in thread_messages:
+        sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
+        preview = msg.get("bodyFull") or msg.get("bodyPreview", "")
+        date = msg.get("receivedDateTime", "")[:10]
+        summaries.append(f"[{date}] {sender}: {preview}")
+    return "\n\nConversation history (from Microsoft Graph):\n" + "\n".join(summaries)
+
+
 def _anonymize_request(request: "EmailContextRequest", anon_scanner, graph_thread: dict | None = None):
     """Anonymize PII-bearing fields on *request* and *graph_thread* in place.
 
-    Returns originals dict for logging.
+    Returns originals dict for logging (including thread context snapshot).
     """
+    # Snapshot originals BEFORE mutation
     originals = {
         "subject": request.subject,
         "body": request.body,
         "instruction": request.instruction,
+        "thread_context": _snapshot_thread_context(graph_thread),
     }
+
     request.subject = anonymize_text(request.subject, anon_scanner)
     request.body = anonymize_text(request.body, anon_scanner)
     if request.instruction:
@@ -220,7 +239,8 @@ def generate_reply(
     known = _collect_known_names(request, user.name if user else None)
     _vault, anon_scanner, deanon_scanner = create_anonymizer(hidden_names=known)
     originals = _anonymize_request(request, anon_scanner, graph_thread)
-    anon_prompt_snapshot = f"subject: {request.subject}\nbody: {request.body}\ninstruction: {request.instruction}"
+    anon_thread_context = _snapshot_thread_context(graph_thread)
+    anon_prompt_snapshot = f"subject: {request.subject}\nbody: {request.body}{anon_thread_context}\ninstruction: {request.instruction}"
 
     # 2. Injection check — block malicious user input
     try:
@@ -280,7 +300,7 @@ def generate_reply(
         prompt_key="general_qa", mode=mode,
         variables=originals,
         rendered_system=None,
-        rendered_human=f"subject: {originals['subject']}\nbody: {originals['body']}\ninstruction: {originals['instruction']}",
+        rendered_human=f"subject: {originals['subject']}\nbody: {originals['body']}{originals['thread_context']}\ninstruction: {originals['instruction']}",
         output=reply,
     )
 
@@ -327,7 +347,8 @@ def generate_reply_stream(
         known = _collect_known_names(request, user.name if user else None)
         _vault, anon_scanner, deanon_scanner = create_anonymizer(hidden_names=known)
         originals = _anonymize_request(request, anon_scanner, graph_thread)
-        anon_prompt_snapshot = f"subject: {request.subject}\nbody: {request.body}\ninstruction: {request.instruction}"
+        anon_thread_context = _snapshot_thread_context(graph_thread)
+        anon_prompt_snapshot = f"subject: {request.subject}\nbody: {request.body}{anon_thread_context}\ninstruction: {request.instruction}"
 
         # 2. Injection check — block malicious user input
         try:
@@ -395,7 +416,7 @@ def generate_reply_stream(
                 prompt_key="general_qa", mode=mode,
                 variables=originals,
                 rendered_system=None,
-                rendered_human=f"subject: {originals['subject']}\nbody: {originals['body']}\ninstruction: {originals['instruction']}",
+                rendered_human=f"subject: {originals['subject']}\nbody: {originals['body']}{originals['thread_context']}\ninstruction: {originals['instruction']}",
                 output=reply,
             )
 
