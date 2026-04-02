@@ -6,7 +6,16 @@ import DraftBox from "./DraftBox";
 import ChatInput, { InputMode } from "./ChatInput";
 import { Message } from "./MessageBubble";
 import { streamGenerateReply, refineProfile, refineThreadNote } from "../services/basicService";
-import { getEmailContext, getSenders, getConversationId, insertText, getComposeBody, extractUserDraft, EmailRecipient, SendersResult } from "../taskpane";
+import {
+  getEmailContext,
+  getSenders,
+  getConversationId,
+  insertText,
+  getComposeBody,
+  extractUserDraft,
+  EmailRecipient,
+  SendersResult,
+} from "../taskpane";
 import SenderList from "./SenderList";
 import SenderProfilePanel, { SenderProfilePanelHandle } from "./SenderProfilePanel";
 import ThreadNotePanel, { ThreadNotePanelHandle } from "./ThreadNotePanel";
@@ -89,7 +98,9 @@ const App: React.FC<AppProps> = ({ title }) => {
     } else {
       setHeaderTitle(title);
     }
-    return () => { if (interval !== null) clearInterval(interval); };
+    return () => {
+      if (interval !== null) clearInterval(interval);
+    };
   }, [isLoading, title]);
 
   const handleSend = async (prompt?: string) => {
@@ -117,7 +128,7 @@ const App: React.FC<AppProps> = ({ title }) => {
       } catch (error: any) {
         const msg = error?.response?.data?.detail || "Refine failed. Please try again.";
         setErrorFlash(msg);
-        setTimeout(() => setErrorFlash(null), 4000);
+        setTimeout(() => setErrorFlash(null), 8000);
       }
       setIsPending(false);
       return;
@@ -146,7 +157,9 @@ const App: React.FC<AppProps> = ({ title }) => {
         await streamGenerateReply(
           { ...context, draft: draftContent, instruction: text, mode: currentMode },
           {
-            onIntent: () => { /* email_draft always produces a draft */ },
+            onIntent: () => {
+              /* email_draft always produces a draft */
+            },
             onToken: (token) => {
               setCurrentDraft((prev) => (prev ?? "") + token);
             },
@@ -179,9 +192,10 @@ const App: React.FC<AppProps> = ({ title }) => {
         const context = await getEmailContext();
         let resolvedIntent: "draft" | "qa" = "draft";
 
-        const senderCtx = currentMode === "sender_edit" && selectedSender
-          ? { senderName: selectedSender.displayName, senderEmail: selectedSender.emailAddress }
-          : {};
+        const senderCtx =
+          currentMode === "sender_edit" && selectedSender
+            ? { senderName: selectedSender.displayName, senderEmail: selectedSender.emailAddress }
+            : {};
         await streamGenerateReply(
           { ...context, instruction: text, mode: currentMode, ...senderCtx },
           {
@@ -294,7 +308,7 @@ const App: React.FC<AppProps> = ({ title }) => {
     try {
       await Promise.all(saves);
       setSaveFlash(true);
-      setTimeout(() => setSaveFlash(false), 3000);
+      setTimeout(() => setSaveFlash(false), 6000);
     } catch (error: any) {
       const msg = error?.response?.data?.detail || "Save failed. Please revise your text.";
       showError(msg);
@@ -304,7 +318,7 @@ const App: React.FC<AppProps> = ({ title }) => {
 
   const showError = (msg: string) => {
     setErrorFlash(msg);
-    setTimeout(() => setErrorFlash(null), 4000);
+    setTimeout(() => setErrorFlash(null), 8000);
   };
 
   const senderEditDirty = mode === "sender_edit" && (profileDirty || threadNoteDirty);
@@ -318,19 +332,17 @@ const App: React.FC<AppProps> = ({ title }) => {
         height: "100vh",
         display: "flex",
         flexDirection: "column",
-        backgroundColor: tokens.colors.background,
+        backgroundColor:
+          mode === "sender_edit" ? "rgba(196, 98, 45, 0.25)" : tokens.colors.background,
+        transition: "background-color 0.2s ease",
         boxSizing: "border-box",
         overflow: "hidden",
       }}
     >
       <Header title={headerTitle} />
 
-      {hasMessages ? (
-        <ConversationView
-          messages={messages}
-          onInsert={handleInsert}
-          onDiscard={handleDiscard}
-        />
+      {mode !== "sender_edit" && hasMessages ? (
+        <ConversationView messages={messages} onInsert={handleInsert} onDiscard={handleDiscard} />
       ) : (
         <div style={{ flex: 1 }} />
       )}
@@ -347,8 +359,20 @@ const App: React.FC<AppProps> = ({ title }) => {
       )}
 
       {mode === "sender_edit" && conversationId && (
-        <div style={{ opacity: activePanel === "thread" || !activePanel ? 1 : 0.5, transition: "opacity 0.15s ease" }}>
-          <ThreadNotePanel ref={threadNoteRef} conversationId={conversationId} onDirtyChange={setThreadNoteDirty} onGeneratingChange={setThreadNoteGenerating} onFocus={() => setActivePanel("thread")} onError={showError} />
+        <div
+          style={{
+            opacity: activePanel === "thread" || !activePanel ? 1 : 0.5,
+            transition: "opacity 0.15s ease",
+          }}
+        >
+          <ThreadNotePanel
+            ref={threadNoteRef}
+            conversationId={conversationId}
+            onDirtyChange={setThreadNoteDirty}
+            onGeneratingChange={setThreadNoteGenerating}
+            onFocus={() => setActivePanel("thread")}
+            onError={showError}
+          />
         </div>
       )}
 
@@ -363,50 +387,20 @@ const App: React.FC<AppProps> = ({ title }) => {
       )}
 
       {mode === "sender_edit" && selectedSender && (
-        <div style={{ opacity: activePanel === "profile" || !activePanel ? 1 : 0.5, transition: "opacity 0.15s ease" }}>
-          <SenderProfilePanel ref={profileRef} sender={selectedSender} onDirtyChange={setProfileDirty} onGeneratingChange={setProfileGenerating} onFocus={() => setActivePanel("profile")} onError={showError} />
-        </div>
-      )}
-
-      {mode === "sender_edit" && (
         <div
           style={{
-            padding: `${tokens.spacing.xs}px ${tokens.spacing.lg}px`,
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
-            gap: tokens.spacing.sm,
-            flexShrink: 0,
+            opacity: activePanel === "profile" || !activePanel ? 1 : 0.5,
+            transition: "opacity 0.15s ease",
           }}
         >
-          {errorFlash && (
-            <span style={{ fontSize: tokens.font.caption.size, color: "#D13438", maxWidth: "70%", textAlign: "right" }}>
-              {errorFlash}
-            </span>
-          )}
-          {saveFlash && (
-            <span style={{ fontSize: tokens.font.caption.size, color: "#107C41" }}>
-              Saved ✓
-            </span>
-          )}
-          <button
-            onClick={handleSenderEditSave}
-            disabled={!senderEditDirty || isLoading}
-            style={{
-              background: (senderEditDirty && !isLoading) ? tokens.colors.accent : tokens.colors.border,
-              color: (senderEditDirty && !isLoading) ? "#fff" : tokens.colors.placeholder,
-              border: "none",
-              borderRadius: tokens.radius.pill,
-              padding: `${tokens.spacing.xs}px ${tokens.spacing.lg}px`,
-              fontSize: tokens.font.label.size,
-              fontWeight: tokens.font.label.weight,
-              cursor: (senderEditDirty && !isLoading) ? "pointer" : "not-allowed",
-              opacity: (senderEditDirty && !isLoading) ? 1 : 0.5,
-              transition: "all 0.15s ease",
-            }}
-          >
-            {isLoading ? "Saving..." : "Save"}
-          </button>
+          <SenderProfilePanel
+            ref={profileRef}
+            sender={selectedSender}
+            onDirtyChange={setProfileDirty}
+            onGeneratingChange={setProfileGenerating}
+            onFocus={() => setActivePanel("profile")}
+            onError={showError}
+          />
         </div>
       )}
 
@@ -425,16 +419,67 @@ const App: React.FC<AppProps> = ({ title }) => {
               ? "Refine the draft above..."
               : "Describe the reply you want..."
             : mode === "sender_edit"
-            ? activePanel === "profile" && selectedSender
-              ? `Refine profile for ${selectedSender.displayName || selectedSender.emailAddress}...`
-              : activePanel === "thread"
-              ? "Refine thread notes..."
-              : "Click a text box above, then type an instruction..."
-            : hasMessages
-            ? "Refine or ask a follow-up..."
-            : "How can I help?"
+              ? activePanel === "profile" && selectedSender
+                ? `Refine profile for ${selectedSender.displayName || selectedSender.emailAddress}...`
+                : activePanel === "thread"
+                  ? "Refine thread notes..."
+                  : "Click a text box above, then type an instruction..."
+              : hasMessages
+                ? "Refine or ask a follow-up..."
+                : "How can I help?"
         }
       />
+
+      {mode === "sender_edit" && (senderEditDirty || saveFlash || errorFlash) && (
+        <div
+          style={{
+            padding: `${tokens.spacing.xs}px ${tokens.spacing.lg}px`,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: tokens.spacing.xs,
+            flexShrink: 0,
+          }}
+        >
+          {errorFlash && (
+            <span
+              style={{
+                fontSize: tokens.font.caption.size,
+                fontWeight: 600,
+                color: "#D13438",
+                maxWidth: "90%",
+                textAlign: "right",
+              }}
+            >
+              {errorFlash}
+            </span>
+          )}
+          {saveFlash && (
+            <span style={{ fontSize: tokens.font.caption.size, fontWeight: 600, color: "#107C41" }}>
+              Saved ✓
+            </span>
+          )}
+          <button
+            onClick={handleSenderEditSave}
+            disabled={!senderEditDirty || isLoading}
+            style={{
+              background:
+                senderEditDirty && !isLoading ? tokens.colors.accent : tokens.colors.border,
+              color: senderEditDirty && !isLoading ? "#fff" : tokens.colors.placeholder,
+              border: "none",
+              borderRadius: tokens.radius.pill,
+              padding: `${tokens.spacing.xs}px ${tokens.spacing.lg}px`,
+              fontSize: tokens.font.label.size,
+              fontWeight: tokens.font.label.weight,
+              cursor: senderEditDirty && !isLoading ? "pointer" : "not-allowed",
+              opacity: senderEditDirty && !isLoading ? 1 : 0.5,
+              transition: "all 0.15s ease",
+            }}
+          >
+            {isLoading ? "Saving..." : "Save"}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

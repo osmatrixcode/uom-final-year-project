@@ -127,3 +127,5 @@ why 0.92 thershold for prompt injection detection?
     - or run small test case? 
 
 when send request to chatgpt, does it do prompt injection detection, NER stuff automatically? (think think) We implemented them just in case
+
+Section on UI stuff
