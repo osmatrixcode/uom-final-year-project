@@ -5,7 +5,7 @@ from typing import Optional
 
 from app.services.profile_service import get_profile, save_profile, delete_profile
 from app.services.graph_service import graph_get_with_token, html_to_text, GRAPH_BASE
-from app.services.langchain_service import LangChainService
+from app.services.sender_edit_guards import guarded_generate, guarded_refine, guarded_save
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,8 @@ def read_profile(email: str):
 
 @router.put("/{email}", response_model=ProfileResponse)
 def write_profile(email: str, body: SaveProfileRequest):
-    """Upsert the prompt_text for a sender."""
+    """Upsert the prompt_text for a sender (guarded against injection/harmful content)."""
+    guarded_save(body.prompt_text, identifier=email)
     save_profile(email, body.prompt_text)
     return ProfileResponse(email=email, prompt_text=body.prompt_text)
 
@@ -94,8 +95,7 @@ def generate_profile(email: str, body: GenerateProfileRequest, request: Request)
         except Exception as e:
             logger.warning("Could not fetch sent items from Graph for %s: %s", email, e)
 
-    service = LangChainService()
-    generated = service.generate_profile_text(
+    generated = guarded_generate(
         history_preview=history_preview,
         fallback_body=body.current_email_body,
         mode="sender",
@@ -112,7 +112,7 @@ class RefineProfileRequest(BaseModel):
 
 @router.post("/{email}/refine", response_model=ProfileResponse)
 def refine_profile(email: str, body: RefineProfileRequest):
-    """Refine the prompt_text for a sender using an AI instruction."""
-    service = LangChainService()
-    refined = service.refine_profile_text(body.current_text, body.instruction)
+    """Refine the prompt_text for a sender using an AI instruction. Auto-saves."""
+    refined = guarded_refine(current_text=body.current_text, instruction=body.instruction)
+    save_profile(email, refined)
     return ProfileResponse(email=email, prompt_text=refined)

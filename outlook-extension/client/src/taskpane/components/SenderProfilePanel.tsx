@@ -8,16 +8,19 @@ export interface SenderProfilePanelHandle {
   save: () => Promise<void>;
   getText: () => string;
   setText: (text: string) => void;
+  markSaved: (text: string) => void;
 }
 
 interface SenderProfilePanelProps {
   sender: EmailRecipient;
   onDirtyChange?: (dirty: boolean) => void;
+  onGeneratingChange?: (generating: boolean) => void;
+  onError?: (msg: string) => void;
   onFocus?: () => void;
 }
 
 const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProfilePanelProps>(
-  ({ sender, onDirtyChange, onFocus }, ref) => {
+  ({ sender, onDirtyChange, onGeneratingChange, onFocus, onError }, ref) => {
   const [text, setText] = React.useState("");
   const [savedText, setSavedText] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -29,6 +32,11 @@ const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProf
   React.useEffect(() => {
     onDirtyChange?.(isDirty);
   }, [isDirty]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Notify parent of generating state changes */
+  React.useEffect(() => {
+    onGeneratingChange?.(isGenerating);
+  }, [isGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Load profile whenever the selected sender changes */
   React.useEffect(() => {
@@ -54,6 +62,7 @@ const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProf
     },
     getText: () => text,
     setText: (newText: string) => setText(newText),
+    markSaved: (val: string) => setSavedText(val),
   }), [sender.emailAddress, text]);
 
   const handleAutoFill = async () => {
@@ -62,8 +71,10 @@ const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProf
       const ctx = await getEmailContext();
       const generated = await generateProfile(sender.emailAddress, ctx.subject, ctx.body);
       setText(generated);
-    } catch (e) {
-      console.error("Auto-fill failed:", e);
+      setSavedText(generated); // server auto-saved after generate
+    } catch (e: any) {
+      const msg = e?.response?.data?.detail || "Auto-fill failed. Please try again.";
+      onError?.(msg);
     }
     setIsGenerating(false);
   };

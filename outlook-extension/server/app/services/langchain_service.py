@@ -86,7 +86,7 @@ class LangChainService:
             parts.append(injected_context)
         return "".join(parts)
 
-    def generate_profile_text(self, history_preview: str, fallback_body: str, mode: str, name: str = "") -> str:
+    def generate_profile_text(self, history_preview: str, fallback_body: str, mode: str, name: str = "", skip_logging: bool = False) -> str:
         """
         Generate a 2-3 sentence tone/style summary.
         mode: "sender" — summarise user's tone when writing to this person
@@ -109,29 +109,31 @@ class LangChainService:
 
         response = self.llm.invoke([HumanMessage(content=prompt)])
         output = response.content.strip()
-        log_prompt_and_response(
-            prompt_key=toml_key,
-            variables={"name": name, "history_preview": history_preview, "fallback_body": fallback_body, "mode": mode},
-            rendered_system=None,
-            rendered_human=prompt,
-            output=output,
-        )
+        if not skip_logging:
+            log_prompt_and_response(
+                prompt_key=toml_key,
+                variables={"name": name, "history_preview": history_preview, "fallback_body": fallback_body, "mode": mode},
+                rendered_system=None,
+                rendered_human=prompt,
+                output=output,
+            )
         return output
 
-    def refine_profile_text(self, current_text: str, instruction: str) -> str:
+    def refine_profile_text(self, current_text: str, instruction: str, skip_logging: bool = False) -> str:
         """Refine a sender profile or thread note based on user instruction."""
         variables = {"current_text": current_text, "instruction": instruction}
         chain = _PROMPT_CACHE["refine_profile_text"] | self.llm
         result = chain.invoke(variables)
         output = result.content.strip()
-        sys_text, human_text = _render_prompt("refine_profile_text", variables)
-        log_prompt_and_response(
-            prompt_key="refine_profile_text",
-            variables=variables,
-            rendered_system=sys_text,
-            rendered_human=human_text,
-            output=output,
-        )
+        if not skip_logging:
+            sys_text, human_text = _render_prompt("refine_profile_text", variables)
+            log_prompt_and_response(
+                prompt_key="refine_profile_text",
+                variables=variables,
+                rendered_system=sys_text,
+                rendered_human=human_text,
+                output=output,
+            )
         return output
 
     def generate_email_reply(self, email_context, graph_thread: dict | None = None) -> tuple[str, str]:

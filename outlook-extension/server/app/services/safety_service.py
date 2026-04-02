@@ -19,7 +19,12 @@ _client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 _PROMPTS_PATH = pathlib.Path(__file__).parent.parent / "prompts.toml"
 with open(_PROMPTS_PATH, "rb") as _f:
-    _SAFETY_SYSTEM_PROMPT = tomllib.load(_f)["safety_classifier"]["system"]
+    _ALL_PROMPTS = tomllib.load(_f)
+
+_SAFETY_PROMPTS = {
+    "general_qa": _ALL_PROMPTS["safety_classifier"]["system"],
+    "sender_edit": _ALL_PROMPTS["sender_edit_safety_classifier"]["system"],
+}
 
 
 class SafetyFailure(Exception):
@@ -30,9 +35,13 @@ class SafetyFailure(Exception):
         super().__init__(f"Out-of-scope interaction: {reason}")
 
 
-def check_safety(instruction: str, llm_output: str) -> None:
+def check_safety(instruction: str, llm_output: str, classifier_key: str = "general_qa") -> None:
     """
     Send the instruction + LLM output to the safety classifier.
+
+    *classifier_key* selects which system prompt to use:
+    ``"general_qa"`` for email Q&A scope, ``"sender_edit"`` for
+    tone/style description scope.
 
     Raises ``SafetyFailure`` if the interaction is out-of-scope.
     Does nothing (returns ``None``) when the interaction is safe.
@@ -41,13 +50,15 @@ def check_safety(instruction: str, llm_output: str) -> None:
     if not instruction or not instruction.strip():
         return
 
+    system_prompt = _SAFETY_PROMPTS.get(classifier_key, _SAFETY_PROMPTS["general_qa"])
+
     try:
         response = _client.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0,
             max_tokens=50,
             messages=[
-                {"role": "system", "content": _SAFETY_SYSTEM_PROMPT},
+                {"role": "system", "content": system_prompt},
                 {
                     "role": "user",
                     "content": (

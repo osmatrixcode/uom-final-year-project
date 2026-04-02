@@ -28,28 +28,29 @@
             ✔ profileMD idea, can create a 'text prompt' FOR THAT EMAIL THREAD (so even can have it for that email thread) so have specific for that email thread @done(26-04-01 13:20)
             ✔ emailthreadMD idea, can have specific prompt as dont need to load all other profile MDs? @done(26-04-01 13:20)
                 ✔ for group people, will have general prompt? but think if address to specific people in that group thread, nice to have specific profileMD for that person (as personalised) @done(26-04-01 13:20)
-            ☐ MD idea, if have more recent emails, will continually update? 
-            ☐ seems like MD idea when auto-fill, will fill with example of email thread (may be bad if general profileMD)
+            ✘ MD idea, if have more recent emails, will continually update? @cancelled(26-04-02 18:01)
+                ✘ user if didnt like thread, can go to sender edit for it? @cancelled(26-04-02 18:01)
+            ✘ seems like MD idea when auto-fill, will fill with example of email thread (may be bad if general profileMD) @cancelled(26-04-02 12:52)
         ☐ _ai/nlp_:
             ☐ _security_:
-                ☐ add llm best practices for cyber attacks (prevent prompt injection)
-                ☐ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this?
-                ☐ data anonymisation for privacy (python libraries)
-                ☐ Microsoft Presidio
-                ☐ llm guard and privatisation for every mode / option (look at prompts.toml)
-                ☐ safeguarding model (for response appropiateness)
-                ☐ openAI moderation API --> 40 mini scope, --> MS Presido for
+                ✔ add llm best practices for cyber attacks (prevent prompt injection) @done(26-04-02 12:51)
+                ✔ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this? @done(26-04-02 12:51)
+                ✔ data anonymisation for privacy (python libraries) @done(26-04-02 12:51)
+                ✔ Microsoft Presidio @done(26-04-02 12:50)
+                ✔ llm guard and privatisation for every mode / option (look at prompts.toml) @started(26-04-02 12:50) @done(26-04-02 12:50) @lasted(58s)
+                ✔ safeguarding model (for response appropiateness) @done(26-04-02 12:51)
+                ✔ openAI moderation API --> 40 mini scope, --> MS Presido for @done(26-04-02 12:51)
                 ✘ HITL or automatic generation (for llm guard) @cancelled(26-04-01 13:49)
-                ☐ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) (can only ask relevant questions) 
-                ☐ allow 3. Advanced: Custom Rules (The "Outlook" Case) In a professional setting, you often have specific patterns (like Employee IDs or Internal Project Codes) that standard models miss. You can add a PatternRecognizer for these.
-                    ☐ allow user to create these custom rules, however in report mention how further additions is allowing IT people to set custom data anonymisation rules (as have access to the backend)
+                ✔ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) (can only ask relevant questions) @done(26-04-02 12:51)
+                ✘ allow 3. Advanced: Custom Rules (The "Outlook" Case) In a professional setting, you often have specific patterns (like Employee IDs or Internal Project Codes) that standard models miss. You can add a PatternRecognizer for these. @cancelled(26-04-02 12:52)
+                    ✘ allow user to create these custom rules, however in report mention how further additions is allowing IT people to set custom data anonymisation rules (as have access to the backend) @cancelled(26-04-02 12:52)
                 ✘ use Azure OpenAI (enterprise) for better privacy and security (and also better performance) @cancelled(26-04-01 13:49)
-                ☐ add guards for generalqa, sender edit, email draft 
-                    ☐ sender_edit (user can add malicious profileMD) 
-                    ☐ general_qa (user can ask any question, even if not relevant to the email thread
-                    ☐ email draft (user can add malicious prompt + privatisation)
-                ☐ security roadmap:
-                    ☐ OpenAI Moderation API (for content moderation)
+                ✔ add guards for generalqa, sender edit, email draft @done(26-04-02 12:52)
+                    ✔ sender_edit (user can add malicious profileMD) @done(26-04-02 12:52)
+                    ✔ general_qa (user can ask any question, even if not relevant to the email thread @done(26-04-02 12:52)
+                    ✔ email draft (user can add malicious prompt + privatisation) @done(26-04-02 12:52)
+                ✔ security roadmap: @done(26-04-02 12:52)
+                    ✔ OpenAI Moderation API (for content moderation) @done(26-04-02 12:52)
             ☐ _general_:
                 ☐ think of prompt generation techniques NLP
                 ☐ make thread text more important than sender text? 
@@ -61,14 +62,6 @@
                     ☐ if no email history with the sender, use THEIR email message THEY sent (find the tone AND RECIPROCATE THAT)
                     ✘ use past email ai drafts made that user like, as the FEW SHOT examples! (tailors to them) @cancelled(26-04-02 11:10)
                     ✘ after few times user uses it and makes modifications, will modify it to users taste @cancelled(26-04-01 12:53)
-
-            ☐ __security-final__:
-                ☐ _general-qa_:
-                    ☐ OpenAI Moderation API (for content moderation)
-                    ☐ Classifier for relevancy 
-                    ☐ llm-guard for prompt injection 
-                    ☐ llm-guard for pii as well? (or use something else) 
-                    ☐ decide order of it (before or after etc... variaous stages)
 
         ☐ _nice-to-have_:
             ✘ uses document vector db to generate email reply, (link general qa with email draft)? think about it @cancelled(26-04-01 12:53)
@@ -90,33 +83,45 @@
 ✔ make email_draft text area bigger in taskpane (as right now really small) @done(26-03-31 10:43)
 ✔ add corresponding ui coloour message boxes for each @done(26-03-31 10:43)
 
-☐ TUESDAY:
+✔ TUESDAY: @done(26-04-02 13:17)
 
-☐ WEDNESDAY:
+✔ WEDNESDAY: @done(26-04-02 13:17)
     ✔ add option to past context (autofill) to refine draft as well! @done(26-04-01 17:01)
-    ☐ start adding llm-guard and safety stuff now! (start with graft_qa)
+    ✔ start adding llm-guard and safety stuff now! (start with graft_qa) @done(26-04-02 13:05)
     ✘ add structured formating (instead of k-NN technique) and tool calling? (if needed) @cancelled(26-04-01 13:49)
         ✘ tool calling for getting past emails, getting sender id text, etc... @cancelled(26-04-01 13:49)
-    ☐ start designing the benchmarking stuff! 
+    ✘ start designing the benchmarking stuff! @cancelled(26-04-02 13:17)
     ✘ option  local model use? @cancelled(26-04-02 09:45)
     ✔ use Sender text to help influeence tone decision for Thread text (yes look at previous emails from senders / people ccd AND ALSO email current thread?) OR JUST STICK WITH THAT CURRENT THREAD CONTEXT? @done(26-04-02 09:45)
-    ☐ print out logs / traces! 
+    ✔ print out logs / traces! @done(26-04-02 13:05)
     ✔ sender edit section, user can write prompt to edit the profileMD for that sender @done(26-04-02 09:44)
         ✘ use logging to output what the email thread looks like, what sender_text and thread_text look like, what does current email look like etc... (so no variables for the prompt) @cancelled(26-04-02 11:08)
 
 ☐ THURSDAY:
     ☐ implement toxicity? think what else? 
+    ☐ make sure UI makes sense? (sender edit 'saving' greyed out when trying, etc...) 
+    ☐ why does security take so god damn long on Macbook!
     ☐ make word movements when generating to show on cursor (not on top of page) SIMILIAR TO CLAUDE CODE
-    ☐ _ai_prompts_sec:
+    ☐ make sure if any errors in sender_edit mode, the current text is not deleted! (but shows error somewhere else)! 
+        ☐ when user has filled thread_text and asks AI prompt to expand it
+    ☐ add "help" icon in top left? For general help and guidance
+    ☐ _ai_prompts_security-privacy:
         ✔ general_qa mode: @done(26-04-02 12:43)
             ✔ [general_qa] @done(26-04-02 12:43)
             ✔ [safety_classifier] @done(26-04-02 12:43)
 
         ☐ sender edit mode: 
+            ✘ is classifier too strong, look at when text + prompt edge case) @cancelled(26-04-02 17:25)
+            ✔ does 'auto-fill' work? @done(26-04-02 17:25)
+            ✔ does 'manual type + manual save' work? (run the text title loop through to run when this runs!) @done(26-04-02 17:28)
+            ✔ does 'non empty _text, and ask ai to modify it via prompt box?" work? @done(26-04-02 17:25)
+        (remember that this saves to a DB, so important!, dont want a malicious prompt injection inside the profileMD)) 
             ☐ [refine_profile_text]
             ☐ [generate_sender_profile]
             ☐ [generate_thread_note]
-            ☐ ?[safety_classifier for sender edit?]
+            ✔ ?[safety_classifier for sender edit?] @done(26-04-02 13:25)
+            ☐ ?manual save  edge case --> have safety for this situation 
+                ☐ make sure have logging for this!
 
         ☐ email draft mode:
             ☐ [generate_reply]
@@ -124,8 +129,9 @@
             ☐ ?[safety_classifier for email draft?]
     
 
-
-
+    ☐ evals on classifier! (as too strict, too hard) --> USE FEW SHOT EXAMPLES ON THE THINGS I WAS SUPRISED I GOT BLOCKED ON 
+    ☐ why those values for thresholds? (test) 
+    ☐ what if have thread tone, and is opposite to sender profiles tone! Make sure thread tone takes precedence!
 
 ☐ FRIDAY:
 
