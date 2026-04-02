@@ -129,3 +129,5 @@ why 0.92 thershold for prompt injection detection?
 when send request to chatgpt, does it do prompt injection detection, NER stuff automatically? (think think) We implemented them just in case
 
 Section on UI stuff
+
+Dynamic Tone: Because you want the reply to match the tone of the original email, providing a static example might accidentally bias the model to copy the style of your example rather than the style of the incoming email.

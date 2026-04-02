@@ -134,9 +134,9 @@
     ☐ evals on classifier! (as too strict, too hard) --> USE FEW SHOT EXAMPLES ON THE THINGS I WAS SUPRISED I GOT BLOCKED ON 
     ☐ why those values for thresholds? (test) 
     ☐ what if have thread tone, and is opposite to sender profiles tone! Make sure thread tone takes precedence!
-    ☐ still taking too long for sender_edit! (longer timeout on frontend?)
-    ☐ STILL TAKING TOO LONG FOR SENDER EDIT! WHY (compare to general_qa which is much faster))
-    ☐ in sender_edit, make sure click a thread or sender for prompt text box to open
+    ✔ still taking too long for sender_edit! (longer timeout on frontend?) @done(26-04-02 21:16)
+    ✔ STILL TAKING TOO LONG FOR SENDER EDIT! WHY (compare to general_qa which is much faster)) @done(26-04-02 21:16)
+    ✔ in sender_edit, make sure click a thread or sender for prompt text box to open @done(26-04-02 21:16)
     ☐ final check on security and privatisation for prompts!
     ☐ make red and green success and error messages in sender edit when press save, make last longer!
 
