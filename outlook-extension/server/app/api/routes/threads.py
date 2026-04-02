@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel
 
 from app.services.profile_service import get_thread_note, save_thread_note
@@ -20,8 +20,8 @@ class SaveThreadNoteRequest(BaseModel):
     note_text: str
 
 
-@router.get("/{conversation_id}", response_model=ThreadNoteResponse)
-def read_thread_note(conversation_id: str):
+@router.get("", response_model=ThreadNoteResponse)
+def read_thread_note(conversation_id: str = Query(...)):
     """Return the stored note for a conversation thread. Returns empty string if none saved."""
     return ThreadNoteResponse(
         conversation_id=conversation_id,
@@ -29,8 +29,8 @@ def read_thread_note(conversation_id: str):
     )
 
 
-@router.put("/{conversation_id}", response_model=ThreadNoteResponse)
-def write_thread_note(conversation_id: str, body: SaveThreadNoteRequest):
+@router.put("", response_model=ThreadNoteResponse)
+def write_thread_note(conversation_id: str = Query(...), body: SaveThreadNoteRequest = None):
     """Upsert the note for a conversation thread (guarded against injection/harmful content)."""
     guarded_save(body.note_text, identifier=conversation_id)
     save_thread_note(conversation_id, body.note_text)
@@ -47,8 +47,8 @@ def _extract_bearer(request: Request) -> str | None:
     return auth.removeprefix("Bearer ").strip() if auth.startswith("Bearer ") else None
 
 
-@router.post("/{conversation_id}/generate", response_model=ThreadNoteResponse)
-def generate_thread_note(conversation_id: str, body: GenerateThreadNoteRequest, request: Request):
+@router.post("/generate", response_model=ThreadNoteResponse)
+def generate_thread_note(conversation_id: str = Query(...), body: GenerateThreadNoteRequest = None, request: Request = None):
     """
     Auto-generate a note for this thread by looking at the user's own messages
     within the conversation. Falls back to current email body if none found.
@@ -105,8 +105,8 @@ class RefineThreadNoteRequest(BaseModel):
     instruction: str
 
 
-@router.post("/{conversation_id}/refine", response_model=ThreadNoteResponse)
-def refine_thread_note(conversation_id: str, body: RefineThreadNoteRequest):
+@router.post("/refine", response_model=ThreadNoteResponse)
+def refine_thread_note(conversation_id: str = Query(...), body: RefineThreadNoteRequest = None):
     """Refine the note for a thread using an AI instruction. Auto-saves."""
     refined = guarded_refine(current_text=body.current_text, instruction=body.instruction)
     save_thread_note(conversation_id, refined)

@@ -119,3 +119,15 @@ talk about design patterns --> used singleton pattern!
 
 why not update sender_text and thread_text each update? 
 -expensive, take a long time, dont need to, only when user wants to t
+
+why 0.92 thershold for prompt injection detection? 
+    -sweet spot, 
+    -also it admin / developers can change it if Employees are complaining too much
+    A common theme in these papers is that prompt injections are "semantically dense." (find academic papers)
+    - or run small test case? 
+
+when send request to chatgpt, does it do prompt injection detection, NER stuff automatically? (think think) We implemented them just in case
+
+Section on UI stuff
+
+Dynamic Tone: Because you want the reply to match the tone of the original email, providing a static example might accidentally bias the model to copy the style of your example rather than the style of the incoming email.

@@ -4,7 +4,7 @@ import { acquireToken } from "./authService";
 
 const apiClient = axios.create({
   baseURL: API_URL,
-  timeout: 120000, // LLM + security pipeline can take up to 120 seconds
+  timeout: 600000, // LLM + security pipeline can take up to 10 minutes
   headers: {
     "Content-Type": "application/json",
   },

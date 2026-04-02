@@ -32,7 +32,7 @@
                 ✘ user if didnt like thread, can go to sender edit for it? @cancelled(26-04-02 18:01)
             ✘ seems like MD idea when auto-fill, will fill with example of email thread (may be bad if general profileMD) @cancelled(26-04-02 12:52)
         ☐ _ai/nlp_:
-            ☐ _security_:
+            ✔ _ecurity_: @done(26-04-02 18:25)
                 ✔ add llm best practices for cyber attacks (prevent prompt injection) @done(26-04-02 12:51)
                 ✔ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this? @done(26-04-02 12:51)
                 ✔ data anonymisation for privacy (python libraries) @done(26-04-02 12:51)
@@ -63,7 +63,7 @@
                     ✘ use past email ai drafts made that user like, as the FEW SHOT examples! (tailors to them) @cancelled(26-04-02 11:10)
                     ✘ after few times user uses it and makes modifications, will modify it to users taste @cancelled(26-04-01 12:53)
 
-        ☐ _nice-to-have_:
+        ✘ _nice-to-have_: @cancelled(26-04-02 18:25)
             ✘ uses document vector db to generate email reply, (link general qa with email draft)? think about it @cancelled(26-04-01 12:53)
             ✘ implement a thumbs up thumbs down system (help modify and give reason why) @cancelled(26-03-31 19:33)
             ✘ when first download app, will walk through generated email responses, you approve or modify THEN can use this for ICL / Few Shot PERSONAL examples (makes it personal to them!) @cancelled(26-03-31 19:32)
@@ -98,32 +98,34 @@
         ✘ use logging to output what the email thread looks like, what sender_text and thread_text look like, what does current email look like etc... (so no variables for the prompt) @cancelled(26-04-02 11:08)
 
 ☐ THURSDAY:
-    ☐ implement toxicity? think what else? 
-    ☐ make sure UI makes sense? (sender edit 'saving' greyed out when trying, etc...) 
-    ☐ why does security take so god damn long on Macbook!
-    ☐ make word movements when generating to show on cursor (not on top of page) SIMILIAR TO CLAUDE CODE
-    ☐ make sure if any errors in sender_edit mode, the current text is not deleted! (but shows error somewhere else)! 
-        ☐ when user has filled thread_text and asks AI prompt to expand it
+    ✘ implement toxicity? think what else? @cancelled(26-04-02 18:04)
+    ✔ make sure UI makes sense? (sender edit 'saving' greyed out when trying, etc...) @done(26-04-02 18:04)
+    ✔ why does security take so god damn long on Macbook! @done(26-04-02 18:04)
+    ✔ make word movements when generating to show on cursor (not on top of page) SIMILIAR TO CLAUDE CODE @done(26-04-02 18:04)
+    ✔ make sure if any errors in sender_edit mode, the current text is not deleted! (but shows error somewhere else)! @done(26-04-02 18:19)
+        ✔ when user has filled thread_text and asks AI prompt to expand it @done(26-04-02 18:19)
     ☐ add "help" icon in top left? For general help and guidance
     ☐ _ai_prompts_security-privacy:
         ✔ general_qa mode: @done(26-04-02 12:43)
             ✔ [general_qa] @done(26-04-02 12:43)
             ✔ [safety_classifier] @done(26-04-02 12:43)
 
-        ☐ sender edit mode: 
+        ✔ sender edit mode: @done(26-04-02 18:04)
             ✘ is classifier too strong, look at when text + prompt edge case) @cancelled(26-04-02 17:25)
             ✔ does 'auto-fill' work? @done(26-04-02 17:25)
             ✔ does 'manual type + manual save' work? (run the text title loop through to run when this runs!) @done(26-04-02 17:28)
             ✔ does 'non empty _text, and ask ai to modify it via prompt box?" work? @done(26-04-02 17:25)
         (remember that this saves to a DB, so important!, dont want a malicious prompt injection inside the profileMD)) 
-            ☐ [refine_profile_text]
-            ☐ [generate_sender_profile]
-            ☐ [generate_thread_note]
+            ✔ [refine_profile_text] @done(26-04-02 18:04)
+            ✔ [generate_sender_profile] @done(26-04-02 18:04)
+            ✔ [generate_thread_note] @done(26-04-02 18:04)
             ✔ ?[safety_classifier for sender edit?] @done(26-04-02 13:25)
-            ☐ ?manual save  edge case --> have safety for this situation 
-                ☐ make sure have logging for this!
+            ✔ ?manual save  edge case --> have safety for this situation @done(26-04-02 18:04)
+                ✔ make sure have logging for this! @done(26-04-02 18:04)
 
         ☐ email draft mode:
+        think when press import, IT HAS TO BE READY! 
+        USER CAN JUST MANUALLY WRITE MALICIOUS EMAIL CODE LOL (DONT NEED AI TO GENERATE LOL) think think think rocky
             ☐ [generate_reply]
             ☐ [refine_draft]
             ☐ ?[safety_classifier for email draft?]
@@ -132,7 +134,14 @@
     ☐ evals on classifier! (as too strict, too hard) --> USE FEW SHOT EXAMPLES ON THE THINGS I WAS SUPRISED I GOT BLOCKED ON 
     ☐ why those values for thresholds? (test) 
     ☐ what if have thread tone, and is opposite to sender profiles tone! Make sure thread tone takes precedence!
+    ✔ still taking too long for sender_edit! (longer timeout on frontend?) @done(26-04-02 21:16)
+    ✔ STILL TAKING TOO LONG FOR SENDER EDIT! WHY (compare to general_qa which is much faster)) @done(26-04-02 21:16)
+    ✔ in sender_edit, make sure click a thread or sender for prompt text box to open @done(26-04-02 21:16)
+    ☐ final check on security and privatisation for prompts!
+    ☐ make red and green success and error messages in sender edit when press save, make last longer!
+
+
 
 ☐ FRIDAY:
 
-
+    ✔ fix timeout on frontend (sendeedit) @done(26-04-02 21:07)
