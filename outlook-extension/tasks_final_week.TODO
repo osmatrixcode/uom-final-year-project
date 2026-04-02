@@ -107,6 +107,25 @@
 ☐ THURSDAY:
     ☐ implement toxicity? think what else? 
     ☐ make word movements when generating to show on cursor (not on top of page) SIMILIAR TO CLAUDE CODE
+    ☐ _ai_prompts_sec:
+        ✔ general_qa mode: @done(26-04-02 12:43)
+            ✔ [general_qa] @done(26-04-02 12:43)
+            ✔ [safety_classifier] @done(26-04-02 12:43)
+
+        ☐ sender edit mode: 
+            ☐ [refine_profile_text]
+            ☐ [generate_sender_profile]
+            ☐ [generate_thread_note]
+            ☐ ?[safety_classifier for sender edit?]
+
+        ☐ email draft mode:
+            ☐ [generate_reply]
+            ☐ [refine_draft]
+            ☐ ?[safety_classifier for email draft?]
+    
+
+
+
 
 ☐ FRIDAY:
 

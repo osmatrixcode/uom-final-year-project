@@ -88,3 +88,5 @@ If this were a public-facing API (anonymous users, multi-tenant, internet-expose
 But for a personal email assistant where the authenticated user is asking questions about their own inbox, blocking them because an external API is temporarily down is worse than the small window of reduced protection.
 
 That said — the logging is critical here. Every fail-open event logs a warning with exc_info=True, so you have full visibility into when guards were bypassed and why. You're not silently ignoring failures — you're recording them.
+
+Run a red team via promptfoo on this! (no code needed) 
