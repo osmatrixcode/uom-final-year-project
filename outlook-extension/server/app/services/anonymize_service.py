@@ -27,28 +27,36 @@ _ENTITY_TYPES = [
     "URL",
 ]
 
+# ---------- Singleton: load NER model ONCE at startup ----------
+logger.info("Loading Anonymize NER model (one-time startup cost)...")
+_SHARED_ANON = Anonymize(
+    vault=Vault(),
+    entity_types=_ENTITY_TYPES,
+    hidden_names=[],
+    preamble="",
+    language="en",
+    use_onnx=True,
+)
+logger.info("Anonymize NER model ready.")
+
 
 def create_anonymizer(
     hidden_names: list[str] | None = None,
 ) -> tuple[Vault, Anonymize, Deanonymize]:
     """Return a fresh (vault, anonymize_scanner, deanonymize_scanner) triple.
 
+    The heavy NER model is loaded once at module level (_SHARED_ANON).
+    Each call swaps in a fresh Vault and hidden_names for request isolation.
+
     *hidden_names* — names that MUST be redacted regardless of NER
     confidence (e.g. recipient display names extracted from the email
-    context).  This guarantees consistent replacement even for single
-    first names that Presidio's NER might miss.
+    context).
     """
     vault = Vault()
-    anon = Anonymize(
-        vault=vault,
-        entity_types=_ENTITY_TYPES,
-        hidden_names=hidden_names or [],
-        preamble="",
-        language="en",
-        use_onnx=True,
-    )
+    _SHARED_ANON._vault = vault
+    _SHARED_ANON._hidden_names = hidden_names or []
     deanon = Deanonymize(vault=vault)
-    return vault, anon, deanon
+    return vault, _SHARED_ANON, deanon
 
 
 def anonymize_text(text: str, scanner: Anonymize) -> str:

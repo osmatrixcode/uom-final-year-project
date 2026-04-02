@@ -114,3 +114,5 @@ Why wont recommedn local setup, as different devices need different setups?
     lik Onnyx
 
 On Server startup, will load all the local models as well! ()
+
+talk about design patterns --> used singleton pattern! 
