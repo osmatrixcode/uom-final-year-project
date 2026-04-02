@@ -29,27 +29,27 @@
             ✔ emailthreadMD idea, can have specific prompt as dont need to load all other profile MDs? @done(26-04-01 13:20)
                 ✔ for group people, will have general prompt? but think if address to specific people in that group thread, nice to have specific profileMD for that person (as personalised) @done(26-04-01 13:20)
             ☐ MD idea, if have more recent emails, will continually update? 
-            ☐ seems like MD idea when auto-fill, will fill with example of email thread (may be bad if general profileMD)
+            ✘ seems like MD idea when auto-fill, will fill with example of email thread (may be bad if general profileMD) @cancelled(26-04-02 12:52)
         ☐ _ai/nlp_:
             ☐ _security_:
-                ☐ add llm best practices for cyber attacks (prevent prompt injection)
-                ☐ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this?
-                ☐ data anonymisation for privacy (python libraries)
-                ☐ Microsoft Presidio
-                ☐ llm guard and privatisation for every mode / option (look at prompts.toml)
-                ☐ safeguarding model (for response appropiateness)
-                ☐ openAI moderation API --> 40 mini scope, --> MS Presido for
+                ✔ add llm best practices for cyber attacks (prevent prompt injection) @done(26-04-02 12:51)
+                ✔ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this? @done(26-04-02 12:51)
+                ✔ data anonymisation for privacy (python libraries) @done(26-04-02 12:51)
+                ✔ Microsoft Presidio @done(26-04-02 12:50)
+                ✔ llm guard and privatisation for every mode / option (look at prompts.toml) @started(26-04-02 12:50) @done(26-04-02 12:50) @lasted(58s)
+                ✔ safeguarding model (for response appropiateness) @done(26-04-02 12:51)
+                ✔ openAI moderation API --> 40 mini scope, --> MS Presido for @done(26-04-02 12:51)
                 ✘ HITL or automatic generation (for llm guard) @cancelled(26-04-01 13:49)
-                ☐ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) (can only ask relevant questions) 
-                ☐ allow 3. Advanced: Custom Rules (The "Outlook" Case) In a professional setting, you often have specific patterns (like Employee IDs or Internal Project Codes) that standard models miss. You can add a PatternRecognizer for these.
-                    ☐ allow user to create these custom rules, however in report mention how further additions is allowing IT people to set custom data anonymisation rules (as have access to the backend)
+                ✔ make sure have guardrails for all prompts, look at general_qa can ask any question! (bad) (can only ask relevant questions) @done(26-04-02 12:51)
+                ✘ allow 3. Advanced: Custom Rules (The "Outlook" Case) In a professional setting, you often have specific patterns (like Employee IDs or Internal Project Codes) that standard models miss. You can add a PatternRecognizer for these. @cancelled(26-04-02 12:52)
+                    ✘ allow user to create these custom rules, however in report mention how further additions is allowing IT people to set custom data anonymisation rules (as have access to the backend) @cancelled(26-04-02 12:52)
                 ✘ use Azure OpenAI (enterprise) for better privacy and security (and also better performance) @cancelled(26-04-01 13:49)
-                ☐ add guards for generalqa, sender edit, email draft 
-                    ☐ sender_edit (user can add malicious profileMD) 
-                    ☐ general_qa (user can ask any question, even if not relevant to the email thread
-                    ☐ email draft (user can add malicious prompt + privatisation)
-                ☐ security roadmap:
-                    ☐ OpenAI Moderation API (for content moderation)
+                ✔ add guards for generalqa, sender edit, email draft @done(26-04-02 12:52)
+                    ✔ sender_edit (user can add malicious profileMD) @done(26-04-02 12:52)
+                    ✔ general_qa (user can ask any question, even if not relevant to the email thread @done(26-04-02 12:52)
+                    ✔ email draft (user can add malicious prompt + privatisation) @done(26-04-02 12:52)
+                ✔ security roadmap: @done(26-04-02 12:52)
+                    ✔ OpenAI Moderation API (for content moderation) @done(26-04-02 12:52)
             ☐ _general_:
                 ☐ think of prompt generation techniques NLP
                 ☐ make thread text more important than sender text? 
@@ -113,6 +113,7 @@
             ✔ [safety_classifier] @done(26-04-02 12:43)
 
         ☐ sender edit mode: 
+        (remember that this saves to a DB, so important!) 
             ☐ [refine_profile_text]
             ☐ [generate_sender_profile]
             ☐ [generate_thread_note]

@@ -90,3 +90,8 @@ But for a personal email assistant where the authenticated user is asking questi
 That said — the logging is critical here. Every fail-open event logs a warning with exc_info=True, so you have full visibility into when guards were bypassed and why. You're not silently ignoring failures — you're recording them.
 
 Run a red team via promptfoo on this! (no code needed) 
+
+                ☐ allow 3. Advanced: Custom Rules (The "Outlook" Case) In a professional setting, you often have specific patterns (like Employee IDs or Internal Project Codes) that standard models miss. You can add a PatternRecognizer for these.
+                    ☐ allow user to create these custom rules, however in report mention how further additions is allowing IT people to set custom data anonymisation rules (as have access to the backend)
+
+wait, so what happens when a useer MANUALLY types in a text in the sender edit textbox? (instead of using AI to generate autofill the profile/thread tone or using prompt box in that mode) and then they pressed save? 

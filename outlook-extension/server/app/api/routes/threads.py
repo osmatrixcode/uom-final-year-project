@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from app.services.profile_service import get_thread_note, save_thread_note
 from app.services.graph_service import get_thread_by_conversation_id, graph_get_with_token, GRAPH_BASE
-from app.services.langchain_service import LangChainService
+from app.services.sender_edit_guards import guarded_generate, guarded_refine
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +90,7 @@ def generate_thread_note(conversation_id: str, body: GenerateThreadNoteRequest, 
         except Exception as e:
             logger.warning("Could not fetch thread from Graph for %s: %s", conversation_id, e)
 
-    service = LangChainService()
-    generated = service.generate_profile_text(
+    generated = guarded_generate(
         history_preview=history_preview,
         fallback_body=body.current_email_body,
         mode="thread",
@@ -108,6 +107,5 @@ class RefineThreadNoteRequest(BaseModel):
 @router.post("/{conversation_id}/refine", response_model=ThreadNoteResponse)
 def refine_thread_note(conversation_id: str, body: RefineThreadNoteRequest):
     """Refine the note for a thread using an AI instruction."""
-    service = LangChainService()
-    refined = service.refine_profile_text(body.current_text, body.instruction)
+    refined = guarded_refine(current_text=body.current_text, instruction=body.instruction)
     return ThreadNoteResponse(conversation_id=conversation_id, note_text=refined)
