@@ -10,7 +10,8 @@ from app.services.graph_service import get_email_thread, get_thread_by_conversat
 from app.services.profile_service import get_profile, get_thread_note
 from app.services.moderation_service import check_moderation, ModerationFailure
 from app.services.injection_service import check_injection, InjectionFailure
-from app.services.prompt_logger import log_moderation_block, log_injection_block
+from app.services.prompt_logger import log_moderation_block, log_injection_block, log_anonymization
+from app.services.anonymize_service import create_anonymizer, anonymize_text, deanonymize_text
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -107,6 +108,59 @@ def _fix_body_from_graph(request: "EmailContextRequest", graph_thread: dict | No
             request.draft = None
 
 
+def _collect_known_names(request: "EmailContextRequest", user_name: str | None) -> list[str]:
+    """Gather names that must be force-anonymized (recipients + logged-in user)."""
+    names: list[str] = []
+    for r in request.recipients:
+        if r.displayName:
+            names.append(r.displayName)
+            for part in r.displayName.split():
+                if len(part) > 1:
+                    names.append(part)
+    if user_name:
+        names.append(user_name)
+        for part in user_name.split():
+            if len(part) > 1:
+                names.append(part)
+    return names
+
+
+def _anonymize_request(request: "EmailContextRequest", anon_scanner, graph_thread: dict | None = None):
+    """Anonymize PII-bearing fields on *request* and *graph_thread* in place.
+
+    Returns originals dict for logging.
+    """
+    originals = {
+        "subject": request.subject,
+        "body": request.body,
+        "instruction": request.instruction,
+    }
+    request.subject = anonymize_text(request.subject, anon_scanner)
+    request.body = anonymize_text(request.body, anon_scanner)
+    if request.instruction:
+        request.instruction = anonymize_text(request.instruction, anon_scanner)
+
+    # Anonymize recipient display names (used to build recipients_str in the service)
+    for r in request.recipients:
+        if r.displayName:
+            r.displayName = anonymize_text(r.displayName, anon_scanner)
+        if r.emailAddress:
+            r.emailAddress = anonymize_text(r.emailAddress, anon_scanner)
+
+    # Anonymize Graph thread messages (sender names + body text)
+    if graph_thread:
+        for msg in graph_thread.get("thread", []):
+            email_addr = msg.get("from", {}).get("emailAddress", {})
+            if email_addr.get("name"):
+                email_addr["name"] = anonymize_text(email_addr["name"], anon_scanner)
+            if msg.get("bodyFull"):
+                msg["bodyFull"] = anonymize_text(msg["bodyFull"], anon_scanner)
+            if msg.get("bodyPreview"):
+                msg["bodyPreview"] = anonymize_text(msg["bodyPreview"], anon_scanner)
+
+    return originals
+
+
 def _extract_bearer_token(request: Request) -> str | None:
     auth_header = request.headers.get("Authorization", "")
     return auth_header.removeprefix("Bearer ").strip() if auth_header.startswith("Bearer ") else None
@@ -176,7 +230,31 @@ def generate_reply(
 
     if request.mode != "general_qa":
         request.injected_context = _build_injected_context(request)
+
+    # --- PII anonymization (general_qa only) ---
+    deanon_scanner = None
+    anon_prompt_snapshot = None
+    originals = None
+    if request.mode == "general_qa" or request.mode is None:
+        known = _collect_known_names(request, user.name if user else None)
+        _vault, anon_scanner, deanon_scanner = create_anonymizer(hidden_names=known)
+        originals = _anonymize_request(request, anon_scanner, graph_thread)
+        anon_prompt_snapshot = f"subject: {request.subject}\nbody: {request.body}\ninstruction: {request.instruction}"
+
     reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
+
+    # --- PII deanonymization ---
+    if deanon_scanner and anon_prompt_snapshot:
+        anon_reply = reply
+        reply = deanonymize_text(anon_prompt_snapshot, reply, deanon_scanner)
+        log_anonymization(
+            prompt_before=f"subject: {originals['subject']}\nbody: {originals['body']}\ninstruction: {originals['instruction']}",
+            prompt_after=anon_prompt_snapshot,
+            output_before=anon_reply,
+            output_after=reply,
+            mode=request.mode or "general_qa",
+        )
+
     return GenerateReplyResponse(
         reply=reply,
         user_name=user.name if user else None,
@@ -237,17 +315,44 @@ def generate_reply_stream(
     if request.mode != "general_qa":
         request.injected_context = _build_injected_context(request)
 
+    # --- PII anonymization (general_qa only) ---
+    deanon_scanner = None
+    anon_prompt_snapshot = None
+    originals = None
+    if request.mode == "general_qa" or request.mode is None:
+        known = _collect_known_names(request, user.name if user else None)
+        _vault, anon_scanner, deanon_scanner = create_anonymizer(hidden_names=known)
+        originals = _anonymize_request(request, anon_scanner, graph_thread)
+        anon_prompt_snapshot = f"subject: {request.subject}\nbody: {request.body}\ninstruction: {request.instruction}"
+
     def event_stream():
         try:
             intent = "draft" if request.mode == "email_draft" else "qa"
             yield f"data: {json.dumps({'type': 'intent', 'intent': intent})}\n\n"
 
+            full_output_chunks = []
             for chunk in service.stream_email_reply(request, graph_thread=graph_thread, sender_name=user.name if user else None):
                 if chunk == "__SAFETY_BLOCK__":
                     yield f"data: {json.dumps({'type': 'error', 'message': 'Your question appears to be outside the scope of this email thread. I can only help with questions about this email or email-related tasks.'})}\n\n"
                     return
-                yield f"data: {json.dumps({'type': 'token', 'token': chunk})}\n\n"
+                full_output_chunks.append(chunk)
 
+            anon_output = "".join(full_output_chunks)
+
+            # Deanonymize before sending to client
+            if deanon_scanner and anon_prompt_snapshot:
+                final_output = deanonymize_text(anon_prompt_snapshot, anon_output, deanon_scanner)
+                log_anonymization(
+                    prompt_before=f"subject: {originals['subject']}\nbody: {originals['body']}\ninstruction: {originals['instruction']}",
+                    prompt_after=anon_prompt_snapshot,
+                    output_before=anon_output,
+                    output_after=final_output,
+                    mode=request.mode or "general_qa",
+                )
+            else:
+                final_output = anon_output
+
+            yield f"data: {json.dumps({'type': 'token', 'token': final_output})}\n\n"
             yield f"data: {json.dumps({'type': 'done', 'user_name': user.name if user else None, 'graph_enriched': graph_thread is not None})}\n\n"
         except Exception as e:
             logger.error("Streaming error: %s", e)

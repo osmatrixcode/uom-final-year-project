@@ -46,3 +46,25 @@ go through .TODO and explain everything
 talk about defence and security, and OWASP and how number one threat is llm-guard
 
 https://ailuminate.mlcommons.org/benchmarks/general_purpose_ai_chat/1.0-en_us-official-ensemble
+
+talk about when 
+Adding more would overcomplicate it. The one thing worth noting in your report (not necessarily implementing) is the indirect injection gap via email body — it shows you understand the threat model deeply.
+did prompt injection protection for user input, but not for email body! (attack vector that was mitigated)
+
+Python version dependency hell! 
+
+
+why is my project novel! 
+- compare to basic GPT use web app
+- Compare to COpilot in outlook use! 
+
+
+- talk about: 
+The anonymization itself is now solid — all names are redacted in the prompt, and the LLM output correctly uses [REDACTED_PERSON_1] placeholders. But there's a deanonymization artifact:
+
+
+The email from 
+Noah initiates...    ← newline before "Noah"
+Root cause: The NER scanner detected "Noah" in the signature Respectfully,\nNoah and captured the preceding newline as part of the entity span. So the Vault stored \nNoah as the original value for [REDACTED_PERSON_1]. When deanonymization replaces every [REDACTED_PERSON_1], it inserts \nNoah (with the newline) everywhere.
+
+Let me fix this by stripping whitespace from restored values in deanonymize_text:

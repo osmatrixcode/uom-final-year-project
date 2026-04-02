@@ -1,0 +1,39 @@
+Here's the OWASP Top 10 for LLM Applications mapped to your project specifically:
+
+Relevant to your app (you should care about these)
+LLM01: Prompt Injection — Manipulating the LLM via crafted inputs to override system instructions.
+
+Your exposure: High. Users type freeform questions in general_qa. The email body itself could contain injection attempts (indirect injection from a malicious sender).
+Current mitigation: LLM Guard PromptInjection scanner (just added), strong system prompt scoping, safety classifier on output.
+Gap: You scan request.instruction but not request.body (the email content). A malicious sender could embed "ignore all instructions..." in the email body itself. Worth considering whether to scan that too.
+LLM02: Insecure Output Handling — LLM output used unsafely downstream (XSS, code execution).
+
+Your exposure: Medium. The LLM output gets rendered in the Outlook task pane (React) and can be inserted into compose body via insertText().
+Current mitigation: React auto-escapes by default. The safety classifier catches out-of-scope responses.
+Gap: If the LLM outputs HTML/script and it's inserted into Outlook compose via innerHTML or similar, that's a vector. Worth checking how insertText() handles HTML.
+LLM06: Sensitive Information Disclosure — LLM leaking sensitive data from its context.
+
+Your exposure: Medium. The prompt includes email bodies, sender profiles, thread notes, and Graph API thread history. A crafty general_qa question could try to extract injected context or system prompt details.
+Current mitigation: Safety classifier catches out-of-scope responses. System prompt tells the LLM to stay on-topic.
+Gap: No explicit PII filtering on output. If the email thread contains credit card numbers, SSNs, etc., the LLM could surface them. This is mostly acceptable since the user already has access to their own emails.
+LLM09: Overreliance — Users trusting LLM output without verification.
+
+Your exposure: Medium. In general_qa, users might trust the LLM's summary of an email thread without checking. In email_draft, they might send a generated reply without reading it.
+Current mitigation: The draft goes into an editable DraftBox, not sent directly. User must click "Insert reply" then send manually.
+Gap: Mostly a UX concern, not a code concern. Your design already handles this well.
+Low/no concern for your app
+#	Vulnerability	Why it's low risk for you
+LLM03	Training Data Poisoning	You use OpenAI's GPT-4o-mini, not a custom-trained model. Not your attack surface.
+LLM04	Model Denial of Service	You call OpenAI's API — they handle rate limiting. Your server is single-user.
+LLM05	Supply Chain Vulnerabilities	Standard risk. Pin your dependencies (you already do in environment.yml).
+LLM07	Insecure Plugin Design	Your LLM has no plugins/tools — it generates text only, no function calling.
+LLM08	Excessive Agency	Your LLM cannot take actions. It generates text that the user manually inserts. No database writes, no API calls from the LLM.
+LLM10	Model Theft	You use OpenAI's hosted model, not a local one. Nothing to steal.
+Bottom line — your 3 priorities
+Prompt Injection (LLM01): Mostly covered now. Consider whether to also scan the email body for indirect injection (a malicious sender embedding instructions in their email).
+Insecure Output Handling (LLM02): Verify that insertText() in Office.js doesn't allow script injection via LLM output.
+Sensitive Info Disclosure (LLM06): Low priority since users see their own emails anyway, but worth noting in your report.
+Sources:
+
+OWASP Top 10 for LLM Applications
+OWASP Gen AI Security Project

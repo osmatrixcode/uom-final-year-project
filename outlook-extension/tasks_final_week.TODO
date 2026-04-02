@@ -98,10 +98,10 @@
     ✘ add structured formating (instead of k-NN technique) and tool calling? (if needed) @cancelled(26-04-01 13:49)
         ✘ tool calling for getting past emails, getting sender id text, etc... @cancelled(26-04-01 13:49)
     ☐ start designing the benchmarking stuff! 
-    ☐ option for local model use? 
-    ☐ use Sender text to help influeence tone decision for Thread text (yes look at previous emails from senders / people ccd AND ALSO email current thread?) OR JUST STICK WITH THAT CURRENT THREAD CONTEXT? 
+    ✘ option  local model use? @cancelled(26-04-02 09:45)
+    ✔ use Sender text to help influeence tone decision for Thread text (yes look at previous emails from senders / people ccd AND ALSO email current thread?) OR JUST STICK WITH THAT CURRENT THREAD CONTEXT? @done(26-04-02 09:45)
     ☐ print out logs / traces! 
-    ☐ sender edit section, user can write prompt to edit the profileMD for that sender 
+    ✔ sender edit section, user can write prompt to edit the profileMD for that sender @done(26-04-02 09:44)
 
         ☐ use logging to output what the email thread looks like, what sender_text and thread_text look like, what does current email look like etc... (so no variables for the prompt) 
 

@@ -123,6 +123,43 @@ def log_safety_block(
     return path
 
 
+def log_anonymization(
+    *,
+    prompt_before: str,
+    prompt_after: str,
+    output_before: str,
+    output_after: str,
+    mode: str | None = None,
+):
+    """Write a log entry showing PII anonymization/deanonymization details."""
+    ts = datetime.datetime.now()
+    filename = f"{ts:%Y-%m-%d_%H-%M-%S}_anonymization.txt"
+    path = _LOG_DIR / filename
+
+    lines = []
+    lines.append(f"Timestamp : {ts.isoformat()}")
+    lines.append(f"Event     : PII ANONYMIZATION (LLM Guard)")
+    if mode:
+        lines.append(f"Mode      : {mode}")
+
+    lines.append(_separator("LLM PROMPT — BEFORE ANONYMIZATION"))
+    lines.append(prompt_before)
+
+    lines.append(_separator("LLM PROMPT — AFTER ANONYMIZATION"))
+    lines.append(prompt_after)
+
+    lines.append(_separator("LLM OUTPUT — BEFORE DEANONYMIZATION (raw from LLM)"))
+    lines.append(output_before)
+
+    lines.append(_separator("LLM OUTPUT — AFTER DEANONYMIZATION (returned to user)"))
+    lines.append(output_after)
+
+    lines.append(f"\n{'='*60}\n  END\n{'='*60}\n")
+
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path
+
+
 def log_injection_block(
     *,
     instruction: str,
