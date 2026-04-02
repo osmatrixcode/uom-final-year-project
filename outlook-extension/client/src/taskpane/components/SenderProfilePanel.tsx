@@ -8,16 +8,18 @@ export interface SenderProfilePanelHandle {
   save: () => Promise<void>;
   getText: () => string;
   setText: (text: string) => void;
+  markSaved: () => void;
 }
 
 interface SenderProfilePanelProps {
   sender: EmailRecipient;
   onDirtyChange?: (dirty: boolean) => void;
+  onError?: (msg: string) => void;
   onFocus?: () => void;
 }
 
 const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProfilePanelProps>(
-  ({ sender, onDirtyChange, onFocus }, ref) => {
+  ({ sender, onDirtyChange, onFocus, onError }, ref) => {
   const [text, setText] = React.useState("");
   const [savedText, setSavedText] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -54,6 +56,7 @@ const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProf
     },
     getText: () => text,
     setText: (newText: string) => setText(newText),
+    markSaved: () => setSavedText(text),
   }), [sender.emailAddress, text]);
 
   const handleAutoFill = async () => {
@@ -62,8 +65,10 @@ const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProf
       const ctx = await getEmailContext();
       const generated = await generateProfile(sender.emailAddress, ctx.subject, ctx.body);
       setText(generated);
-    } catch (e) {
-      console.error("Auto-fill failed:", e);
+      setSavedText(generated); // server auto-saved after generate
+    } catch (e: any) {
+      const msg = e?.response?.data?.detail || "Auto-fill failed. Please try again.";
+      onError?.(msg);
     }
     setIsGenerating(false);
   };

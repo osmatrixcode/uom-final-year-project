@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from app.services.profile_service import get_thread_note, save_thread_note
 from app.services.graph_service import get_thread_by_conversation_id, graph_get_with_token, GRAPH_BASE
-from app.services.sender_edit_guards import guarded_generate, guarded_refine
+from app.services.sender_edit_guards import guarded_generate, guarded_refine, guarded_save
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,8 @@ def read_thread_note(conversation_id: str):
 
 @router.put("/{conversation_id}", response_model=ThreadNoteResponse)
 def write_thread_note(conversation_id: str, body: SaveThreadNoteRequest):
-    """Upsert the note for a conversation thread."""
+    """Upsert the note for a conversation thread (guarded against injection/harmful content)."""
+    guarded_save(body.note_text)
     save_thread_note(conversation_id, body.note_text)
     return ThreadNoteResponse(conversation_id=conversation_id, note_text=body.note_text)
 
@@ -106,6 +107,7 @@ class RefineThreadNoteRequest(BaseModel):
 
 @router.post("/{conversation_id}/refine", response_model=ThreadNoteResponse)
 def refine_thread_note(conversation_id: str, body: RefineThreadNoteRequest):
-    """Refine the note for a thread using an AI instruction."""
+    """Refine the note for a thread using an AI instruction. Auto-saves."""
     refined = guarded_refine(current_text=body.current_text, instruction=body.instruction)
+    save_thread_note(conversation_id, refined)
     return ThreadNoteResponse(conversation_id=conversation_id, note_text=refined)

@@ -95,3 +95,14 @@ Run a red team via promptfoo on this! (no code needed)
                     ☐ allow user to create these custom rules, however in report mention how further additions is allowing IT people to set custom data anonymisation rules (as have access to the backend)
 
 wait, so what happens when a useer MANUALLY types in a text in the sender edit textbox? (instead of using AI to generate autofill the profile/thread tone or using prompt box in that mode) and then they pressed save? 
+
+explain codebase and product made
+when error or something bad detected, the returned error text is outputted and replace the text_area boxes in client! (which is bad if had previouos safe text, and then replaced with error text)
+
+Error should show somewhere else? (maybe a popup) and not replace the text_area!
+
+Block 1 (expand professional tone) — False positive. The output "Adopt a formal and respectful tone... Use precise language, avoid colloquialisms..." IS a valid tone profile. The classifier drew a false distinction between descriptive ("You tend to be formal") and prescriptive ("Use precise language, avoid colloquialisms"). Both are valid — profiles are meant to guide the LLM, so prescriptive phrasing is expected.
+The fix: update the classifier prompt to accept both descriptive and prescriptive styles.
+    -it is very sensitive to prompts! (which can be a good and bad things) 
+
+few shot regards structure more than output? 

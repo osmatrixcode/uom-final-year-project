@@ -7,16 +7,18 @@ export interface ThreadNotePanelHandle {
   save: () => Promise<void>;
   getText: () => string;
   setText: (text: string) => void;
+  markSaved: () => void;
 }
 
 interface ThreadNotePanelProps {
   conversationId: string;
   onDirtyChange?: (dirty: boolean) => void;
   onFocus?: () => void;
+  onError?: (msg: string) => void;
 }
 
 const ThreadNotePanel = React.forwardRef<ThreadNotePanelHandle, ThreadNotePanelProps>(
-  ({ conversationId, onDirtyChange, onFocus }, ref) => {
+  ({ conversationId, onDirtyChange, onFocus, onError }, ref) => {
   const [text, setText] = React.useState("");
   const [savedText, setSavedText] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -53,6 +55,7 @@ const ThreadNotePanel = React.forwardRef<ThreadNotePanelHandle, ThreadNotePanelP
     },
     getText: () => text,
     setText: (newText: string) => setText(newText),
+    markSaved: () => setSavedText(text),
   }), [conversationId, text]);
 
   const handleAutoFill = async () => {
@@ -61,8 +64,10 @@ const ThreadNotePanel = React.forwardRef<ThreadNotePanelHandle, ThreadNotePanelP
       const ctx = await getEmailContext();
       const generated = await generateThreadNoteApi(conversationId, ctx.subject, ctx.body);
       setText(generated);
-    } catch (e) {
-      console.error("Auto-fill failed:", e);
+      setSavedText(generated); // server auto-saved after generate
+    } catch (e: any) {
+      const msg = e?.response?.data?.detail || "Auto-fill failed. Please try again.";
+      onError?.(msg);
     }
     setIsGenerating(false);
   };

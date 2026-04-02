@@ -46,6 +46,8 @@ const App: React.FC<AppProps> = ({ title }) => {
   const [profileDirty, setProfileDirty] = React.useState(false);
   const [threadNoteDirty, setThreadNoteDirty] = React.useState(false);
   const [saveFlash, setSaveFlash] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [errorFlash, setErrorFlash] = React.useState<string | null>(null);
   const [activePanel, setActivePanel] = React.useState<"profile" | "thread" | null>(null);
   const profileRef = React.useRef<SenderProfilePanelHandle>(null);
   const threadNoteRef = React.useRef<ThreadNotePanelHandle>(null);
@@ -69,10 +71,11 @@ const App: React.FC<AppProps> = ({ title }) => {
     });
   };
 
-  /* Cycle loading phrases while streaming */
+  /* Cycle loading phrases while streaming or saving */
+  const isLoading = isPending || isSaving;
   React.useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
-    if (isPending) {
+    if (isLoading) {
       const shuffled = [...LOADING_PHRASES].sort(() => Math.random() - 0.5);
       let idx = 0;
       setHeaderTitle(shuffled[idx]);
@@ -84,7 +87,7 @@ const App: React.FC<AppProps> = ({ title }) => {
       setHeaderTitle(title);
     }
     return () => { if (interval !== null) clearInterval(interval); };
-  }, [isPending, title]);
+  }, [isLoading, title]);
 
   const handleSend = async (prompt?: string) => {
     const text = (prompt ?? instruction).trim();
@@ -101,13 +104,17 @@ const App: React.FC<AppProps> = ({ title }) => {
           const currentText = profileRef.current.getText();
           const refined = await refineProfile(selectedSender.emailAddress, currentText, text);
           profileRef.current.setText(refined);
+          profileRef.current.markSaved(); // server auto-saved after refine
         } else if (activePanel === "thread" && conversationId && threadNoteRef.current) {
           const currentText = threadNoteRef.current.getText();
           const refined = await refineThreadNote(conversationId, currentText, text);
           threadNoteRef.current.setText(refined);
+          threadNoteRef.current.markSaved(); // server auto-saved after refine
         }
-      } catch (error) {
-        console.error("Refine failed:", error);
+      } catch (error: any) {
+        const msg = error?.response?.data?.detail || "Refine failed. Please try again.";
+        setErrorFlash(msg);
+        setTimeout(() => setErrorFlash(null), 4000);
       }
       setIsPending(false);
       return;
@@ -277,12 +284,24 @@ const App: React.FC<AppProps> = ({ title }) => {
 
   /* Global save for sender_edit mode */
   const handleSenderEditSave = async () => {
+    setIsSaving(true);
     const saves: Promise<void>[] = [];
     if (profileDirty && profileRef.current) saves.push(profileRef.current.save());
     if (threadNoteDirty && threadNoteRef.current) saves.push(threadNoteRef.current.save());
-    await Promise.all(saves);
-    setSaveFlash(true);
-    setTimeout(() => setSaveFlash(false), 1500);
+    try {
+      await Promise.all(saves);
+      setSaveFlash(true);
+      setTimeout(() => setSaveFlash(false), 1500);
+    } catch (error: any) {
+      const msg = error?.response?.data?.detail || "Save failed. Please revise your text.";
+      showError(msg);
+    }
+    setIsSaving(false);
+  };
+
+  const showError = (msg: string) => {
+    setErrorFlash(msg);
+    setTimeout(() => setErrorFlash(null), 4000);
   };
 
   const senderEditDirty = mode === "sender_edit" && (profileDirty || threadNoteDirty);
@@ -325,7 +344,7 @@ const App: React.FC<AppProps> = ({ title }) => {
       )}
 
       {mode === "sender_edit" && conversationId && (
-        <ThreadNotePanel ref={threadNoteRef} conversationId={conversationId} onDirtyChange={setThreadNoteDirty} onFocus={() => setActivePanel("thread")} />
+        <ThreadNotePanel ref={threadNoteRef} conversationId={conversationId} onDirtyChange={setThreadNoteDirty} onFocus={() => setActivePanel("thread")} onError={showError} />
       )}
 
       {mode === "sender_edit" && (
@@ -339,7 +358,7 @@ const App: React.FC<AppProps> = ({ title }) => {
       )}
 
       {mode === "sender_edit" && selectedSender && (
-        <SenderProfilePanel ref={profileRef} sender={selectedSender} onDirtyChange={setProfileDirty} onFocus={() => setActivePanel("profile")} />
+        <SenderProfilePanel ref={profileRef} sender={selectedSender} onDirtyChange={setProfileDirty} onFocus={() => setActivePanel("profile")} onError={showError} />
       )}
 
       {mode === "sender_edit" && (
@@ -353,6 +372,11 @@ const App: React.FC<AppProps> = ({ title }) => {
             flexShrink: 0,
           }}
         >
+          {errorFlash && (
+            <span style={{ fontSize: tokens.font.caption.size, color: "#D13438", maxWidth: "70%", textAlign: "right" }}>
+              {errorFlash}
+            </span>
+          )}
           {saveFlash && (
             <span style={{ fontSize: tokens.font.caption.size, color: "#107C41" }}>
               Saved ✓
@@ -360,21 +384,21 @@ const App: React.FC<AppProps> = ({ title }) => {
           )}
           <button
             onClick={handleSenderEditSave}
-            disabled={!senderEditDirty}
+            disabled={!senderEditDirty || isSaving}
             style={{
-              background: senderEditDirty ? tokens.colors.accent : tokens.colors.border,
-              color: senderEditDirty ? "#fff" : tokens.colors.placeholder,
+              background: (senderEditDirty && !isSaving) ? tokens.colors.accent : tokens.colors.border,
+              color: (senderEditDirty && !isSaving) ? "#fff" : tokens.colors.placeholder,
               border: "none",
               borderRadius: tokens.radius.pill,
               padding: `${tokens.spacing.xs}px ${tokens.spacing.lg}px`,
               fontSize: tokens.font.label.size,
               fontWeight: tokens.font.label.weight,
-              cursor: senderEditDirty ? "pointer" : "not-allowed",
-              opacity: senderEditDirty ? 1 : 0.5,
+              cursor: (senderEditDirty && !isSaving) ? "pointer" : "not-allowed",
+              opacity: (senderEditDirty && !isSaving) ? 1 : 0.5,
               transition: "all 0.15s ease",
             }}
           >
-            Save
+            {isSaving ? "Saving..." : "Save"}
           </button>
         </div>
       )}

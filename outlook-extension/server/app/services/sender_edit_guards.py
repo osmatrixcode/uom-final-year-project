@@ -44,6 +44,40 @@ _SCOPE_FALLBACK = (
     "Please try again or write the profile manually."
 )
 
+
+def guarded_save(text: str) -> str:
+    """Guard text before persisting to SQLite.
+
+    Pipeline:
+        1. PII anonymize (for checks only — moderation API is external)
+        2. Body injection check (invisible text: hard block, ML: log only)
+           Profile text uses directive second-person language ("You should...")
+           which triggers ML false positives, so we use the soft body check.
+        3. Moderation check (on anonymized text)
+        4. Return original text unchanged
+
+    Raises HTTPException(422) if invisible text or moderation flags the text.
+    """
+    if not text or not text.strip():
+        return text
+
+    _vault, anon_scanner, _deanon = create_anonymizer()
+    anon_text = anonymize_text(text, anon_scanner)
+
+    try:
+        check_body_injection(anon_text)
+    except InjectionFailure as exc:
+        log_injection_block(instruction=anon_text, scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode="sender_edit_save")
+        raise HTTPException(status_code=422, detail="Your text contains suspicious hidden characters. Please revise.")
+
+    try:
+        check_moderation(anon_text)
+    except ModerationFailure as exc:
+        log_moderation_block(instruction=anon_text, categories=exc.categories, mode="sender_edit_save")
+        raise HTTPException(status_code=422, detail=f"Your text was flagged by our content policy ({', '.join(exc.categories)}). Please revise.")
+
+    return text
+
 # Regex to extract sender names from history_preview bracket headers
 # e.g. "[2026-04-01] John Smith: Hi there..."
 _SENDER_NAME_RE = re.compile(r"^\[[\d-]+\]\s+(.+?):", re.MULTILINE)
@@ -107,18 +141,13 @@ def guarded_generate(
 
     anon_input = f"name: {name}\nhistory_preview: {history_preview}\nfallback_body: {fallback_body}"
 
-    # 2. Body injection check on history_preview (external email content)
+    # 2. Body injection check — only scan the text the LLM will actually use
+    #    (history_preview takes priority; fallback_body only used when history is empty)
+    body_to_check = history_preview if history_preview.strip() else fallback_body
     try:
-        check_body_injection(history_preview)
+        check_body_injection(body_to_check)
     except InjectionFailure as exc:
-        log_injection_block(instruction="[history_preview]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode="sender_edit")
-        raise HTTPException(status_code=422, detail="The email history contains suspicious hidden text.")
-
-    # 2b. Body injection check on fallback_body
-    try:
-        check_body_injection(fallback_body)
-    except InjectionFailure as exc:
-        log_injection_block(instruction="[fallback_body]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode="sender_edit")
+        log_injection_block(instruction="[email body]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode="sender_edit")
         raise HTTPException(status_code=422, detail="The email content contains suspicious hidden text.")
 
     # ── MODEL ──
@@ -140,7 +169,7 @@ def guarded_generate(
         check_safety(anon_input, anon_output, classifier_key="sender_edit")
     except SafetyFailure as exc:
         log_safety_block(instruction=anon_input, llm_output=anon_output, reason=exc.reason, mode="sender_edit")
-        return _SCOPE_FALLBACK
+        raise HTTPException(status_code=422, detail=_SCOPE_FALLBACK)
 
     # 5. Output injection check
     try:
@@ -234,7 +263,7 @@ def guarded_refine(
         check_safety(anon_input, anon_output, classifier_key="sender_edit")
     except SafetyFailure as exc:
         log_safety_block(instruction=anon_input, llm_output=anon_output, reason=exc.reason, mode="sender_edit")
-        return _SCOPE_FALLBACK
+        raise HTTPException(status_code=422, detail=_SCOPE_FALLBACK)
 
     # 6. Output injection check
     try:
