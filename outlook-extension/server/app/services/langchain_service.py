@@ -186,11 +186,7 @@ class LangChainService:
                 "instruction": instruction,
             }
             reply = (_PROMPT_CACHE[prompt_key] | self.llm).invoke(variables).content
-            sys_text, human_text = _render_prompt(prompt_key, variables)
-            log_prompt_and_response(
-                prompt_key=prompt_key, variables=variables, mode=mode,
-                rendered_system=sys_text, rendered_human=human_text, output=reply,
-            )
+            # Logging handled by route handler (which has original + deanonymized data)
             return reply, "qa"
 
     def stream_email_reply(self, email_context, graph_thread: dict | None = None, sender_name: str | None = None):
@@ -275,15 +271,11 @@ class LangChainService:
                 "instruction": instruction,
             }
             chain = _PROMPT_CACHE[prompt_key] | self.llm
+
             full_output_chunks = []
             for chunk in chain.stream(invoke_vars):
                 if chunk.content:
                     full_output_chunks.append(chunk.content)
-                    yield chunk.content
-            # Log after streaming completes
-            sys_text, human_text = _render_prompt(prompt_key, invoke_vars)
-            log_prompt_and_response(
-                prompt_key=prompt_key, variables=invoke_vars, mode=mode,
-                rendered_system=sys_text, rendered_human=human_text,
-                output="".join(full_output_chunks),
-            )
+
+            # Logging handled by route handler (which has original + deanonymized data)
+            yield "".join(full_output_chunks)

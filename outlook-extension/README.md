@@ -20,6 +20,8 @@ https://medium.com/nerd-for-tech/query-ms-graph-api-in-python-e8e04490b04e
 
 ## RUN THE BACKEND
 
+export KMP_DUPLICATE_LIB_OK=TRUE
+
 - create conda environment
 - install pip
 - install requirements.txt

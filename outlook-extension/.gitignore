@@ -12,3 +12,4 @@ report/
 report/report_tips.txt
 *.db
 server/llm_logs/
+*/fyp-sources/

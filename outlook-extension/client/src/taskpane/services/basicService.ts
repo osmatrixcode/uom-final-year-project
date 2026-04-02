@@ -45,7 +45,14 @@ export async function streamGenerateReply(context: EmailContext & { mode?: strin
   });
 
   if (!response.ok || !response.body) {
-    callbacks.onError(new Error(`Server error: ${response.status}`));
+    let message = `Server error: ${response.status}`;
+    try {
+      const errorBody = await response.json();
+      if (errorBody.detail) message = errorBody.detail;
+    } catch {
+      /* no parseable body — use default message */
+    }
+    callbacks.onError(new Error(message));
     return;
   }
 
