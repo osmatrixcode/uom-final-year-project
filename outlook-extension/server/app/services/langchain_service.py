@@ -5,8 +5,7 @@ import pathlib
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
-from app.services.prompt_logger import log_prompt_and_response, log_safety_block
-from app.services.safety_service import check_safety, SafetyFailure
+from app.services.prompt_logger import log_prompt_and_response
 
 logger = logging.getLogger(__name__)
 
@@ -187,23 +186,7 @@ class LangChainService:
                 "instruction": instruction,
             }
             reply = (_PROMPT_CACHE[prompt_key] | self.llm).invoke(variables).content
-            sys_text, human_text = _render_prompt(prompt_key, variables)
-            log_prompt_and_response(
-                prompt_key=prompt_key, variables=variables, mode=mode,
-                rendered_system=sys_text, rendered_human=human_text, output=reply,
-            )
-
-            # Independent safety classifier
-            try:
-                check_safety(instruction, reply)
-            except SafetyFailure as exc:
-                log_safety_block(
-                    instruction=instruction, llm_output=reply,
-                    reason=exc.reason, mode=mode,
-                )
-                return ("Your question appears to be outside the scope of this email thread. "
-                        "I can only help with questions about this email or email-related tasks."), "qa"
-
+            # Logging handled by route handler (which has original + deanonymized data)
             return reply, "qa"
 
     def stream_email_reply(self, email_context, graph_thread: dict | None = None, sender_name: str | None = None):
@@ -289,35 +272,10 @@ class LangChainService:
             }
             chain = _PROMPT_CACHE[prompt_key] | self.llm
 
-            # Buffer the full response so the safety classifier can evaluate
-            # the complete interaction before anything is sent to the client.
             full_output_chunks = []
             for chunk in chain.stream(invoke_vars):
                 if chunk.content:
                     full_output_chunks.append(chunk.content)
 
-            full_output = "".join(full_output_chunks)
-
-            # Log the LLM call
-            sys_text, human_text = _render_prompt(prompt_key, invoke_vars)
-            log_prompt_and_response(
-                prompt_key=prompt_key, variables=invoke_vars, mode=mode,
-                rendered_system=sys_text, rendered_human=human_text,
-                output=full_output,
-            )
-
-            # Independent safety classifier — evaluates instruction + output
-            try:
-                check_safety(instruction, full_output)
-            except SafetyFailure as exc:
-                log_safety_block(
-                    instruction=instruction,
-                    llm_output=full_output,
-                    reason=exc.reason,
-                    mode=mode,
-                )
-                yield "__SAFETY_BLOCK__"
-                return
-
-            # Safe — release the buffered response
-            yield full_output
+            # Logging handled by route handler (which has original + deanonymized data)
+            yield "".join(full_output_chunks)

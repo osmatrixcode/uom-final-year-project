@@ -10,8 +10,9 @@ from app.services.graph_service import get_email_thread, get_thread_by_conversat
 from app.services.profile_service import get_profile, get_thread_note
 from app.services.moderation_service import check_moderation, ModerationFailure
 from app.services.injection_service import check_injection, InjectionFailure
-from app.services.prompt_logger import log_moderation_block, log_injection_block, log_anonymization
+from app.services.prompt_logger import log_prompt_and_response, log_moderation_block, log_injection_block, log_anonymization, log_safety_block
 from app.services.anonymize_service import create_anonymizer, anonymize_text, deanonymize_text
+from app.services.safety_service import check_safety, SafetyFailure
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -200,60 +201,88 @@ def generate_reply(
 
     _fix_body_from_graph(request, graph_thread, user.email if user else None)
 
-    # --- Moderation gate (general_qa only): check user instruction BEFORE template rendering ---
-    if request.mode == "general_qa" or request.mode is None:
-        try:
-            check_moderation(request.instruction)
-        except ModerationFailure as exc:
-            log_moderation_block(
-                instruction=request.instruction or "",
-                categories=exc.categories,
-                mode=request.mode or "general_qa",
-            )
-            raise HTTPException(
-                status_code=422,
-                detail=f"Your message was flagged by our content policy ({', '.join(exc.categories)}). Please rephrase.",
-            )
-        try:
-            check_injection(request.instruction)
-        except InjectionFailure as exc:
-            log_injection_block(
-                instruction=request.instruction or "",
-                scanner_name=exc.scanner_name,
-                risk_score=exc.risk_score,
-                mode=request.mode or "general_qa",
-            )
-            raise HTTPException(
-                status_code=422,
-                detail="Your message was flagged by our security filter. Please rephrase.",
-            )
+    mode = request.mode or "general_qa"
 
-    if request.mode != "general_qa":
+    if mode != "general_qa":
         request.injected_context = _build_injected_context(request)
-
-    # --- PII anonymization (general_qa only) ---
-    deanon_scanner = None
-    anon_prompt_snapshot = None
-    originals = None
-    if request.mode == "general_qa" or request.mode is None:
-        known = _collect_known_names(request, user.name if user else None)
-        _vault, anon_scanner, deanon_scanner = create_anonymizer(hidden_names=known)
-        originals = _anonymize_request(request, anon_scanner, graph_thread)
-        anon_prompt_snapshot = f"subject: {request.subject}\nbody: {request.body}\ninstruction: {request.instruction}"
-
-    reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
-
-    # --- PII deanonymization ---
-    if deanon_scanner and anon_prompt_snapshot:
-        anon_reply = reply
-        reply = deanonymize_text(anon_prompt_snapshot, reply, deanon_scanner)
-        log_anonymization(
-            prompt_before=f"subject: {originals['subject']}\nbody: {originals['body']}\ninstruction: {originals['instruction']}",
-            prompt_after=anon_prompt_snapshot,
-            output_before=anon_reply,
-            output_after=reply,
-            mode=request.mode or "general_qa",
+        reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
+        return GenerateReplyResponse(
+            reply=reply,
+            user_name=user.name if user else None,
+            graph_enriched=graph_thread is not None,
+            intent=intent,
         )
+
+    # ── GENERAL QA PIPELINE ────────────────────────────────────────
+    # ── INPUT GUARDS ──
+
+    # 1. PII anonymize — protect PII from all downstream services
+    known = _collect_known_names(request, user.name if user else None)
+    _vault, anon_scanner, deanon_scanner = create_anonymizer(hidden_names=known)
+    originals = _anonymize_request(request, anon_scanner, graph_thread)
+    anon_prompt_snapshot = f"subject: {request.subject}\nbody: {request.body}\ninstruction: {request.instruction}"
+
+    # 2. Injection check — block malicious user input
+    try:
+        check_injection(request.instruction)
+    except InjectionFailure as exc:
+        log_injection_block(instruction=request.instruction or "", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+        raise HTTPException(status_code=422, detail="Your message was flagged by our security filter. Please rephrase.")
+
+    # 3. Moderation check — block harmful user input
+    try:
+        check_moderation(request.instruction)
+    except ModerationFailure as exc:
+        log_moderation_block(instruction=request.instruction or "", categories=exc.categories, mode=mode)
+        raise HTTPException(status_code=422, detail=f"Your message was flagged by our content policy ({', '.join(exc.categories)}). Please rephrase.")
+
+    # ── MODEL ──
+
+    # 4. LLM call
+    anon_reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
+
+    # ── OUTPUT GUARDS ──
+
+    # 5. Scope classifier — block off-topic responses
+    try:
+        check_safety(request.instruction, anon_reply)
+    except SafetyFailure as exc:
+        log_safety_block(instruction=request.instruction or "", llm_output=anon_reply, reason=exc.reason, mode=mode)
+        return GenerateReplyResponse(
+            reply="Your question appears to be outside the scope of this email thread. "
+                  "I can only help with questions about this email or email-related tasks.",
+            user_name=user.name if user else None,
+            graph_enriched=graph_thread is not None,
+            intent="qa",
+        )
+
+    # 6. Output injection check — block if LLM output contains injection patterns
+    try:
+        check_injection(anon_reply)
+    except InjectionFailure as exc:
+        log_injection_block(instruction=anon_reply, scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+        raise HTTPException(status_code=422, detail="The response was flagged by our security filter.")
+
+    # 7. Output moderation — block if LLM output is harmful
+    try:
+        check_moderation(anon_reply)
+    except ModerationFailure as exc:
+        log_moderation_block(instruction=anon_reply, categories=exc.categories, mode=mode)
+        raise HTTPException(status_code=422, detail=f"The response was flagged by our content policy ({', '.join(exc.categories)}).")
+
+    # 8. Deanonymize — restore names, return to user
+    reply = deanonymize_text(anon_prompt_snapshot, anon_reply, deanon_scanner)
+
+    # Log: anonymization view (what the model saw)
+    log_anonymization(prompt_after=anon_prompt_snapshot, output_before=anon_reply, mode=mode)
+    # Log: real-world view (original input, deanonymized output)
+    log_prompt_and_response(
+        prompt_key="general_qa", mode=mode,
+        variables=originals,
+        rendered_system=None,
+        rendered_human=f"subject: {originals['subject']}\nbody: {originals['body']}\ninstruction: {originals['instruction']}",
+        output=reply,
+    )
 
     return GenerateReplyResponse(
         reply=reply,
@@ -284,75 +313,93 @@ def generate_reply_stream(
 
     _fix_body_from_graph(request, graph_thread, user.email if user else None)
 
-    # --- Moderation gate (general_qa only): check user instruction BEFORE template rendering ---
-    if request.mode == "general_qa" or request.mode is None:
-        try:
-            check_moderation(request.instruction)
-        except ModerationFailure as exc:
-            log_moderation_block(
-                instruction=request.instruction or "",
-                categories=exc.categories,
-                mode=request.mode or "general_qa",
-            )
-            raise HTTPException(
-                status_code=422,
-                detail=f"Your message was flagged by our content policy ({', '.join(exc.categories)}). Please rephrase.",
-            )
-        try:
-            check_injection(request.instruction)
-        except InjectionFailure as exc:
-            log_injection_block(
-                instruction=request.instruction or "",
-                scanner_name=exc.scanner_name,
-                risk_score=exc.risk_score,
-                mode=request.mode or "general_qa",
-            )
-            raise HTTPException(
-                status_code=422,
-                detail="Your message was flagged by our security filter. Please rephrase.",
-            )
+    mode = request.mode or "general_qa"
 
-    if request.mode != "general_qa":
+    if mode != "general_qa":
         request.injected_context = _build_injected_context(request)
 
-    # --- PII anonymization (general_qa only) ---
+    # ── GENERAL QA PIPELINE — INPUT GUARDS (steps 1-3) ───────────
+    # Run outside generator so HTTPException works (can't raise inside a generator)
     deanon_scanner = None
     anon_prompt_snapshot = None
-    originals = None
-    if request.mode == "general_qa" or request.mode is None:
+    if mode == "general_qa":
+        # 1. PII anonymize — protect PII from all downstream services
         known = _collect_known_names(request, user.name if user else None)
         _vault, anon_scanner, deanon_scanner = create_anonymizer(hidden_names=known)
         originals = _anonymize_request(request, anon_scanner, graph_thread)
         anon_prompt_snapshot = f"subject: {request.subject}\nbody: {request.body}\ninstruction: {request.instruction}"
 
+        # 2. Injection check — block malicious user input
+        try:
+            check_injection(request.instruction)
+        except InjectionFailure as exc:
+            log_injection_block(instruction=request.instruction or "", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+            raise HTTPException(status_code=422, detail="Your message was flagged by our security filter. Please rephrase.")
+
+        # 3. Moderation check — block harmful user input
+        try:
+            check_moderation(request.instruction)
+        except ModerationFailure as exc:
+            log_moderation_block(instruction=request.instruction or "", categories=exc.categories, mode=mode)
+            raise HTTPException(status_code=422, detail=f"Your message was flagged by our content policy ({', '.join(exc.categories)}). Please rephrase.")
+
     def event_stream():
         try:
-            intent = "draft" if request.mode == "email_draft" else "qa"
+            intent = "draft" if mode == "email_draft" else "qa"
             yield f"data: {json.dumps({'type': 'intent', 'intent': intent})}\n\n"
 
+            # 4. LLM call
             full_output_chunks = []
             for chunk in service.stream_email_reply(request, graph_thread=graph_thread, sender_name=user.name if user else None):
-                if chunk == "__SAFETY_BLOCK__":
-                    yield f"data: {json.dumps({'type': 'error', 'message': 'Your question appears to be outside the scope of this email thread. I can only help with questions about this email or email-related tasks.'})}\n\n"
-                    return
                 full_output_chunks.append(chunk)
-
             anon_output = "".join(full_output_chunks)
 
-            # Deanonymize before sending to client
-            if deanon_scanner and anon_prompt_snapshot:
-                final_output = deanonymize_text(anon_prompt_snapshot, anon_output, deanon_scanner)
-                log_anonymization(
-                    prompt_before=f"subject: {originals['subject']}\nbody: {originals['body']}\ninstruction: {originals['instruction']}",
-                    prompt_after=anon_prompt_snapshot,
-                    output_before=anon_output,
-                    output_after=final_output,
-                    mode=request.mode or "general_qa",
-                )
-            else:
-                final_output = anon_output
+            if mode != "general_qa":
+                yield f"data: {json.dumps({'type': 'token', 'token': anon_output})}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'user_name': user.name if user else None, 'graph_enriched': graph_thread is not None})}\n\n"
+                return
 
-            yield f"data: {json.dumps({'type': 'token', 'token': final_output})}\n\n"
+            # ── OUTPUT GUARDS (steps 5-7) ──
+
+            # 5. Scope classifier — block off-topic responses
+            try:
+                check_safety(request.instruction, anon_output)
+            except SafetyFailure as exc:
+                log_safety_block(instruction=request.instruction or "", llm_output=anon_output, reason=exc.reason, mode=mode)
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Your question appears to be outside the scope of this email thread. I can only help with questions about this email or email-related tasks.'})}\n\n"
+                return
+
+            # 6. Output injection check — block if LLM output contains injection patterns
+            try:
+                check_injection(anon_output)
+            except InjectionFailure as exc:
+                log_injection_block(instruction=anon_output, scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+                yield f"data: {json.dumps({'type': 'error', 'message': 'The response was flagged by our security filter.'})}\n\n"
+                return
+
+            # 7. Output moderation — block if LLM output is harmful
+            try:
+                check_moderation(anon_output)
+            except ModerationFailure as exc:
+                log_moderation_block(instruction=anon_output, categories=exc.categories, mode=mode)
+                yield f"data: {json.dumps({'type': 'error', 'message': 'The response was flagged by our content policy.'})}\n\n"
+                return
+
+            # 8. Deanonymize — restore names, return to user
+            reply = deanonymize_text(anon_prompt_snapshot, anon_output, deanon_scanner)
+
+            # Log: anonymization view (what the model saw)
+            log_anonymization(prompt_after=anon_prompt_snapshot, output_before=anon_output, mode=mode)
+            # Log: real-world view (original input, deanonymized output)
+            log_prompt_and_response(
+                prompt_key="general_qa", mode=mode,
+                variables=originals,
+                rendered_system=None,
+                rendered_human=f"subject: {originals['subject']}\nbody: {originals['body']}\ninstruction: {originals['instruction']}",
+                output=reply,
+            )
+
+            yield f"data: {json.dumps({'type': 'token', 'token': reply})}\n\n"
             yield f"data: {json.dumps({'type': 'done', 'user_name': user.name if user else None, 'graph_enriched': graph_thread is not None})}\n\n"
         except Exception as e:
             logger.error("Streaming error: %s", e)

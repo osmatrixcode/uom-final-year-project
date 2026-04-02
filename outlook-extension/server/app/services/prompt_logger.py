@@ -23,7 +23,11 @@ def log_prompt_and_response(
     output: str,
     mode: str | None = None,
 ):
-    """Write one log entry per LLM call."""
+    """Write one log entry per LLM call.
+
+    Shows template variables (for quick inspection), the final human
+    prompt sent to the LLM, and the final output returned to the user.
+    """
     ts = datetime.datetime.now()
     filename = f"{ts:%Y-%m-%d_%H-%M-%S}_{prompt_key}.txt"
     path = _LOG_DIR / filename
@@ -34,7 +38,7 @@ def log_prompt_and_response(
     if mode:
         lines.append(f"Mode      : {mode}")
 
-    # ── Variables ──
+    # ── Variables (quick-glance summary of what was injected) ──
     lines.append(_separator("TEMPLATE VARIABLES"))
     for k, v in variables.items():
         val_str = str(v)
@@ -42,16 +46,12 @@ def log_prompt_and_response(
             val_str = val_str[:300] + f"  ... ({len(str(v))} chars total)"
         lines.append(f"  {k} = {val_str}")
 
-    # ── Rendered prompt ──
-    if rendered_system:
-        lines.append(_separator("RENDERED SYSTEM PROMPT"))
-        lines.append(rendered_system)
-
-    lines.append(_separator("RENDERED HUMAN PROMPT"))
+    # ── Final prompt the LLM received ──
+    lines.append(_separator("ORIGINAL LLM INPUT (before anonymisation)"))
     lines.append(rendered_human)
 
-    # ── LLM output ──
-    lines.append(_separator("LLM OUTPUT"))
+    lines.append(_separator("FINAL LLM OUTPUT (after deanonymisation)"))
+
     lines.append(output)
 
     lines.append(f"\n{'='*60}\n  END\n{'='*60}\n")
@@ -125,13 +125,12 @@ def log_safety_block(
 
 def log_anonymization(
     *,
-    prompt_before: str,
     prompt_after: str,
     output_before: str,
-    output_after: str,
     mode: str | None = None,
 ):
-    """Write a log entry showing PII anonymization/deanonymization details."""
+    """Write a log showing what the LLM actually saw (anonymised) and
+    what it returned (before deanonymisation restores real names)."""
     ts = datetime.datetime.now()
     filename = f"{ts:%Y-%m-%d_%H-%M-%S}_anonymization.txt"
     path = _LOG_DIR / filename
@@ -142,17 +141,11 @@ def log_anonymization(
     if mode:
         lines.append(f"Mode      : {mode}")
 
-    lines.append(_separator("LLM PROMPT — BEFORE ANONYMIZATION"))
-    lines.append(prompt_before)
-
-    lines.append(_separator("LLM PROMPT — AFTER ANONYMIZATION"))
+    lines.append(_separator("ANONYMISED LLM INPUT (what the model saw)"))
     lines.append(prompt_after)
 
-    lines.append(_separator("LLM OUTPUT — BEFORE DEANONYMIZATION (raw from LLM)"))
+    lines.append(_separator("RAW LLM OUTPUT (before deanonymisation)"))
     lines.append(output_before)
-
-    lines.append(_separator("LLM OUTPUT — AFTER DEANONYMIZATION (returned to user)"))
-    lines.append(output_after)
 
     lines.append(f"\n{'='*60}\n  END\n{'='*60}\n")
 
