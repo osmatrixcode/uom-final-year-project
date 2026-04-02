@@ -32,7 +32,7 @@ def read_thread_note(conversation_id: str):
 @router.put("/{conversation_id}", response_model=ThreadNoteResponse)
 def write_thread_note(conversation_id: str, body: SaveThreadNoteRequest):
     """Upsert the note for a conversation thread (guarded against injection/harmful content)."""
-    guarded_save(body.note_text)
+    guarded_save(body.note_text, identifier=conversation_id)
     save_thread_note(conversation_id, body.note_text)
     return ThreadNoteResponse(conversation_id=conversation_id, note_text=body.note_text)
 

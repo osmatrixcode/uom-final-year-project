@@ -45,18 +45,17 @@ _SCOPE_FALLBACK = (
 )
 
 
-def guarded_save(text: str) -> str:
+def guarded_save(text: str, identifier: str = "") -> str:
     """Guard text before persisting to SQLite.
 
     Pipeline:
         1. PII anonymize (for checks only — moderation API is external)
-        2. Body injection check (invisible text: hard block, ML: log only)
-           Profile text uses directive second-person language ("You should...")
-           which triggers ML false positives, so we use the soft body check.
+        2. Injection check (invisible text + ML: hard block)
         3. Moderation check (on anonymized text)
-        4. Return original text unchanged
+        4. Log anonymization + original text views
+        5. Return original text unchanged
 
-    Raises HTTPException(422) if invisible text or moderation flags the text.
+    Raises HTTPException(422) if injection or moderation flags the text.
     """
     if not text or not text.strip():
         return text
@@ -65,16 +64,28 @@ def guarded_save(text: str) -> str:
     anon_text = anonymize_text(text, anon_scanner)
 
     try:
-        check_body_injection(anon_text)
+        check_injection(anon_text)
     except InjectionFailure as exc:
         log_injection_block(instruction=anon_text, scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode="sender_edit_save")
-        raise HTTPException(status_code=422, detail="Your text contains suspicious hidden characters. Please revise.")
+        raise HTTPException(status_code=422, detail="Your text was flagged by our security filter. Please revise.")
 
     try:
         check_moderation(anon_text)
     except ModerationFailure as exc:
         log_moderation_block(instruction=anon_text, categories=exc.categories, mode="sender_edit_save")
         raise HTTPException(status_code=422, detail=f"Your text was flagged by our content policy ({', '.join(exc.categories)}). Please revise.")
+
+    # Log: anonymization view (what the checks saw)
+    log_anonymization(prompt_after=anon_text, output_before="[manual save — no LLM output]", mode="sender_edit_save")
+
+    # Log: original text view (what was actually saved)
+    log_prompt_and_response(
+        prompt_key="manual_save", mode="sender_edit_save",
+        variables={"identifier": identifier},
+        rendered_system=None,
+        rendered_human=text,
+        output=text,
+    )
 
     return text
 

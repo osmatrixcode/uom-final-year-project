@@ -30,7 +30,7 @@ def read_profile(email: str):
 @router.put("/{email}", response_model=ProfileResponse)
 def write_profile(email: str, body: SaveProfileRequest):
     """Upsert the prompt_text for a sender (guarded against injection/harmful content)."""
-    guarded_save(body.prompt_text)
+    guarded_save(body.prompt_text, identifier=email)
     save_profile(email, body.prompt_text)
     return ProfileResponse(email=email, prompt_text=body.prompt_text)
 

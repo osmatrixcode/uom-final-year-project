@@ -28,8 +28,8 @@
             ✔ profileMD idea, can create a 'text prompt' FOR THAT EMAIL THREAD (so even can have it for that email thread) so have specific for that email thread @done(26-04-01 13:20)
             ✔ emailthreadMD idea, can have specific prompt as dont need to load all other profile MDs? @done(26-04-01 13:20)
                 ✔ for group people, will have general prompt? but think if address to specific people in that group thread, nice to have specific profileMD for that person (as personalised) @done(26-04-01 13:20)
-            ☐ MD idea, if have more recent emails, will continually update? 
-                ☐ user if didnt like thread, can go to sender edit for it? 
+            ✘ MD idea, if have more recent emails, will continually update? @cancelled(26-04-02 18:01)
+                ✘ user if didnt like thread, can go to sender edit for it? @cancelled(26-04-02 18:01)
             ✘ seems like MD idea when auto-fill, will fill with example of email thread (may be bad if general profileMD) @cancelled(26-04-02 12:52)
         ☐ _ai/nlp_:
             ☐ _security_:
@@ -62,14 +62,6 @@
                     ☐ if no email history with the sender, use THEIR email message THEY sent (find the tone AND RECIPROCATE THAT)
                     ✘ use past email ai drafts made that user like, as the FEW SHOT examples! (tailors to them) @cancelled(26-04-02 11:10)
                     ✘ after few times user uses it and makes modifications, will modify it to users taste @cancelled(26-04-01 12:53)
-
-            ☐ __security-final__:
-                ☐ _general-qa_:
-                    ☐ OpenAI Moderation API (for content moderation)
-                    ☐ Classifier for relevancy 
-                    ☐ llm-guard for prompt injection 
-                    ☐ llm-guard for pii as well? (or use something else) 
-                    ☐ decide order of it (before or after etc... variaous stages)
 
         ☐ _nice-to-have_:
             ✘ uses document vector db to generate email reply, (link general qa with email draft)? think about it @cancelled(26-04-01 12:53)
@@ -119,10 +111,10 @@
             ✔ [safety_classifier] @done(26-04-02 12:43)
 
         ☐ sender edit mode: 
-            ☐ is classifier too strong, look at when text + prompt edge case)
-            ☐ does 'auto-fill' work? 
-            ☐ does 'manual type + manual save' work? (run the text title loop through to run when this runs!)
-            ☐ does 'non empty _text, and ask ai to modify it via prompt box?" work? 
+            ✘ is classifier too strong, look at when text + prompt edge case) @cancelled(26-04-02 17:25)
+            ✔ does 'auto-fill' work? @done(26-04-02 17:25)
+            ✔ does 'manual type + manual save' work? (run the text title loop through to run when this runs!) @done(26-04-02 17:28)
+            ✔ does 'non empty _text, and ask ai to modify it via prompt box?" work? @done(26-04-02 17:25)
         (remember that this saves to a DB, so important!, dont want a malicious prompt injection inside the profileMD)) 
             ☐ [refine_profile_text]
             ☐ [generate_sender_profile]
