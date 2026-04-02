@@ -124,6 +124,8 @@
                 ✔ make sure have logging for this! @done(26-04-02 18:04)
 
         ☐ email draft mode:
+        think when press import, IT HAS TO BE READY! 
+        USER CAN JUST MANUALLY WRITE MALICIOUS EMAIL CODE LOL (DONT NEED AI TO GENERATE LOL) think think think rocky
             ☐ [generate_reply]
             ☐ [refine_draft]
             ☐ ?[safety_classifier for email draft?]
@@ -136,9 +138,10 @@
     ☐ STILL TAKING TOO LONG FOR SENDER EDIT! WHY (compare to general_qa which is much faster))
     ☐ in sender_edit, make sure click a thread or sender for prompt text box to open
     ☐ final check on security and privatisation for prompts!
+    ☐ make red and green success and error messages in sender edit when press save, make last longer!
 
 
 
 ☐ FRIDAY:
 
-    ☐ fix timeout on frontend (sender_edit) 
+    ✔ fix timeout on frontend (sendeedit) @done(26-04-02 21:07)

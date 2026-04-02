@@ -333,7 +333,11 @@ const App: React.FC<AppProps> = ({ title }) => {
         display: "flex",
         flexDirection: "column",
         backgroundColor:
-          mode === "sender_edit" ? "rgba(196, 98, 45, 0.25)" : tokens.colors.background,
+          mode === "sender_edit"
+            ? "#FFF3E0"
+            : mode === "email_draft"
+              ? "#E3F2FD"
+              : tokens.colors.background,
         transition: "background-color 0.2s ease",
         boxSizing: "border-box",
         overflow: "hidden",
@@ -341,7 +345,7 @@ const App: React.FC<AppProps> = ({ title }) => {
     >
       <Header title={headerTitle} />
 
-      {mode !== "sender_edit" && hasMessages ? (
+      {mode === "general_qa" && hasMessages ? (
         <ConversationView messages={messages} onInsert={handleInsert} onDiscard={handleDiscard} />
       ) : (
         <div style={{ flex: 1 }} />
