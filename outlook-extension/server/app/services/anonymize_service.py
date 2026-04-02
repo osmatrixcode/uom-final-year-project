@@ -45,6 +45,7 @@ def create_anonymizer(
         hidden_names=hidden_names or [],
         preamble="",
         language="en",
+        use_onnx=True,
     )
     deanon = Deanonymize(vault=vault)
     return vault, anon, deanon

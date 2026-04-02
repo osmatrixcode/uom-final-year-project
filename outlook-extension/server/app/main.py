@@ -1,4 +1,7 @@
 # app/main.py
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Prevent OpenMP conflict between PyTorch and ONNX Runtime on macOS
+
 import logging
 logging.basicConfig(
     level=logging.INFO,
