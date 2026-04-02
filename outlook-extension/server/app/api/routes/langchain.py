@@ -9,7 +9,7 @@ from app.services.token_validator import try_validate_token, ValidatedToken
 from app.services.graph_service import get_email_thread, get_thread_by_conversation_id
 from app.services.profile_service import get_profile, get_thread_note
 from app.services.moderation_service import check_moderation, ModerationFailure
-from app.services.injection_service import check_injection, InjectionFailure
+from app.services.injection_service import check_injection, check_body_injection, InjectionFailure
 from app.services.prompt_logger import log_prompt_and_response, log_moderation_block, log_injection_block, log_anonymization, log_safety_block
 from app.services.anonymize_service import create_anonymizer, anonymize_text, deanonymize_text
 from app.services.safety_service import check_safety, SafetyFailure
@@ -249,6 +249,14 @@ def generate_reply(
         log_injection_block(instruction=request.instruction or "", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
         raise HTTPException(status_code=422, detail="Your message was flagged by our security filter. Please rephrase.")
 
+    # 2b. Body injection check — scan untrusted email content
+    #     Invisible text → hard block; ML injection → log only (can't rephrase someone else's email)
+    try:
+        check_body_injection(request.body)
+    except InjectionFailure as exc:
+        log_injection_block(instruction="[email body]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+        raise HTTPException(status_code=422, detail="The email content contains suspicious hidden text.")
+
     # 3. Moderation check — block harmful user input
     try:
         check_moderation(request.instruction)
@@ -356,6 +364,13 @@ def generate_reply_stream(
         except InjectionFailure as exc:
             log_injection_block(instruction=request.instruction or "", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
             raise HTTPException(status_code=422, detail="Your message was flagged by our security filter. Please rephrase.")
+
+        # 2b. Body injection check — scan untrusted email content
+        try:
+            check_body_injection(request.body)
+        except InjectionFailure as exc:
+            log_injection_block(instruction="[email body]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+            raise HTTPException(status_code=422, detail="The email content contains suspicious hidden text.")
 
         # 3. Moderation check — block harmful user input
         try:

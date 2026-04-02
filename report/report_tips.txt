@@ -70,3 +70,21 @@ Root cause: The NER scanner detected "Noah" in the signature Respectfully,\nNoah
 Let me fix this by stripping whitespace from restored values in deanonymize_text:
 
 run red team evals via promptfoo (dont need to write code) 
+
+indirect prompt attacks: Email body scanned separately with appropriate handling (can't ask user to rephrase someone else's email)
+
+hidden_names doesn't include Graph thread senders — only recipients + user. A CC'd person from earlier in the thread relies on NER. Low risk since these are typically full names (which NER handles better than single first names).
+All guards fail open — if the moderation API, injection scanner, or safety classifier errors out, the request goes through. This is the right tradeoff for an email assistant (availability matters), but worth documenting.
+The " \n" deanonymization cleanup — handles the known NER whitespace artifact. Could miss other patterns, but in practice this covers the observed case.
+No rate limiting — every general_qa request fires up to 5 external calls (anonymize, LLM, safety classifier, output moderation, output injection). Not a security issue for a single-user Outlook add-in, but worth noting if this ever scales.
+
+It's the right tradeoff because of what this application is:
+
+It's a single-user Outlook add-in — the user is already authenticated, sitting in their own mailbox, looking at their own emails
+If a guard service goes down (OpenAI moderation API has an outage, LLM Guard throws an exception), failing closed means the user can't ask questions about their own email until the external service recovers
+The user isn't the threat — they're the person being protected. The guards exist to protect them from malicious email content and to keep the LLM on-topic
+If this were a public-facing API (anonymous users, multi-tenant, internet-exposed), you'd fail closed — block the request when guards are unavailable. The risk of letting unscreened input through to the LLM outweighs the inconvenience.
+
+But for a personal email assistant where the authenticated user is asking questions about their own inbox, blocking them because an external API is temporarily down is worse than the small window of reduced protection.
+
+That said — the logging is critical here. Every fail-open event logs a warning with exc_info=True, so you have full visibility into when guards were bypassed and why. You're not silently ignoring failures — you're recording them.

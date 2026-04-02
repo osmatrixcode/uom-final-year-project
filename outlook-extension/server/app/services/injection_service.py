@@ -58,3 +58,35 @@ def check_injection(text: str) -> None:
     except Exception:
         logger.warning("LLM Guard scanner failed — allowing request", exc_info=True)
         return
+
+
+def check_body_injection(text: str) -> None:
+    """Scan email body (untrusted external input) for injection attacks.
+
+    Invisible-text attacks are always malicious → raises ``InjectionFailure``.
+    ML-detected prompt injection is logged but allowed through, because
+    normal corporate emails can trigger false positives and the user
+    cannot rephrase someone else's email.
+    """
+    if not text or not text.strip():
+        return
+
+    try:
+        # Invisible text — always block (hidden unicode is never legitimate)
+        _sanitized, is_valid, risk_score = _invisible_text_scanner.scan(text)
+        if not is_valid:
+            logger.info("InvisibleText scanner flagged email body: risk=%.4f", risk_score)
+            raise InjectionFailure("InvisibleText", risk_score)
+
+        # ML prompt injection — log only (body is external, high false-positive risk)
+        _sanitized, is_valid, risk_score = _injection_scanner.scan(text)
+        if not is_valid:
+            logger.warning(
+                "PromptInjection scanner flagged email body (allowing): risk=%.4f",
+                risk_score,
+            )
+    except InjectionFailure:
+        raise
+    except Exception:
+        logger.warning("LLM Guard body scanner failed — allowing request", exc_info=True)
+        return
