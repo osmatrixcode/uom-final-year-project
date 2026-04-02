@@ -49,6 +49,8 @@ const App: React.FC<AppProps> = ({ title }) => {
   const [isSaving, setIsSaving] = React.useState(false);
   const [errorFlash, setErrorFlash] = React.useState<string | null>(null);
   const [activePanel, setActivePanel] = React.useState<"profile" | "thread" | null>(null);
+  const [profileGenerating, setProfileGenerating] = React.useState(false);
+  const [threadNoteGenerating, setThreadNoteGenerating] = React.useState(false);
   const profileRef = React.useRef<SenderProfilePanelHandle>(null);
   const threadNoteRef = React.useRef<ThreadNotePanelHandle>(null);
 
@@ -71,8 +73,9 @@ const App: React.FC<AppProps> = ({ title }) => {
     });
   };
 
-  /* Cycle loading phrases while streaming or saving */
-  const isLoading = isPending || isSaving;
+  /* Cycle loading phrases while streaming, saving, or auto-filling */
+  const isAutoFilling = profileGenerating || threadNoteGenerating;
+  const isLoading = isPending || isSaving || isAutoFilling;
   React.useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
     if (isLoading) {
@@ -344,7 +347,7 @@ const App: React.FC<AppProps> = ({ title }) => {
       )}
 
       {mode === "sender_edit" && conversationId && (
-        <ThreadNotePanel ref={threadNoteRef} conversationId={conversationId} onDirtyChange={setThreadNoteDirty} onFocus={() => setActivePanel("thread")} onError={showError} />
+        <ThreadNotePanel ref={threadNoteRef} conversationId={conversationId} onDirtyChange={setThreadNoteDirty} onGeneratingChange={setThreadNoteGenerating} onFocus={() => setActivePanel("thread")} onError={showError} />
       )}
 
       {mode === "sender_edit" && (
@@ -358,7 +361,7 @@ const App: React.FC<AppProps> = ({ title }) => {
       )}
 
       {mode === "sender_edit" && selectedSender && (
-        <SenderProfilePanel ref={profileRef} sender={selectedSender} onDirtyChange={setProfileDirty} onFocus={() => setActivePanel("profile")} onError={showError} />
+        <SenderProfilePanel ref={profileRef} sender={selectedSender} onDirtyChange={setProfileDirty} onGeneratingChange={setProfileGenerating} onFocus={() => setActivePanel("profile")} onError={showError} />
       )}
 
       {mode === "sender_edit" && (
@@ -384,21 +387,21 @@ const App: React.FC<AppProps> = ({ title }) => {
           )}
           <button
             onClick={handleSenderEditSave}
-            disabled={!senderEditDirty || isSaving}
+            disabled={!senderEditDirty || isLoading}
             style={{
-              background: (senderEditDirty && !isSaving) ? tokens.colors.accent : tokens.colors.border,
-              color: (senderEditDirty && !isSaving) ? "#fff" : tokens.colors.placeholder,
+              background: (senderEditDirty && !isLoading) ? tokens.colors.accent : tokens.colors.border,
+              color: (senderEditDirty && !isLoading) ? "#fff" : tokens.colors.placeholder,
               border: "none",
               borderRadius: tokens.radius.pill,
               padding: `${tokens.spacing.xs}px ${tokens.spacing.lg}px`,
               fontSize: tokens.font.label.size,
               fontWeight: tokens.font.label.weight,
-              cursor: (senderEditDirty && !isSaving) ? "pointer" : "not-allowed",
-              opacity: (senderEditDirty && !isSaving) ? 1 : 0.5,
+              cursor: (senderEditDirty && !isLoading) ? "pointer" : "not-allowed",
+              opacity: (senderEditDirty && !isLoading) ? 1 : 0.5,
               transition: "all 0.15s ease",
             }}
           >
-            {isSaving ? "Saving..." : "Save"}
+            {isLoading ? "Saving..." : "Save"}
           </button>
         </div>
       )}

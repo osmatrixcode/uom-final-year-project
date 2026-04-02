@@ -13,12 +13,13 @@ export interface ThreadNotePanelHandle {
 interface ThreadNotePanelProps {
   conversationId: string;
   onDirtyChange?: (dirty: boolean) => void;
+  onGeneratingChange?: (generating: boolean) => void;
   onFocus?: () => void;
   onError?: (msg: string) => void;
 }
 
 const ThreadNotePanel = React.forwardRef<ThreadNotePanelHandle, ThreadNotePanelProps>(
-  ({ conversationId, onDirtyChange, onFocus, onError }, ref) => {
+  ({ conversationId, onDirtyChange, onGeneratingChange, onFocus, onError }, ref) => {
   const [text, setText] = React.useState("");
   const [savedText, setSavedText] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -30,6 +31,11 @@ const ThreadNotePanel = React.forwardRef<ThreadNotePanelHandle, ThreadNotePanelP
   React.useEffect(() => {
     onDirtyChange?.(isDirty);
   }, [isDirty]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Notify parent of generating state changes */
+  React.useEffect(() => {
+    onGeneratingChange?.(isGenerating);
+  }, [isGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Load note whenever the conversation changes */
   React.useEffect(() => {

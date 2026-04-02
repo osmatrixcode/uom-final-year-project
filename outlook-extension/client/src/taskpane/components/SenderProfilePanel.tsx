@@ -14,12 +14,13 @@ export interface SenderProfilePanelHandle {
 interface SenderProfilePanelProps {
   sender: EmailRecipient;
   onDirtyChange?: (dirty: boolean) => void;
+  onGeneratingChange?: (generating: boolean) => void;
   onError?: (msg: string) => void;
   onFocus?: () => void;
 }
 
 const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProfilePanelProps>(
-  ({ sender, onDirtyChange, onFocus, onError }, ref) => {
+  ({ sender, onDirtyChange, onGeneratingChange, onFocus, onError }, ref) => {
   const [text, setText] = React.useState("");
   const [savedText, setSavedText] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -31,6 +32,11 @@ const SenderProfilePanel = React.forwardRef<SenderProfilePanelHandle, SenderProf
   React.useEffect(() => {
     onDirtyChange?.(isDirty);
   }, [isDirty]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Notify parent of generating state changes */
+  React.useEffect(() => {
+    onGeneratingChange?.(isGenerating);
+  }, [isGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Load profile whenever the selected sender changes */
   React.useEffect(() => {
