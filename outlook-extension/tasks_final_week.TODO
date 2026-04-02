@@ -32,7 +32,7 @@
                 ✘ user if didnt like thread, can go to sender edit for it? @cancelled(26-04-02 18:01)
             ✘ seems like MD idea when auto-fill, will fill with example of email thread (may be bad if general profileMD) @cancelled(26-04-02 12:52)
         ☐ _ai/nlp_:
-            ☐ _security_:
+            ✔ _ecurity_: @done(26-04-02 18:25)
                 ✔ add llm best practices for cyber attacks (prevent prompt injection) @done(26-04-02 12:51)
                 ✔ think about situations where user receives a malicious prompt injection email, and of course we pass as context to the extension (prompt injection attack), how to mitigate this? @done(26-04-02 12:51)
                 ✔ data anonymisation for privacy (python libraries) @done(26-04-02 12:51)
@@ -63,7 +63,7 @@
                     ✘ use past email ai drafts made that user like, as the FEW SHOT examples! (tailors to them) @cancelled(26-04-02 11:10)
                     ✘ after few times user uses it and makes modifications, will modify it to users taste @cancelled(26-04-01 12:53)
 
-        ☐ _nice-to-have_:
+        ✘ _nice-to-have_: @cancelled(26-04-02 18:25)
             ✘ uses document vector db to generate email reply, (link general qa with email draft)? think about it @cancelled(26-04-01 12:53)
             ✘ implement a thumbs up thumbs down system (help modify and give reason why) @cancelled(26-03-31 19:33)
             ✘ when first download app, will walk through generated email responses, you approve or modify THEN can use this for ICL / Few Shot PERSONAL examples (makes it personal to them!) @cancelled(26-03-31 19:32)
@@ -133,6 +133,7 @@
     ☐ why those values for thresholds? (test) 
     ☐ what if have thread tone, and is opposite to sender profiles tone! Make sure thread tone takes precedence!
     ☐ still taking too long for sender_edit! (longer timeout on frontend?)
+    ☐ STILL TAKING TOO LONG FOR SENDER EDIT! WHY (compare to general_qa which is much faster))
 
 
 
