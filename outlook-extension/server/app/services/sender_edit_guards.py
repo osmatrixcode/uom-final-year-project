@@ -52,10 +52,11 @@ def guarded_save(text: str, identifier: str = "") -> str:
         1. PII anonymize (for checks only — moderation API is external)
         2. Injection check (invisible text + ML: hard block)
         3. Moderation check (on anonymized text)
-        4. Log anonymization + original text views
-        5. Return original text unchanged
+        4. Scope classifier (verify text is a tone/style description)
+        5. Log anonymization + original text views
+        6. Return original text unchanged
 
-    Raises HTTPException(422) if injection or moderation flags the text.
+    Raises HTTPException(422) if injection, moderation, or scope flags the text.
     """
     if not text or not text.strip():
         return text
@@ -74,6 +75,13 @@ def guarded_save(text: str, identifier: str = "") -> str:
     except ModerationFailure as exc:
         log_moderation_block(instruction=anon_text, categories=exc.categories, mode="sender_edit_save")
         raise HTTPException(status_code=422, detail=f"Your text was flagged by our content policy ({', '.join(exc.categories)}). Please revise.")
+
+    # Scope classifier — verify text is a tone/style description
+    try:
+        check_safety("User manually saved this tone profile text.", anon_text, classifier_key="sender_edit")
+    except SafetyFailure as exc:
+        log_safety_block(instruction="[manual save]", llm_output=anon_text, reason=exc.reason, mode="sender_edit_save")
+        raise HTTPException(status_code=422, detail="Your text doesn't appear to be a tone or style description. Please revise.")
 
     # Log: anonymization view (what the checks saw)
     log_anonymization(prompt_after=anon_text, output_before="[manual save — no LLM output]", mode="sender_edit_save")
