@@ -348,6 +348,13 @@ def generate_reply(
         log_injection_block(instruction="[email body]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
         raise HTTPException(status_code=422, detail="The email content contains suspicious hidden text.")
 
+    # 2c. Subject injection check — same rules as body
+    try:
+        check_body_injection(request.subject)
+    except InjectionFailure as exc:
+        log_injection_block(instruction="[email subject]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+        raise HTTPException(status_code=422, detail="The email subject contains suspicious hidden text.")
+
     # 3. Moderation check — block harmful user input
     try:
         check_moderation(request.instruction)
@@ -463,6 +470,13 @@ def generate_reply_stream(
         except InjectionFailure as exc:
             log_injection_block(instruction="[email body]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
             raise HTTPException(status_code=422, detail="The email content contains suspicious hidden text.")
+
+        # 2c. Subject injection check — same rules as body
+        try:
+            check_body_injection(request.subject)
+        except InjectionFailure as exc:
+            log_injection_block(instruction="[email subject]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+            raise HTTPException(status_code=422, detail="The email subject contains suspicious hidden text.")
 
         # 3. Moderation check — block harmful user input
         try:
