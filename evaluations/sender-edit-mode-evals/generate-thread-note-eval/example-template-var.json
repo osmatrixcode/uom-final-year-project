@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-04-03T13:15:56.302194",
+  "prompt_key": "generate_thread_note",
+  "mode": "sender_edit",
+  "variables": {
+    "name": "",
+    "history_preview": "[2026-04-01] Osman Yousufzia: Hi Sophia,\n\nThank you for the update on the Q2 Roadmap. I'm pleased to hear that we’ve finalized the design phase and are now moving into implementation. \n\nI’ll review the upcoming milestones and the attached timeline. If I identify any potential issues with the deadlines, I’ll ensure to reach out by the end of the day tomorrow.\n\nThanks for your support and for keeping us aligned.\n\nBest regards, \nOsman",
+    "fallback_body": "From: Osman Yousufzia <osmanyousufzia@outlook.com>Sent: 01 April 2026 14:43To: Sophia <sophia@variatify.com>Subject: Re: Project Update: Q2 Roadmap and Final Deliverables  Hi Sophia,Thank you for the update on the Q2 Roadmap. I'm pleased to hear that we’ve finalized the design phase and are now moving into implementation. I’ll review the upcoming milestones and the attached timeline. If I identify any potential issues with the deadlines, I’ll ensure to reach out by the end of the day tomorrow.Thanks for your support and for keeping us aligned.Best regards, Osman",
+    "mode": "thread"
+  }
+}

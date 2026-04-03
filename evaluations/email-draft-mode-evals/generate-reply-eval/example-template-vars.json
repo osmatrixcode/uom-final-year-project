@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-04-03T13:13:24.128789",
+  "prompt_key": "generate_reply",
+  "mode": "email_draft",
+  "variables": {
+    "subject": "Re: Project Update: Q2 Roadmap and Final Deliverables",
+    "body": "Hi Osman,\nI hope your week is off to a productive start.\nI’m writing to provide a quick update on our progress for the Q2 Roadmap. After our review session yesterday, we have successfully finalized the design phase and are moving into the implementation stage.\nPlease take note of the following upcoming milestones:\nDraft Review: Friday, April 10th\nStakeholder Presentation: Tuesday, April 14th\nFinal Handover: Thursday, April 16th\nI’ve attached the revised timeline for your reference. If you notice any potential bottlenecks or if your current bandwidth doesn’t allow for these deadlines, please let me know by EOD tomorrow so we can adjust accordingly.\nThanks for the hard work, everyone.\nBest regards,\nSophia",
+    "instruction": "generate an email draft",
+    "thread_context": "\n\nConversation history (from Microsoft Graph):\n[2026-04-01] Sophia: Hi Osman,\nI hope your week is off to a productive start.\nI’m writing to provide a quick update on our progress for the Q2 Roadmap. After our review session yesterday, we have successfully finalized the design phase and are moving into the implementation stage.\nPlease take note of the following upcoming milestones:\nDraft Review: Friday, April 10th\nStakeholder Presentation: Tuesday, April 14th\nFinal Handover: Thursday, April 16th\nI’ve attached the revised timeline for your reference. If you notice any potential bottlenecks or if your current bandwidth doesn’t allow for these deadlines, please let me know by EOD tomorrow so we can adjust accordingly.\nThanks for the hard work, everyone.\nBest regards,\nSophia\n[2026-04-01] Osman Yousufzia: Hi Sophia,\n\nThank you for the update on the Q2 Roadmap. I'm pleased to hear that we’ve finalized the design phase and are now moving into implementation. \n\nI’ll review the upcoming milestones and the attached timeline. If I identify any potential issues with the deadlines, I’ll ensure to reach out by the end of the day tomorrow.\n\nThanks for your support and for keeping us aligned.\n\nBest regards, \nOsman"
+  }
+}
