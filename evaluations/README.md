@@ -1,3 +1,10 @@
-https://www.promptfoo.dev/docs/intro/
+To get started, set your OPENAI_API_KEY environment variable, or other required keys for the providers you selected.
 
-1. [Install promptfoo: "npm install -g promptfoo"](https://www.promptfoo.dev/docs/installation/)
+Next, edit promptfooconfig.yaml.
+
+Then run:
+```
+promptfoo eval
+```
+
+Afterwards, you can view the results by running `promptfoo view`
