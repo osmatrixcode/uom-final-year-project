@@ -1,17 +1,47 @@
 """
 Logs every LLM call to a text file: resolved prompt + variables + output.
 Output dir: server/llm_logs/
+Also logs template variables to separate JSON file for easy parsing.
 """
 
 import pathlib
 import datetime
+import json
 
 _LOG_DIR = pathlib.Path(__file__).resolve().parent.parent.parent / "llm_logs"
 _LOG_DIR.mkdir(exist_ok=True)
 
+_TEMPLATE_VARS_DIR = _LOG_DIR / "template_variables"
+_TEMPLATE_VARS_DIR.mkdir(exist_ok=True)
+
 
 def _separator(label: str) -> str:
     return f"\n{'='*60}\n  {label}\n{'='*60}\n"
+
+
+def _log_template_variables_json(
+    *,
+    prompt_key: str,
+    variables: dict,
+    mode: str | None = None,
+):
+    """Write template variables to a separate JSON file for easy parsing.
+
+    Logs the exact values sent to the LLM without truncation.
+    """
+    ts = datetime.datetime.now()
+    filename = f"{ts:%Y-%m-%d_%H-%M-%S}_{prompt_key}_vars.json"
+    path = _TEMPLATE_VARS_DIR / filename
+
+    log_data = {
+        "timestamp": ts.isoformat(),
+        "prompt_key": prompt_key,
+        "mode": mode,
+        "variables": variables
+    }
+
+    path.write_text(json.dumps(log_data, indent=2, ensure_ascii=False), encoding="utf-8")
+    return path
 
 
 def log_prompt_and_response(
@@ -57,6 +87,14 @@ def log_prompt_and_response(
     lines.append(f"\n{'='*60}\n  END\n{'='*60}\n")
 
     path.write_text("\n".join(lines), encoding="utf-8")
+
+    # Also log template variables to JSON
+    _log_template_variables_json(
+        prompt_key=prompt_key,
+        variables=variables,
+        mode=mode,
+    )
+
     return path
 
 

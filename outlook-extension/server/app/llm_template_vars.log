@@ -1,0 +1,39 @@
+# Template Variables Log
+# Extracted from prompts.toml - variables used in prompt templates
+
+[generate_reply]
+subject: {subject}
+recipients: {recipients}
+body: {body}
+thread_context: {thread_context}
+sender_name: {sender_name}
+instruction_note: {instruction_note}
+
+[refine_draft]
+subject: {subject}
+recipients: {recipients}
+body: {body}
+thread_context: {thread_context}
+sender_name: {sender_name}
+draft: {draft}
+instruction_note: {instruction_note}
+
+[general_qa]
+subject: {subject}
+recipients: {recipients}
+body: {body}
+thread_context: {thread_context}
+instruction: {instruction}
+
+[generate_sender_profile]
+name: {name}
+history_preview: {history_preview}
+fallback_body: {fallback_body}
+
+[generate_thread_note]
+history_preview: {history_preview}
+fallback_body: {fallback_body}
+
+[refine_profile_text]
+current_text: {current_text}
+instruction: {instruction}
