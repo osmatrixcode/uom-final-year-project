@@ -131,3 +131,5 @@ when send request to chatgpt, does it do prompt injection detection, NER stuff a
 Section on UI stuff
 
 Dynamic Tone: Because you want the reply to match the tone of the original email, providing a static example might accidentally bias the model to copy the style of your example rather than the style of the incoming email.
+
+didnt have time for attachment awareness --> hard to implement as much bigger attack vector

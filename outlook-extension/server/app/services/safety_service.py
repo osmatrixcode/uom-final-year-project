@@ -24,6 +24,7 @@ with open(_PROMPTS_PATH, "rb") as _f:
 _SAFETY_PROMPTS = {
     "general_qa": _ALL_PROMPTS["safety_classifier"]["system"],
     "sender_edit": _ALL_PROMPTS["sender_edit_safety_classifier"]["system"],
+    "email_draft": _ALL_PROMPTS["email_draft_safety_classifier"]["system"],
 }
 
 
