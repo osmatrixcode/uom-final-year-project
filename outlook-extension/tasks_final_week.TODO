@@ -8,7 +8,7 @@
         ☐ evalation: Pairwise Comparison (Arena Style)
         ☐ llm as a judge
         ✘ PromptFoo (generate test cases) @cancelled(26-04-01 13:50)
-        ☐ DeepEval (evaluate)
+        ✘ DeepEval (evaluate) @cancelled(26-04-03 08:01)
         ☐ ask gemini and notebook lm for how to evaluate it 
         ☐ test 3 different things (general_qa, email draft, profileMD, Safety and Prompt Injection) 
         ✘ azure ai credits as free 20 usd given! @cancelled(26-04-01 13:01)
@@ -123,14 +123,14 @@
             ✔ ?manual save  edge case --> have safety for this situation @done(26-04-02 18:04)
                 ✔ make sure have logging for this! @done(26-04-02 18:04)
 
-        ☐ email draft mode:
-            ☐ double check if have valid logs
+        ✔ email draft mode: @done(26-04-03 08:13)
+            ✔ double check if have valid logs @done(26-04-03 08:13)
         think when press import, IT HAS TO BE READY! 
         USER CAN JUST MANUALLY WRITE MALICIOUS EMAIL CODE LOL (DONT NEED AI TO GENERATE LOL) think think think rocky
-            ☐ [generate_reply]
-            ☐ [refine_draft]
-            ☐ ?[safety_classifier for email draft?]
-    
+            ✔ [generate_reply] @done(26-04-03 08:13)
+            ✔ [refine_draft] @done(26-04-03 08:13)
+            ✔ ?[safety_classifier for email draft?] @done(26-04-03 08:13)
+    ✔ @done(26-04-03 08:13)
 
     ☐ evals on classifier! (as too strict, too hard) --> USE FEW SHOT EXAMPLES ON THE THINGS I WAS SUPRISED I GOT BLOCKED ON 
     ☐ why those values for thresholds? (test) 
@@ -143,4 +143,9 @@
 
 ☐ FRIDAY:
     ☐ final check on security and privatisation for prompts!
-    ☐ what if have thread tone, and is opposite to sender profiles tone! Make sure thread tone takes precedence!
+    ✔ what if have thread tone, and is opposite to sender profiles tone! Make sure thread tone takes precedence! @done(26-04-03 08:01)
+    ☐ use email draft response to: The system will extract relevant content from incoming emails, use this content to formulate prompts for the LLM, and generate suggested reply.
+    ☐ use heirarchy of models in chatgpt for different situations. 
+
+    ☐ eval stuff...
+        ☐ for classifier gpt-40-mini (test different prompts, few shot, single shot, cot) 

@@ -298,7 +298,7 @@ def generate_reply(
 
         log_anonymization(prompt_after=anon_prompt_snapshot, output_before=anon_reply, mode=mode)
         log_prompt_and_response(
-            prompt_key="email_draft", mode=mode,
+            prompt_key="refine_draft" if request.draft else "generate_reply", mode=mode,
             variables=originals,
             rendered_system=None,
             rendered_human=f"subject: {originals['subject']}\nbody: {originals['body']}{originals['thread_context']}\ninstruction: {originals['instruction']}",
@@ -515,7 +515,7 @@ def generate_reply_stream(
 
                 log_anonymization(prompt_after=anon_prompt_snapshot, output_before=anon_output, mode=mode)
                 log_prompt_and_response(
-                    prompt_key="email_draft", mode=mode,
+                    prompt_key="refine_draft" if request.draft else "generate_reply", mode=mode,
                     variables=originals,
                     rendered_system=None,
                     rendered_human=f"subject: {originals['subject']}\nbody: {originals['body']}{originals['thread_context']}\ninstruction: {originals['instruction']}",
