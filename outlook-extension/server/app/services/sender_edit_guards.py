@@ -132,13 +132,13 @@ def guarded_generate(
 
     Pipeline:
         1. PII anonymize (history_preview, fallback_body, name)
-        2. Body injection check on history_preview
-        2b. Body injection check on fallback_body
-        3. LLM call
-        4. Scope classifier (sender_edit)
-        5. Output injection check
-        6. Output moderation
-        7. Deanonymize → log → return
+        2. Body injection check on input
+        3. Moderation check on input
+        4. LLM call
+        5. Scope classifier (sender_edit)
+        6. Output injection check
+        7. Output moderation
+        8. Deanonymize → log → return
     """
     prompt_key = "generate_sender_profile" if mode == "sender" else "generate_thread_note"
 
@@ -168,6 +168,13 @@ def guarded_generate(
     except InjectionFailure as exc:
         log_injection_block(instruction="[email body]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode="sender_edit")
         raise HTTPException(status_code=422, detail="The email content contains suspicious hidden text.")
+
+    # 3. Moderation check on input (email history content)
+    try:
+        check_moderation(body_to_check)
+    except ModerationFailure as exc:
+        log_moderation_block(instruction=body_to_check, categories=exc.categories, mode="sender_edit")
+        raise HTTPException(status_code=422, detail=f"The email content was flagged by our content policy ({', '.join(exc.categories)}).")
 
     # ── MODEL ──
 
