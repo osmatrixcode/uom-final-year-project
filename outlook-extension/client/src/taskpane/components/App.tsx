@@ -46,6 +46,10 @@ const App: React.FC<AppProps> = ({ title }) => {
 
   /* email_draft mode: single persistent draft — null means no draft active */
   const [currentDraft, setCurrentDraft] = React.useState<string | null>(null);
+  /* Tracks whether a draft has ever been inserted into the compose body this session.
+     Only when true do we auto-read the compose body for edits, to avoid mistaking
+     Outlook's pre-filled previous-reply text for a user-written draft. */
+  const [hasInsertedDraft, setHasInsertedDraft] = React.useState(false);
 
   /* sender_edit mode */
   const [senders, setSenders] = React.useState<SendersResult>({ to: [], cc: [] });
@@ -146,9 +150,12 @@ const App: React.FC<AppProps> = ({ title }) => {
         const context = await getEmailContext();
 
         /* Use explicit currentDraft if set; otherwise auto-read the compose
-           body so user-written text is passed as draft context automatically. */
+           body so user-written text is passed as draft context automatically.
+           Only read the compose body if we previously inserted a draft, to
+           avoid mistaking Outlook's pre-filled previous-reply text for a
+           user-written draft. */
         let draftContent = currentDraft ?? undefined;
-        if (!draftContent) {
+        if (!draftContent && hasInsertedDraft) {
           const composeBody = await getComposeBody();
           const userText = extractUserDraft(composeBody);
           if (userText) draftContent = userText;
@@ -281,6 +288,7 @@ const App: React.FC<AppProps> = ({ title }) => {
   /* email_draft DraftBox handlers */
   const handleDraftInsert = () => {
     if (currentDraft) insertText(currentDraft);
+    setHasInsertedDraft(true);
     setCurrentDraft(null);
     setMode("general_qa");
   };
@@ -324,7 +332,7 @@ const App: React.FC<AppProps> = ({ title }) => {
   const senderEditDirty = mode === "sender_edit" && (profileDirty || threadNoteDirty);
   const modeSwitchLocked = (mode === "email_draft" && currentDraft !== null) || senderEditDirty;
   const showDraftBox = mode === "email_draft" && currentDraft !== null;
-  const hasMessages = messages.length > 0;
+  const hasMessages = messages.some((m) => m.mode !== "email_draft");
 
   return (
     <div
@@ -346,7 +354,7 @@ const App: React.FC<AppProps> = ({ title }) => {
       <Header title={headerTitle} />
 
       {mode === "general_qa" && hasMessages ? (
-        <ConversationView messages={messages} onInsert={handleInsert} onDiscard={handleDiscard} />
+        <ConversationView messages={messages.filter((m) => m.mode !== "email_draft")} onInsert={handleInsert} onDiscard={handleDiscard} />
       ) : (
         <div style={{ flex: 1 }} />
       )}

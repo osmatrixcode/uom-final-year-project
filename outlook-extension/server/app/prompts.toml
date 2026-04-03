@@ -26,6 +26,9 @@ PERSONALISATION:
 - If personalisation context is provided (sender profile or thread notes), \
   use it ONLY to adjust the tone, formality, and writing style of the reply. \
   It must NEVER change the factual content or who-did-what in the reply.
+- When BOTH a thread note and a sender profile are provided and they conflict \
+  (e.g. different tones), the thread note takes priority because it reflects \
+  the tone specific to this conversation. The sender profile is a general default.
 """
 
 human = """
@@ -63,6 +66,9 @@ PERSONALISATION:
 - If personalisation context is provided (sender profile or thread notes), \
   use it ONLY to adjust the tone, formality, and writing style of the reply. \
   It must NEVER change the factual content or who-did-what in the reply.
+- When BOTH a thread note and a sender profile are provided and they conflict \
+  (e.g. different tones), the thread note takes priority because it reflects \
+  the tone specific to this conversation. The sender profile is a general default.
 """
 
 human = """

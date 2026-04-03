@@ -56,11 +56,11 @@ def _build_injected_context(request: "EmailContextRequest") -> str | None:
     for r in request.recipients:
         p = get_profile(r.emailAddress)
         if p:
-            blocks.append(f"Notes on {r.displayName or r.emailAddress}: {p}")
+            blocks.append(f"Sender profile (general default) for {r.displayName or r.emailAddress}: {p}")
     if request.conversation_id:
         tn = get_thread_note(request.conversation_id)
         if tn:
-            blocks.append(f"Thread note: {tn}")
+            blocks.append(f"Thread note (thread-specific, takes priority over sender profile): {tn}")
     if not blocks:
         return None
     return "\n\n---\nPersonalisation context (use to tailor tone and style):\n" + "\n".join(blocks)
