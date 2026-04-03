@@ -56,11 +56,11 @@ def _build_injected_context(request: "EmailContextRequest") -> str | None:
     for r in request.recipients:
         p = get_profile(r.emailAddress)
         if p:
-            blocks.append(f"Notes on {r.displayName or r.emailAddress}: {p}")
+            blocks.append(f"Sender profile (general default) for {r.displayName or r.emailAddress}: {p}")
     if request.conversation_id:
         tn = get_thread_note(request.conversation_id)
         if tn:
-            blocks.append(f"Thread note: {tn}")
+            blocks.append(f"Thread note (thread-specific, takes priority over sender profile): {tn}")
     if not blocks:
         return None
     return "\n\n---\nPersonalisation context (use to tailor tone and style):\n" + "\n".join(blocks)
@@ -159,6 +159,9 @@ def _anonymize_request(request: "EmailContextRequest", anon_scanner, graph_threa
     request.body = anonymize_text(request.body, anon_scanner)
     if request.instruction:
         request.instruction = anonymize_text(request.instruction, anon_scanner)
+    if request.draft:
+        originals["draft"] = request.draft
+        request.draft = anonymize_text(request.draft, anon_scanner)
 
     # Anonymize recipient display names (used to build recipients_str in the service)
     for r in request.recipients:
@@ -222,7 +225,95 @@ def generate_reply(
 
     mode = request.mode or "general_qa"
 
-    if mode != "general_qa":
+    if mode == "email_draft":
+        request.injected_context = _build_injected_context(request)
+
+        # ── EMAIL DRAFT PIPELINE ──────────────────────────────────────
+        # ── INPUT GUARDS ──
+
+        # 1. PII anonymize
+        known = _collect_known_names(request, user.name if user else None)
+        _vault, anon_scanner, deanon_scanner = create_anonymizer(hidden_names=known)
+        originals = _anonymize_request(request, anon_scanner, graph_thread)
+        anon_thread_context = _snapshot_thread_context(graph_thread)
+        anon_prompt_snapshot = f"subject: {request.subject}\nbody: {request.body}{anon_thread_context}\ninstruction: {request.instruction}"
+
+        # 2. Injection check — block malicious user input
+        try:
+            check_injection(request.instruction)
+        except InjectionFailure as exc:
+            log_injection_block(instruction=request.instruction or "", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+            raise HTTPException(status_code=422, detail="Your message was flagged by our security filter. Please rephrase.")
+
+        # 2b. Body injection check
+        try:
+            check_body_injection(request.body)
+        except InjectionFailure as exc:
+            log_injection_block(instruction="[email body]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+            raise HTTPException(status_code=422, detail="The email content contains suspicious hidden text.")
+
+        # 3. Moderation check — block harmful user input
+        try:
+            check_moderation(request.instruction)
+        except ModerationFailure as exc:
+            log_moderation_block(instruction=request.instruction or "", categories=exc.categories, mode=mode)
+            raise HTTPException(status_code=422, detail=f"Your message was flagged by our content policy ({', '.join(exc.categories)}). Please rephrase.")
+
+        # ── MODEL ──
+
+        # 4. LLM call
+        anon_reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
+
+        # ── OUTPUT GUARDS ──
+
+        # 5. Scope classifier — verify output is a proper email reply
+        try:
+            check_safety(request.instruction, anon_reply, classifier_key="email_draft")
+        except SafetyFailure as exc:
+            log_safety_block(instruction=request.instruction or "", llm_output=anon_reply, reason=exc.reason, mode=mode)
+            return GenerateReplyResponse(
+                reply="The generated draft didn't look like a proper email reply. "
+                      "Please try again or adjust your instruction.",
+                user_name=user.name if user else None,
+                graph_enriched=graph_thread is not None,
+                intent="draft",
+            )
+
+        # 6. Output injection check
+        try:
+            check_injection(anon_reply)
+        except InjectionFailure as exc:
+            log_injection_block(instruction=anon_reply, scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+            raise HTTPException(status_code=422, detail="The response was flagged by our security filter.")
+
+        # 7. Output moderation
+        try:
+            check_moderation(anon_reply)
+        except ModerationFailure as exc:
+            log_moderation_block(instruction=anon_reply, categories=exc.categories, mode=mode)
+            raise HTTPException(status_code=422, detail=f"The response was flagged by our content policy ({', '.join(exc.categories)}).")
+
+        # 8. Deanonymize — restore names, return to user
+        reply = deanonymize_text(anon_prompt_snapshot, anon_reply, deanon_scanner)
+
+        log_anonymization(prompt_after=anon_prompt_snapshot, output_before=anon_reply, mode=mode)
+        log_prompt_and_response(
+            prompt_key="refine_draft" if request.draft else "generate_reply", mode=mode,
+            variables=originals,
+            rendered_system=None,
+            rendered_human=f"subject: {originals['subject']}\nbody: {originals['body']}{originals['thread_context']}\ninstruction: {originals['instruction']}",
+            output=reply,
+        )
+
+        return GenerateReplyResponse(
+            reply=reply,
+            user_name=user.name if user else None,
+            graph_enriched=graph_thread is not None,
+            intent=intent,
+        )
+
+    elif mode != "general_qa":
+        # Fallback for any future mode — unguarded
         request.injected_context = _build_injected_context(request)
         reply, intent = service.generate_email_reply(request, graph_thread=graph_thread)
         return GenerateReplyResponse(
@@ -256,6 +347,13 @@ def generate_reply(
     except InjectionFailure as exc:
         log_injection_block(instruction="[email body]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
         raise HTTPException(status_code=422, detail="The email content contains suspicious hidden text.")
+
+    # 2c. Subject injection check — same rules as body
+    try:
+        check_body_injection(request.subject)
+    except InjectionFailure as exc:
+        log_injection_block(instruction="[email subject]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+        raise HTTPException(status_code=422, detail="The email subject contains suspicious hidden text.")
 
     # 3. Moderation check — block harmful user input
     try:
@@ -346,11 +444,12 @@ def generate_reply_stream(
     if mode != "general_qa":
         request.injected_context = _build_injected_context(request)
 
-    # ── GENERAL QA PIPELINE — INPUT GUARDS (steps 1-3) ───────────
+    # ── INPUT GUARDS (steps 1-3) — general_qa & email_draft ─────
     # Run outside generator so HTTPException works (can't raise inside a generator)
     deanon_scanner = None
     anon_prompt_snapshot = None
-    if mode == "general_qa":
+    originals = None
+    if mode in ("general_qa", "email_draft"):
         # 1. PII anonymize — protect PII from all downstream services
         known = _collect_known_names(request, user.name if user else None)
         _vault, anon_scanner, deanon_scanner = create_anonymizer(hidden_names=known)
@@ -372,6 +471,13 @@ def generate_reply_stream(
             log_injection_block(instruction="[email body]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
             raise HTTPException(status_code=422, detail="The email content contains suspicious hidden text.")
 
+        # 2c. Subject injection check — same rules as body
+        try:
+            check_body_injection(request.subject)
+        except InjectionFailure as exc:
+            log_injection_block(instruction="[email subject]", scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+            raise HTTPException(status_code=422, detail="The email subject contains suspicious hidden text.")
+
         # 3. Moderation check — block harmful user input
         try:
             check_moderation(request.instruction)
@@ -390,12 +496,57 @@ def generate_reply_stream(
                 full_output_chunks.append(chunk)
             anon_output = "".join(full_output_chunks)
 
-            if mode != "general_qa":
+            if mode == "email_draft":
+                # ── EMAIL DRAFT OUTPUT GUARDS (steps 5-7) ──
+
+                # 5. Scope classifier — verify output is a proper email reply
+                try:
+                    check_safety(request.instruction, anon_output, classifier_key="email_draft")
+                except SafetyFailure as exc:
+                    log_safety_block(instruction=request.instruction or "", llm_output=anon_output, reason=exc.reason, mode=mode)
+                    msg = "The generated draft didn't look like a proper email reply. Please try again or adjust your instruction."
+                    yield f"data: {json.dumps({'type': 'error', 'message': msg})}\n\n"
+                    return
+
+                # 6. Output injection check
+                try:
+                    check_injection(anon_output)
+                except InjectionFailure as exc:
+                    log_injection_block(instruction=anon_output, scanner_name=exc.scanner_name, risk_score=exc.risk_score, mode=mode)
+                    yield f"data: {json.dumps({'type': 'error', 'message': 'The response was flagged by our security filter.'})}\n\n"
+                    return
+
+                # 7. Output moderation
+                try:
+                    check_moderation(anon_output)
+                except ModerationFailure as exc:
+                    log_moderation_block(instruction=anon_output, categories=exc.categories, mode=mode)
+                    yield f"data: {json.dumps({'type': 'error', 'message': 'The response was flagged by our content policy.'})}\n\n"
+                    return
+
+                # 8. Deanonymize
+                reply = deanonymize_text(anon_prompt_snapshot, anon_output, deanon_scanner)
+
+                log_anonymization(prompt_after=anon_prompt_snapshot, output_before=anon_output, mode=mode)
+                log_prompt_and_response(
+                    prompt_key="refine_draft" if request.draft else "generate_reply", mode=mode,
+                    variables=originals,
+                    rendered_system=None,
+                    rendered_human=f"subject: {originals['subject']}\nbody: {originals['body']}{originals['thread_context']}\ninstruction: {originals['instruction']}",
+                    output=reply,
+                )
+
+                yield f"data: {json.dumps({'type': 'token', 'token': reply})}\n\n"
+                yield f"data: {json.dumps({'type': 'done', 'user_name': user.name if user else None, 'graph_enriched': graph_thread is not None})}\n\n"
+                return
+
+            elif mode != "general_qa":
+                # Fallback for any future mode — unguarded
                 yield f"data: {json.dumps({'type': 'token', 'token': anon_output})}\n\n"
                 yield f"data: {json.dumps({'type': 'done', 'user_name': user.name if user else None, 'graph_enriched': graph_thread is not None})}\n\n"
                 return
 
-            # ── OUTPUT GUARDS (steps 5-7) ──
+            # ── GENERAL QA OUTPUT GUARDS (steps 5-7) ──
 
             # 5. Scope classifier — block off-topic responses
             try:

@@ -24,6 +24,7 @@ with open(_PROMPTS_PATH, "rb") as _f:
 _SAFETY_PROMPTS = {
     "general_qa": _ALL_PROMPTS["safety_classifier"]["system"],
     "sender_edit": _ALL_PROMPTS["sender_edit_safety_classifier"]["system"],
+    "email_draft": _ALL_PROMPTS["email_draft_safety_classifier"]["system"],
 }
 
 
@@ -54,7 +55,7 @@ def check_safety(instruction: str, llm_output: str, classifier_key: str = "gener
 
     try:
         response = _client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5.4-mini-2026-03-17",
             temperature=0,
             max_tokens=50,
             messages=[

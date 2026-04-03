@@ -8,7 +8,7 @@
         ☐ evalation: Pairwise Comparison (Arena Style)
         ☐ llm as a judge
         ✘ PromptFoo (generate test cases) @cancelled(26-04-01 13:50)
-        ☐ DeepEval (evaluate)
+        ✘ DeepEval (evaluate) @cancelled(26-04-03 08:01)
         ☐ ask gemini and notebook lm for how to evaluate it 
         ☐ test 3 different things (general_qa, email draft, profileMD, Safety and Prompt Injection) 
         ✘ azure ai credits as free 20 usd given! @cancelled(26-04-01 13:01)
@@ -55,14 +55,13 @@
                 ☐ think of prompt generation techniques NLP
                 ☐ make thread text more important than sender text? 
                 ✘ profileMD idea, user "email" instead of name @cancelled(26-04-02 11:09)
-                ☐ few shot prompting (get 5 example responses from user, and pass it as context for system prompt)
-                ☐ use past email threads from the sender as CONTEXT to generate more correct tone of response
-                    ☐ if received past email from sender, use that as context + profileMD for that sender (can edit profileMD to change tone, etc...)
-                    ☐ think about profileMD and if received email before from sender, if not then use general email responses user sent to make generic profileMD or for context 
-                    ☐ if no email history with the sender, use THEIR email message THEY sent (find the tone AND RECIPROCATE THAT)
+                ✘ few shot prompting (get 5 example responses from user, and pass it as context for system prompt) @cancelled(26-04-02 23:06)
+                ✔ use past email threads from the sender as CONTEXT to generate more correct tone of response @done(26-04-02 23:06)
+                    ✔ if received past email from sender, use that as context + profileMD for that sender (can edit profileMD to change tone, etc...) @done(26-04-02 23:06)
+                    ✔ think about profileMD and if received email before from sender, if not then use general email responses user sent to make generic profileMD or for context @done(26-04-02 23:06)
+                    ✔ if no email history with the sender, use THEIR email message THEY sent (find the tone AND RECIPROCATE THAT) @done(26-04-02 23:06)
                     ✘ use past email ai drafts made that user like, as the FEW SHOT examples! (tailors to them) @cancelled(26-04-02 11:10)
                     ✘ after few times user uses it and makes modifications, will modify it to users taste @cancelled(26-04-01 12:53)
-
         ✘ _nice-to-have_: @cancelled(26-04-02 18:25)
             ✘ uses document vector db to generate email reply, (link general qa with email draft)? think about it @cancelled(26-04-01 12:53)
             ✘ implement a thumbs up thumbs down system (help modify and give reason why) @cancelled(26-03-31 19:33)
@@ -78,12 +77,13 @@
 
 
 ✔ MONDAY: @done(26-03-31 10:43)
-✔ -once user presses 'insert reply' in the option, will delete whatever is in the current reply body in outlook client (and then paste the one we generated). @done(26-03-31 15:02)
-✔ -also consider if have writing in the reply box in outlook client, pass that in as context when switch to email draft? (think about it) @done(26-03-31 15:02)
-✔ make email_draft text area bigger in taskpane (as right now really small) @done(26-03-31 10:43)
-✔ add corresponding ui coloour message boxes for each @done(26-03-31 10:43)
+    ✔ -once user presses 'insert reply' in the option, will delete whatever is in the current reply body in outlook client (and then paste the one we generated). @done(26-03-31 15:02)
+    ✔ -also consider if have writing in the reply box in outlook client, pass that in as context when switch to email draft? (think about it) @done(26-03-31 15:02)
+    ✔ make email_draft text area bigger in taskpane (as right now really small) @done(26-03-31 10:43)
+    ✔ add corresponding ui coloour message boxes for each @done(26-03-31 10:43)
 
-✔ TUESDAY: @done(26-04-02 13:17)
+
+    ✔ TUESDAY: @done(26-04-02 13:17)
 
 ✔ WEDNESDAY: @done(26-04-02 13:17)
     ✔ add option to past context (autofill) to refine draft as well! @done(26-04-01 17:01)
@@ -104,7 +104,7 @@
     ✔ make word movements when generating to show on cursor (not on top of page) SIMILIAR TO CLAUDE CODE @done(26-04-02 18:04)
     ✔ make sure if any errors in sender_edit mode, the current text is not deleted! (but shows error somewhere else)! @done(26-04-02 18:19)
         ✔ when user has filled thread_text and asks AI prompt to expand it @done(26-04-02 18:19)
-    ☐ add "help" icon in top left? For general help and guidance
+    ✔ add "help" icon in top left? For general help and guidance @done(26-04-02 23:05)
     ☐ _ai_prompts_security-privacy:
         ✔ general_qa mode: @done(26-04-02 12:43)
             ✔ [general_qa] @done(26-04-02 12:43)
@@ -123,25 +123,29 @@
             ✔ ?manual save  edge case --> have safety for this situation @done(26-04-02 18:04)
                 ✔ make sure have logging for this! @done(26-04-02 18:04)
 
-        ☐ email draft mode:
+        ✔ email draft mode: @done(26-04-03 08:13)
+            ✔ double check if have valid logs @done(26-04-03 08:13)
         think when press import, IT HAS TO BE READY! 
         USER CAN JUST MANUALLY WRITE MALICIOUS EMAIL CODE LOL (DONT NEED AI TO GENERATE LOL) think think think rocky
-            ☐ [generate_reply]
-            ☐ [refine_draft]
-            ☐ ?[safety_classifier for email draft?]
-    
+            ✔ [generate_reply] @done(26-04-03 08:13)
+            ✔ [refine_draft] @done(26-04-03 08:13)
+            ✔ ?[safety_classifier for email draft?] @done(26-04-03 08:13)
+    ✔ @done(26-04-03 08:13)
 
     ☐ evals on classifier! (as too strict, too hard) --> USE FEW SHOT EXAMPLES ON THE THINGS I WAS SUPRISED I GOT BLOCKED ON 
     ☐ why those values for thresholds? (test) 
-    ☐ what if have thread tone, and is opposite to sender profiles tone! Make sure thread tone takes precedence!
     ✔ still taking too long for sender_edit! (longer timeout on frontend?) @done(26-04-02 21:16)
     ✔ STILL TAKING TOO LONG FOR SENDER EDIT! WHY (compare to general_qa which is much faster)) @done(26-04-02 21:16)
     ✔ in sender_edit, make sure click a thread or sender for prompt text box to open @done(26-04-02 21:16)
-    ☐ final check on security and privatisation for prompts!
-    ☐ make red and green success and error messages in sender edit when press save, make last longer!
+    ✔ make red and green success and error messages in sender edit when press save, make last longer! @done(26-04-02 22:47)
 
 
 
 ☐ FRIDAY:
+    ☐ final check on security and privatisation for prompts!
+    ✔ what if have thread tone, and is opposite to sender profiles tone! Make sure thread tone takes precedence! @done(26-04-03 08:01)
+    ☐ use email draft response to: The system will extract relevant content from incoming emails, use this content to formulate prompts for the LLM, and generate suggested reply.
+    ☐ use heirarchy of models in chatgpt for different situations. 
 
-    ✔ fix timeout on frontend (sendeedit) @done(26-04-02 21:07)
+    ☐ eval stuff...
+        ☐ for classifier gpt-40-mini (test different prompts, few shot, single shot, cot) 
