@@ -61,10 +61,8 @@ def _render_prompt(prompt_key: str, variables: dict) -> tuple[str | None, str]:
 
 class LangChainService:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
-            api_key=os.getenv("OPENAI_API_KEY")
-        )
+        self.llm = ChatOpenAI(model="gpt-5.4-2026-03-05", temperature=0.7)
+        print(f"✓ LangChainService loaded: {self.llm.model_name}")
 
     def get_hello(self) -> str:
         response = self.llm.invoke([HumanMessage(content="Say hello in one sentence.")])
