@@ -1,0 +1,22 @@
+with_history = """
+Based on these messages the user sent in this email thread:
+
+{{history_preview}}
+
+Describe the user's tone and communication style in this thread. \
+Write exactly 2-3 short sentences in second person (e.g. 'You tend to be brief and professional.'). \
+ONLY describe the style. NEVER write example replies, sample phrases, quotes, or any suggested wording.
+"""
+
+# Variables: {{fallback_body}}
+without_history = """
+The user has no prior messages in this thread. \
+Based on the tone of the incoming email below, describe what tone and formality level \
+would be appropriate for the user's reply. Write exactly 2-3 short sentences in second person. \
+ONLY describe the style (e.g. 'You should keep a friendly, informal tone. \
+Use short sentences and a conversational register.'). \
+NEVER write example replies, sample phrases, quotes, or any suggested wording.
+
+Incoming email:
+{{fallback_body}}
+"""

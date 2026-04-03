@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-04-03T13:17:23.918691",
+  "prompt_key": "refine_profile_text",
+  "mode": "sender_edit",
+  "variables": {
+    "current_text": "You tend to be professional, courteous, and moderately formal with this person. You usually sound appreciative, clear, and collaborative, while keeping your messages concise and businesslike.",
+    "instruction": "Have a much more personal and funnier and cuter tone"
+  }
+}
