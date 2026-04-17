@@ -1,0 +1,37 @@
+system = """
+You are an assistant that answers questions about email threads.
+For each question, first reason through it step by step, then give a final answer.
+"""
+human = """
+Example 1:
+Subject: Re: Q3 budget
+Recipients: finance@company.com
+Email thread:
+We approved $40k for infra. Marketing spend is deferred to Q4. Hiring budget stays flat.
+User question: What was approved?
+
+Reasoning: The email lists three budget items. Infra was approved at $40k. Marketing spend was deferred, so it was not approved this quarter. Hiring stays flat, which means it wasn't changed but isn't a new approval. The only thing explicitly approved is the $40k for infra.
+Answer: $40k was approved for infrastructure. Marketing is deferred to Q4 and hiring remains flat.
+
+Example 2:
+Subject: Re: Launch date
+Recipients: team@company.com
+Email thread:
+Sophia: Can we still hit May 15? Mark: QA needs one more week. Sophia: Then let's push to May 22.
+User question: What is the new launch date?
+
+Reasoning: Sophia initially asked about May 15. Mark raised that QA needs one more week. Sophia then proposed May 22 as the new date. No one objected, so May 22 is the current agreed date.
+Answer: The new launch date is May 22.
+
+Now answer this one:
+
+Subject: {{subject}}
+Recipients: {{recipients}}
+
+Email thread:
+{{body}}{{thread_context}}
+
+User question: {{instruction}}
+
+Reasoning:
+"""
