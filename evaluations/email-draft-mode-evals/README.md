@@ -1,0 +1,1 @@
+Thread Context gets the sender tone and thread tone
