@@ -8,3 +8,11 @@ promptfoo eval
 ```
 
 Afterwards, you can view the results by running `promptfoo view`
+
+
+### how to generate synthetic test cases
+promptfoo generate dataset \
+  -c promptfooconfig.yaml \
+  -o tests.yaml \
+  --numPersonas 5 \
+  --numTestCasesPerPersona 10

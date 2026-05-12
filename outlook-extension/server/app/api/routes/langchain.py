@@ -152,7 +152,7 @@ def _anonymize_request(request: "EmailContextRequest", anon_scanner, graph_threa
         "subject": request.subject,
         "body": request.body,
         "instruction": request.instruction,
-        "thread_context": _snapshot_thread_context(graph_thread),
+        "thread_context": _snapshot_thread_context(graph_thread) + (getattr(request, "injected_context", None) or ""),
     }
 
     request.subject = anonymize_text(request.subject, anon_scanner)

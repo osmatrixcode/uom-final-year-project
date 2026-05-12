@@ -33,7 +33,7 @@ To address this, the project aims to develop a prototype application that integr
 
 4. Sideload the add-in manually in Outlook:
    - Follow [Microsoft's sideload guide](https://learn.microsoft.com/en-us/office/dev/add-ins/outlook/sideload-outlook-add-ins-for-testing?tabs=xmlmanifest#sideload-manually)
-   - Select the manifest from `client/`
+   - **Important:** Select the manifest from `client/dist/` (not `client/`). The source `manifest.xml` contains `__AZURE_CLIENT_ID__` placeholders that are substituted with the real UUID from `.env` during the build step.
 
 5. Test in Outlook:
    - Open an email and click **Reply**

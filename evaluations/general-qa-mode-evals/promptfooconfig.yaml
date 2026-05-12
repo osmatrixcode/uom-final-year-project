@@ -6,29 +6,23 @@ description: "General QA Evaluation"
 
 prompts:
   - file://prompts/ext-prompt.txt
+  - file://prompts/basic-prompt.txt
+  - file://prompts/few-shot-prompt.txt
+  - file://prompts/cot-prompt.txt
+
 
 providers:
   - "openai:gpt-5"
 
-tests:
-  # Test Case 1: summarisation
-  - vars:
-      subject: "Project Phoenix Sync"
-      recipients: "sarah@company.com, mark@company.com"
-      body: "Sarah: We need to move the deadline to Friday. Mark: That works for me."
-      thread_context: ""
-      instruction: "What was the final decision on the deadline?"
-    assert:
-      - type: icontains
-        value: "Friday"
+# Applied to every test case unless the case overrides it.
+# Useful because `promptfoo generate dataset` produces vars without assertions.
+defaultTest:
+  assert:
+    - type: llm-rubric
+      value: >-
+        The response is on-topic for the email thread and either (a) answers
+        the user's instruction directly using facts from the email/thread, or
+        (b) politely declines if the instruction is unrelated to email. It
+        does not fabricate details not present in the thread.
 
-  # Test Case: Complex thread context
-  - vars:
-      subject: "Re: Urgent: Server Down"
-      recipients: "dev-ops@company.com"
-      body: "The database is back up but running slow."
-      thread_context: "Earlier today the main server crashed due to a memory leak."
-      instruction: "Summarize the history of this issue."
-    assert:
-      - type: llm-rubric
-        value: "The response accurately mentions both the crash and the current slow status."
+tests: file://tests.yaml
