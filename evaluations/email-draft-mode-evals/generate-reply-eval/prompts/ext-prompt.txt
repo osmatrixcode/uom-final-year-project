@@ -35,9 +35,9 @@ human = """
 Subject: {{subject}}
 
 {{recipients}} wrote this email to the user:
----
+===
 {{body}}
----
+===
 {{thread_context}}
 
 The user ({{sender_name}}) wants to reply to {{recipients}}.

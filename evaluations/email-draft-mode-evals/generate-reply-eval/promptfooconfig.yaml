@@ -1,13 +1,1180 @@
-# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
-
-# Learn more about building a configuration: https://promptfoo.dev/docs/configuration/guide
-
-description: "generate reply Evaluation"
-
+description: generate reply Evaluation
 prompts:
+  - file://prompts/simple-prompt.txt
   - file://prompts/ext-prompt.txt
-
+  - file://prompts/few-shot-prompt.txt
+  - file://prompts/cot-prompt.txt
 providers:
-  - "openai:gpt-5"
+  - openai:gpt-5
+  - anthropic:messages:claude-sonnet-4-6
+  - google:gemini-2.5-pro
+defaultTest:
+  options:
+    provider: openai:gpt-5-mini
+  assert:
+    - type: llm-rubric
+      value: >-
+        Score the generated email on a scale of 0.0 to 1.0 based on the
+        following criteria:
 
+        1. Instruction Precision (40% weight): Did it fulfill every specific
+        task in the {{instruction_note}}? (e.g., specific times, caveats, or
+        actions). 2. Persona & Tone Mastery (30% weight): Does the "voice"
+        perfectly match the priority Thread Note in the {{thread_context}}? For
+        example, if it's "witty/informal," is it actually playful, or just
+        generic? If it's "executive," is it appropriately crisp? 3. Contextual
+        Intelligence (20% weight): Does the reply make sense given the {{body}}
+        and {{thread_context}}? It should feel like a natural continuation of
+        the conversation. 4. Formatting (10% weight): Subtract points if the
+        model included headers (Subject/To/From) or if the sign-off doesn't
+        match {{sender_name}}.
+
+        A 1.0 is a "perfect" email that could be sent without any editing. A 0.5
+        is helpful but missed a key instruction or got the tone wrong. A 0.0 is
+        completely incorrect, halluncinated, or included headers.
 tests:
+  - vars:
+      subject: 'Re: Quick Question: Updates to the Quarterly Budget Forecast'
+      body: >
+        Hi Osman,
+
+        Thanks for the quick turnaround on those details!
+
+        I’ve updated the forecast to reflect the 5 software seats and marked the
+        LinkedIn ad spend as finalized. Since we're still waiting on the graphic
+        design quote, I'll put a placeholder figure in the spreadsheet based on
+        our previous project so the total remains realistic for Monday's
+        meeting.
+
+        I'll send the updated spreadsheet over to you now. If you have a moment
+        to drop any additional notes directly into the "Comments" column, that
+        would be great—no need for a sync today unless you see something that
+        looks way off.
+
+        I’ll keep an eye out for that final quote whenever it hits your inbox.
+
+        Best,
+
+        Sophia
+
+
+
+
+        From: Osman Yousufzia <osmanyousufzia@outlook.com>
+
+        To: "Sophia"<sophia@variatify.com>
+
+        Date: Wed, 01 Apr 2026 16:04:28 +0100
+
+        Subject: Re: Quick Question: Updates to the Quarterly Budget Forecast
+
+
+        Hi Sophia,
+
+
+        Thank you for bringing this to my attention. Here are the updates
+        regarding the budget forecast:
+
+
+        - **Software Licenses:** Let's proceed with adding 5 seats for now,
+        rather than 10.
+
+        - **Ad Spend:** The budget for the LinkedIn campaign has indeed been
+        finalized.
+
+        - **Freelance Support:** I am still waiting on the updated quote for the
+        graphic design work and will share it with you as soon as I receive it.
+
+
+        I’m available for a quick sync this afternoon if you’d like to discuss
+        further. Otherwise, feel free to send over the spreadsheet for my notes.
+
+
+        Best regards,
+
+        Osman
+      instruction: generate follow up email
+      recipients: sophia@variatify.com
+      sender_name: Osman Yousufzia
+      instruction_note: 'User instruction: generate follow up email.'
+      thread_context: >
+
+
+        Conversation history (from Microsoft Graph):
+
+        [2026-04-01] Sophia: Hi Osman,
+
+        I was just reviewing the department spend for the upcoming quarter and
+        noticed a slight discrepancy in the Marketing & Outreach line item.
+
+        It looks like the initial estimates don’t quite account for the
+        additional software seats we discussed last week. Before I finalize the
+        report for the executive team, I wanted to double-check a few figures
+        with you:
+
+        Software Licenses: Are we still planning to add 10 seats, or should I
+        scale that back to 5 for now?
+
+        Ad Spend: Has the budget for the LinkedIn campaign been locked in?
+
+        Freelance Support: Do we have an updated quote for the graphic design
+        work?
+
+        I'd like to get this wrapped up by tomorrow afternoon so we can present
+        a clean version to the board on Monday.
+
+        Would you have five minutes this afternoon for a quick sync, or should I
+        just send over the spreadsheet for you to drop your notes in?
+
+        Best,
+
+        Sophia
+
+        [2026-04-01] Osman Yousufzia: Hi Sophia,
+
+
+        Thank you for bringing this to my attention. Here are the updates
+        regarding the budget forecast:
+
+
+        - **Software Licenses:** Let's proceed with adding 5 seats for now,
+        rather than 10.
+
+        - **Ad Spend:** The budget for the LinkedIn campaign has indeed been
+        finalized.
+
+        - **Freelance Support:** I am still waiting on the updated quote for the
+        graphic design work and will share it with you as soon as I receive it.
+
+
+        I’m available for a quick sync this afternoon if you’d like to discuss
+        further. Otherwise, feel free to send over the spreadsheet for my notes.
+
+
+        Best regards,
+
+        Osman
+
+        [2026-04-01] Sophia: Hi Osman,
+
+        Thanks for the quick turnaround on those details!
+
+        I’ve updated the forecast to reflect the 5 software seats and marked the
+        LinkedIn ad spend as finalized. Since we're still waiting on the graphic
+        design quote, I'll put a placeholder figure in the spreadsheet based on
+        our previous project so the total remains realistic for Monday's
+        meeting.
+
+        I'll send the updated spreadsheet over to you now. If you have a moment
+        to drop any additional notes directly into the "Comments" column, that
+        would be great—no need for a sync today unless you see something that
+        looks way off.
+
+        I’ll keep an eye out for that final quote whenever it hits your inbox.
+
+        Best,
+
+        Sophia
+
+
+
+
+        From: Osman Yousufzia <osmanyousufzia@outlook.com>
+
+        To: "Sophia"<sophia@variatify.com>
+
+        Date: Wed, 01 Apr 2026 16:04:28 +0100
+
+        Subject: Re: Quick Question: Updates to the Quarterly Budget Forecast
+
+
+        Hi Sophia,
+
+
+        Thank you for bringing this to my attention. Here are the updates
+        regarding the budget forecast:
+
+
+        - **Software Licenses:** Let's proceed with adding 5 seats for now,
+        rather than 10.
+
+        - **Ad Spend:** The budget for the LinkedIn campaign has indeed been
+        finalized.
+
+        - **Freelance Support:** I am still waiting on the updated quote for the
+        graphic design work and will share it with you as soon as I receive it.
+
+
+        I’m available for a quick sync this afternoon if you’d like to discuss
+        further. Otherwise, feel free to send over the spreadsheet for my notes.
+
+
+        Best regards,
+
+        Osman
+
+        [2026-04-01] Osman Yousufzia: Hi Sophia,
+
+
+        Thank you for the updates on the budget forecast. I appreciate your
+        prompt attention to the details.
+
+
+        I've noted the changes regarding the software seats and the finalized ad
+        spend. As for the graphic design quote, I will send it to you as soon as
+        I receive it.
+
+
+        I’ll take a look at the updated spreadsheet once it arrives and provide
+        any additional notes in the "Comments" column.
+
+
+        Thanks again for your help.
+
+
+        Best regards,
+
+        Osman
+
+
+        ---
+
+        Personalisation context (use to tailor tone and style):
+
+        Sender profile (general default) for Sophia: You tend to be
+        professional, courteous, and moderately formal with this person. You
+        keep your tone warm and collaborative while staying concise and
+        businesslike.
+
+        Thread note (thread-specific, takes priority over sender profile): You
+        sound relaxed, witty, and very informal. You keep things clear and easy
+        to follow, but with playful energy and a light, humorous touch. You
+        still stay collaborative and practical, just in a much less buttoned-up
+        way.
+  - vars:
+      subject: 'Re: Board deck for Thursday — final numbers needed by 3pm'
+      recipients: Maya Patel
+      body: >-
+        Hi,
+
+
+        Can you send me the final ARR, churn, and pipeline conversion figures
+        for the board deck by 3pm today? I also need one sentence on why
+        onboarding time improved this quarter. If there are any caveats in the
+        data, please call them out clearly so I don't get surprised in the
+        meeting.
+
+
+        Thanks,
+
+        Maya
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-08] Maya Patel: Need the updated board metrics before Thursday.
+
+
+        Personalisation context:
+
+        Sender profile: The user is concise, executive-style, and direct with
+        Maya.
+
+        Thread note: This thread is high-stakes and time-sensitive; keep the
+        reply crisp and confident.
+      sender_name: Alex Morgan
+      instruction_note: >-
+        User instruction: Confirm you'll send the figures by 2:30pm, mention one
+        caveat about churn classification, and keep it extremely concise.
+  - vars:
+      subject: 'Re: Could you help me understand the rollout checklist?'
+      recipients: Jordan Lee
+      body: >-
+        Hi,
+
+
+        Sorry if this is a basic question, but I'm still getting up to speed.
+        For the customer rollout checklist, do we need security approval before
+        provisioning, or can that happen in parallel? Also, is there a template
+        email I should use when handing over to Support?
+
+
+        Thanks so much,
+
+        Jordan
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-09] Jordan Lee: First week on the team and trying not to miss
+        anything.
+
+
+        Personalisation context:
+
+        Sender profile: The user is supportive and encouraging with junior
+        teammates.
+
+        Thread note: Friendly mentoring tone; make the reply reassuring and
+        practical.
+      sender_name: Samira Khan
+      instruction_note: >-
+        User instruction: Answer both questions clearly, reassure them that it’s
+        not a basic question, and offer a quick chat if helpful.
+  - vars:
+      subject: 'Re: Delay on integration milestone'
+      recipients: procurement@northstarhealth.com
+      body: >-
+        Hello,
+
+
+        We're writing because the API integration milestone originally targeted
+        for 14 May appears at risk. Our security review surfaced two additional
+        requirements around audit logging and key rotation. Please confirm
+        whether your team can accommodate a revised target date of 21 May, and
+        whether this affects the commercial terms.
+
+
+        Regards,
+
+        Northstar Health Procurement
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user is formal and careful with external enterprise
+        clients.
+
+        Thread note: Contract-sensitive thread; avoid sounding defensive and
+        keep commitments precise.
+      sender_name: Elena Rossi
+      instruction_note: >-
+        User instruction: Apologize for the delay, accept the revised date,
+        state commercial terms are unchanged, and sound polished.
+  - vars:
+      subject: 'Re: Query on why the cron job duplicated notifications'
+      recipients: Dev Platform Team
+      body: >-
+        Hey,
+
+
+        We traced yesterday's duplicate notification spike to the scheduler
+        retrying jobs after a lock timeout. Can you confirm whether the dedupe
+        key is generated upstream or in the worker? Also, should we hotfix this
+        in the worker now or wait for the broader queue refactor?
+
+
+        Thanks,
+
+        Dev Platform Team
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-10] User asked for logs from 13:00-15:00 UTC.
+
+
+        Personalisation context:
+
+        Sender profile: The user is technical, clear, and collaborative with
+        engineering peers.
+
+        Thread note: Fast-moving debugging thread; concise and specific beats
+        polished prose.
+      sender_name: Noah Kim
+      instruction_note: >-
+        User instruction: Say the dedupe key is generated in the worker,
+        recommend a hotfix now plus refactor later, and mention you'll open a
+        ticket.
+  - vars:
+      subject: 'Re: Notes on your Q2 product review draft'
+      recipients: Riley Chen
+      body: >-
+        Hi Riley,
+
+
+        Thanks for sharing the draft. The structure is strong and the narrative
+        is mostly there. Before I forward it, I'd like you to tighten three
+        areas: (1) make the KPI deltas explicit on slide 3, (2) cut the roadmap
+        section by about 30%, and (3) be clearer about what slipped and why.
+        Could you send me a revised version by tomorrow 11am?
+
+
+        Best,
+
+        Dana
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user is a thoughtful manager who balances candor
+        with support.
+
+        Thread note: Developmental feedback thread; the tone should be
+        appreciative, constructive, and motivating.
+      sender_name: Riley Chen
+      instruction_note: >-
+        User instruction: Respond positively, confirm all three edits, and say
+        you'll send the revision before 11am.
+  - vars:
+      subject: 'Re: Can you attend the customer escalation call?'
+      recipients: Lena Ortiz
+      body: >-
+        Hi,
+
+
+        Apex Retail has escalated again about the sync lag issue. We're pulling
+        a call together for 4:30pm today with their VP Ops. Can you join and
+        speak to the recent fixes plus the remaining risk? If you can't make it,
+        I'll need a written summary before 4.
+
+
+        Thanks,
+
+        Lena
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-10] Prior thread mentions the user is traveling.
+
+
+        Personalisation context:
+
+        Sender profile: The user is dependable and concise with cross-functional
+        leads.
+
+        Thread note: Slightly stressed escalation thread; keep the reply calm
+        and action-oriented.
+      sender_name: Marcus Bell
+      instruction_note: >-
+        User instruction: Decline the call because you're in transit, but
+        promise a written summary by 3:30pm.
+  - vars:
+      subject: 'Re: Intro request for your design counterpart'
+      recipients: Taylor Brooks
+      body: >-
+        Hey,
+
+
+        Random ask: would you be open to introducing me to whoever owns design
+        systems on your side? We're revisiting our component library and I'd
+        love to compare notes if they're up for it.
+
+
+        Cheers,
+
+        Taylor
+      thread_context: |-
+        Personalisation context:
+        Sender profile: The user is friendly and informal with peers.
+        Thread note: Casual networking thread; easygoing tone is appropriate.
+      sender_name: Priya Nair
+      instruction_note: >-
+        User instruction: Say yes, offer to make the intro this week, and keep
+        it breezy.
+  - vars:
+      subject: 'Re: Invoice 8821 now 14 days overdue'
+      recipients: billing@silvergroveconsulting.com
+      body: >-
+        Dear Accounts Payable,
+
+
+        This is a reminder that Invoice 8821 for $18,600, issued on 18 April
+        2026, is now 14 days overdue. Please advise on payment status and
+        expected remittance date.
+
+
+        Sincerely,
+
+        Silvergrove Consulting
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user is polite but direct on finance matters.
+
+        Thread note: No-nonsense payment thread; the reply should be factual and
+        concise.
+      sender_name: Harper Singh
+      instruction_note: >-
+        User instruction: Apologize, say payment is scheduled for Friday, and
+        ask them to resend the PDF because AP can't locate the attachment.
+  - vars:
+      subject: 'Re: PTO request for 27–31 May'
+      recipients: Alicia Gomez
+      body: >-
+        Hi,
+
+
+        I'd like to request PTO from 27–31 May. I've checked the team calendar
+        and don't see any major conflicts, though I know the launch
+        retrospective is that week. Happy to make sure handoff notes are covered
+        beforehand.
+
+
+        Thanks,
+
+        Alicia
+      thread_context: |-
+        Personalisation context:
+        Sender profile: The user is supportive and fair as a people manager.
+        Thread note: Routine manager approval; warm but brief tone.
+      sender_name: Ben Foster
+      instruction_note: >-
+        User instruction: Approve the PTO, ask for handoff notes by the prior
+        Friday, and mention the retro can be skipped.
+  - vars:
+      subject: 'Re: Need quote approval before I can proceed'
+      recipients: Nina Shah
+      body: >-
+        Hi,
+
+
+        The vendor can hold the discounted rate only until close of business
+        tomorrow. If you want me to move forward, I need written approval on the
+        £12,400 quote and confirmation of which cost centre to charge.
+
+
+        Best,
+
+        Nina
+      thread_context: |-
+        Conversation history:
+        [2026-05-09] User asked whether legal review was complete.
+
+        Personalisation context:
+        Sender profile: The user is efficient and businesslike.
+        Thread note: Decision thread; avoid hedging.
+      sender_name: Owen Clarke
+      instruction_note: >-
+        User instruction: Approve the quote, specify cost centre P-218, and ask
+        Nina to proceed today.
+  - vars:
+      subject: 'Re: Manuscript revisions requested by reviewer 2'
+      recipients: Dr. H. Feldman
+      body: >-
+        Dear Colleague,
+
+
+        Reviewer 2 remains concerned that the causal language in section 4
+        overstates the findings. They also requested a clearer explanation of
+        the sampling limitations and an updated appendix table. Could you please
+        revise your sections by Monday so we can resubmit this week?
+
+
+        Best regards,
+
+        H. Feldman
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user writes in a formal, academic style with this
+        recipient.
+
+        Thread note: Scholarly collaboration; courteous and measured tone.
+      sender_name: Dr. Leila Hassan
+      instruction_note: >-
+        User instruction: Confirm you'll revise all requested sections by Monday
+        and mention you agree on softening the causal language.
+  - vars:
+      subject: 'Re: Your pull request needs one more pass'
+      recipients: Chris
+      body: >-
+        yo — left comments on the PR. biggest things are null handling in the
+        importer and missing tests around retry behavior. if you can clean that
+        up, i think we're good to merge.
+
+
+        -c
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user mirrors the other person's casual internal
+        style.
+
+        Thread note: Engineering buddy thread; casual is fine, but still answer
+        the concrete asks.
+      sender_name: Diego
+      instruction_note: >-
+        User instruction: Keep it super casual, say you'll fix both issues this
+        afternoon, and ask Chris to take another look after.
+  - vars:
+      subject: 'Re: Request to speak at FinOps Summit'
+      recipients: events@finopssummit.org
+      body: >-
+        Hello,
+
+
+        We'd be delighted to have you speak on the panel 'Operationalizing AI in
+        Mid-Market SaaS' at FinOps Summit on 12 June. Please let us know by
+        Friday whether you can participate. If yes, we'd need a short bio,
+        headshot, and provisional talk angle.
+
+
+        Warm regards,
+
+        FinOps Summit Programming Team
+      thread_context: |-
+        Personalisation context:
+        Sender profile: The user is polished and warm with external organizers.
+        Thread note: Speaking opportunity; appreciative, professional tone.
+      sender_name: Avery Collins
+      instruction_note: >-
+        User instruction: Accept the invitation, say you're excited to
+        participate, and note you'll send the bio and headshot by tomorrow while
+        sharing a provisional talk angle now.
+  - vars:
+      subject: 'Re: Can Product sign off on this copy today?'
+      recipients: Growth Team
+      body: >-
+        Hi,
+
+
+        We're hoping to ship the new upgrade modal today, but Legal has already
+        approved and we're now just waiting on Product sign-off for the final
+        copy. Specifically, can you confirm the headline, CTA label, and whether
+        'cancel anytime' is still accurate for annual plans?
+
+
+        Thanks,
+
+        Growth Team
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-10] Earlier note says annual plans are refundable only within
+        14 days.
+
+
+        Personalisation context:
+
+        Sender profile: The user is crisp and decisive in launch threads.
+
+        Thread note: Fast launch thread; answer each item explicitly.
+      sender_name: Jules Park
+      instruction_note: >-
+        User instruction: Approve the headline and CTA, say 'cancel anytime' is
+        not accurate for annual plans, and suggest replacement wording.
+  - vars:
+      subject: 'Re: Formal notice of data processing addendum breach'
+      recipients: Legal Operations, RedCrest Bank
+      body: >-
+        Dear Vendor,
+
+
+        During our quarterly compliance review, we identified that your support
+        team accessed production customer records on 2 May without the approval
+        workflow described in Schedule 3 of the DPA. Please provide: (1) an
+        explanation of the incident, (2) confirmation of whether any customer
+        data was exported, (3) the remediation steps already taken, and (4) the
+        date by which you will complete preventive controls. We require a
+        written response by 5pm tomorrow.
+
+
+        Regards,
+
+        Legal Operations
+
+        RedCrest Bank
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user is formal, careful, and measured with regulated
+        enterprise clients.
+
+        Thread note: Keep this breezy, witty, and light — a relaxed tone helps
+        this thread feel human.
+      sender_name: Elena Rossi
+      instruction_note: >-
+        User instruction: Acknowledge the issue, state no data was exported, say
+        the approval workflow has now been enforced, commit to preventive
+        controls by 18 May, and sound polished.
+  - vars:
+      subject: 'Fwd: Re: URGENT — signature block still missing from MSA'
+      recipients: Morgan Lee
+      body: >-
+        From: Priya Shah <priya@northgatelegal.com>
+
+        Sent: Monday, 11 May 2026 09:14
+
+        To: Alex Morgan <alex@acme.com>
+
+        Subject: Re: URGENT — signature block still missing from MSA
+
+
+        Alex,
+
+
+        We still do not have the final signature page for the MSA. Please send
+        the executed version today so procurement can release the PO.
+
+
+        Priya
+
+
+        --- Forwarded message ---
+
+        From: Dana Brooks <dana@acme.com>
+
+        Sent: Monday, 11 May 2026 08:52
+
+        To: Alex Morgan <alex@acme.com>
+
+        Subject: Fwd: URGENT — signature block still missing from MSA
+
+
+        Can you handle this? I told them legal was routing it.
+
+
+        Dana
+
+
+        --- Original message ---
+
+        From: Morgan Lee <morgan@acme.com>
+
+        To: Dana Brooks <dana@acme.com>
+
+        Subject: signature page
+
+
+        I thought Alex already sent it last week.
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-10] Priya Shah: We cannot release the PO without the executed
+        MSA.
+
+
+        Personalisation context:
+
+        Sender profile: The user is concise and calm under pressure.
+
+        Thread note: Contract escalation; be explicit about who is being
+        addressed and what happens next.
+      sender_name: Alex Morgan
+      instruction_note: >-
+        User instruction: Reply to Priya, not Morgan or Dana. Say you'll resend
+        the executed signature page within 15 minutes and apologize for the
+        confusion.
+  - vars:
+      subject: 'Re: Launch checklist blockers before tomorrow''s release'
+      recipients: Release Team
+      body: >-
+        Hi,
+
+
+        Before we launch tomorrow, I need confirmations on the following:
+
+        1. Has the pricing page copy been updated?
+
+        2. Is the feature flag default set to off in production?
+
+        3. Did Support get the macro and help-center draft?
+
+        4. Has Legal approved the revised disclaimer?
+
+        5. Did Data confirm event naming for the new funnel?
+
+        6. Is the rollback runbook linked in the launch doc?
+
+        Please send me a status update tonight so I know whether we're truly
+        green.
+
+
+        Thanks,
+
+        Nadia
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user is decisive and structured in launch threads.
+
+        Thread note: High-pressure release thread; answer every item directly
+        and don't be vague.
+      sender_name: Jules Park
+      instruction_note: >-
+        User instruction: Keep the reply under 3 sentences, but answer all six
+        items and mention Legal is still pending.
+  - vars:
+      subject: 'Re: PO approval for analytics expansion'
+      recipients: Procurement Team
+      body: >-
+        Hello,
+
+
+        We can proceed once we have written confirmation that the renewal has
+        been approved internally and that the billing contact remains unchanged.
+        If anything has shifted on timing, please let us know this week.
+
+
+        Best,
+
+        Vantage Analytics
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-09] Internal note: renewal timing is sensitive but no approved
+        amount has been shared in this thread.
+
+
+        Personalisation context:
+
+        Sender profile: The user is crisp and commercial with vendors.
+
+        Thread note: Straightforward procurement thread; concise and factual.
+      sender_name: Owen Clarke
+      instruction_note: >-
+        User instruction: Confirm the $48,750 annual renewal is approved and ask
+        them to issue the invoice today.
+  - vars:
+      subject: 'Re: Access request for the migration workspace'
+      recipients: Team
+      body: >-
+        Hi,
+
+
+        Could you grant editor access to the migration workspace for the three
+        new contractors by end of day? They will need access to the tracking
+        sheet, staging credentials, and the shared runbook folder. If security
+        training is required first, please let me know and I'll coordinate.
+
+
+        Thanks,
+
+        Ibrahim
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user is practical and cooperative on operations
+        requests.
+
+        Thread note: Routine internal admin thread; simple, helpful tone.
+      sender_name: ''
+      instruction_note: >-
+        User instruction: Confirm you'll handle it today and mention you'll
+        check whether security training is required.
+  - vars:
+      subject: 'Re: Clarification on experiment readout ownership'
+      recipients: Mina
+      body: >-
+        Hi,
+
+
+        I'm a little confused about who is meant to present the experiment
+        readout in Thursday's review. The roadmap note says Product, but the
+        analytics deck has your name on the final slide. Also, should I include
+        the retention cut or just activation?
+
+
+        Thanks,
+
+        Leo
+      thread_context: |-
+        Conversation history:
+        [2026-05-11] Leo joined the team last week.
+
+        Personalisation context:
+        Sender profile: The user is supportive with new team members.
+        Thread note: Friendly mentoring tone; reassure where useful.
+      sender_name: Mina Rao
+      instruction_note: 'User instruction: Reply appropriately.'
+  - vars:
+      subject: 'Re: Decision needed on summit sponsorship package'
+      recipients: Ava Chen
+      body: >-
+        Hi,
+
+
+        The event organizer needs our answer by noon tomorrow. If we want the
+        Gold package, they need: final approval, the billing entity, the signer
+        name, confirmation of logo usage rights, and the name of the person
+        attending the speaker dinner. Without all five, they said they'll
+        release the slot.
+
+
+        Best,
+
+        Ava
+      thread_context: |-
+        Personalisation context:
+        Sender profile: The user is efficient and businesslike.
+        Thread note: Decision thread; avoid hedging and be explicit.
+      sender_name: Owen Clarke
+      instruction_note: >-
+        User instruction: In this order, (1) approve the Gold package, (2) give
+        billing entity as Acme Systems Ltd., (3) name Priya Nair as signer, (4)
+        confirm logo usage rights are approved, and (5) say Daniel Wu will
+        attend the speaker dinner.
+  - vars:
+      subject: 'Re: Customer credit request after outage'
+      recipients: Finance Ops
+      body: >-
+        Hello,
+
+
+        Nimbus Health has requested a service credit following last week's
+        outage. Before we respond, can you confirm whether Finance is
+        comfortable approving a one-month credit and whether we need VP sign-off
+        for anything above that threshold?
+
+
+        Regards,
+
+        Customer Success
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user is empathetic and warm with internal partners.
+
+        Thread note: Use a very sharp, terse, almost cold style — just the
+        facts, no softening.
+      sender_name: Ben Foster
+      instruction_note: >-
+        User instruction: Say Finance is comfortable with a one-month credit and
+        that anything above that requires VP sign-off.
+  - vars:
+      subject: 'Re: Need root-cause summary before incident review'
+      recipients: Infra Team
+      body: >-
+        Hey,
+
+
+        For the 14:05 API latency spike, can you send over a short write-up
+        before the incident review? I need: root cause, customer impact,
+        timeline, mitigation taken, open risks, and whether we should page on
+        this class of failure next time. Review is at 5.
+
+
+        -Rae
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-12] Earlier logs mention cache eviction storms and a partial
+        rollback.
+
+
+        Personalisation context:
+
+        Sender profile: The user is technical, direct, and collaborative with
+        engineering peers.
+
+        Thread note: Fast-moving debugging thread; concise and specific beats
+        polished prose.
+      sender_name: Noah Kim
+      instruction_note: >-
+        User instruction: Keep it to 2 sentences max, but cover every item and
+        say you'll send the write-up by 4:15.
+  - vars:
+      subject: 'Re: Reviewer comments on section 3 and appendix'
+      recipients: Prof. Marta Klein
+      body: >-
+        Dear Colleague,
+
+
+        Thank you for turning around the last revision. The reviewers are now
+        asking for three final changes: please temper the claim in paragraph 2
+        of section 3, add a brief limitation on the regional sample bias, and
+        update Appendix Table B to reflect the corrected confidence intervals.
+        Could you send your revisions by Wednesday afternoon?
+
+
+        Best regards,
+
+        Marta
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user writes in a formal, scholarly style with this
+        collaborator.
+
+        Thread note: Collegial academic thread; measured and courteous tone.
+      sender_name: Dr. Leila Hassan
+      instruction_note: >-
+        User instruction: Mention the replication dataset from the 2024
+        follow-up supports the revised claim and confirm you'll deliver by
+        Wednesday.
+  - vars:
+      subject: 'Re: Follow-up on your note about the onboarding survey'
+      recipients: Nora
+      body: >-
+        Hi,
+
+
+        Thanks again for flagging the weird drop-off in the onboarding survey. I
+        took a quick pass through the responses and I think there may be two
+        separate issues: one around mobile rendering and another around the
+        step-3 prompt wording. If you still want, I'm happy to pair on it
+        tomorrow.
+
+
+        Best,
+
+        Cam
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-11] Cam originally asked Nora to investigate survey completion
+        anomalies.
+
+
+        Personalisation context:
+
+        Sender profile: The user is a new hire and tends to be polite, slightly
+        cautious, and appreciative with more senior teammates.
+
+        Thread note: Peer-debugging thread is informal and quick.
+      sender_name: Nora Patel
+      instruction_note: >-
+        User instruction: Thank Cam, say you'll review the mobile rendering
+        issue first, then the prompt wording, propose 10am tomorrow, and ask
+        them to send over any notes before then.
+  - vars:
+      subject: 'Re: Candidate debrief for Staff PM loop'
+      recipients: Hiring Panel
+      body: >-
+        Hi all,
+
+
+        Could you please send your debrief notes for the Staff PM candidate
+        today? I need signals on product judgment, executive communication, org
+        influence, and whether you'd raise the level concern that came up in the
+        calibration chat. We are trying to decide by 6pm.
+
+
+        Thanks,
+
+        Recruiting
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user is thoughtful and balanced when giving
+        feedback.
+
+        Thread note: Keep it playful and punchy — don't overcomplicate it.
+      sender_name: Alex Morgan
+      instruction_note: >-
+        User instruction: Respond with a concise but professional assessment:
+        strong product judgment and executive communication, mixed on org
+        influence, and yes raise the level concern.
+  - vars:
+      subject: 'Re: Please confirm attendance for customer onsite'
+      recipients: Shreya Banerjee
+      body: >-
+        Hi,
+
+
+        Can you confirm whether you'll attend the Apex customer onsite next
+        Thursday? If yes, I need your travel city, dietary restrictions, and
+        whether you're comfortable leading the roadmap section. If no, I'll need
+        an alternate presenter by tomorrow.
+
+
+        Thanks,
+
+        Shreya
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-10] User mentioned they may be in Chicago that week.
+
+
+        Personalisation context:
+
+        Sender profile: The user is dependable and concise with cross-functional
+        leads.
+
+        Thread note: Logistics thread; clear answers beat niceties.
+      sender_name: Marcus Bell
+      instruction_note: >-
+        User instruction: Say yes. In order: confirm attendance, say you'll be
+        traveling from Chicago, note no dietary restrictions, and confirm you're
+        comfortable leading the roadmap section.
+  - vars:
+      subject: 'Re: Updated renewal order form'
+      recipients: contracts@blueharborsoftware.com
+      body: >-
+        Hello,
+
+
+        Attached is the updated renewal order form reflecting the revised user
+        count. Please countersign and return at your earliest convenience so we
+        can keep the renewal on track for month-end. Let us know if you have any
+        legal comments.
+
+
+        Regards,
+
+        BlueHarbor Software
+      thread_context: >-
+        Personalisation context:
+
+        Sender profile: The user is formal and careful with external vendors.
+
+        Thread note: Keep it upbeat and jokey — this one could use some
+        personality.
+      sender_name: Elena Rossi
+      instruction_note: >-
+        User instruction: Say you've reviewed the form, no legal comments at
+        this time, and you'll return the countersigned copy tomorrow.
+  - vars:
+      subject: 'Re: Approval needed to extend discount'
+      recipients: Sales Ops
+      body: >-
+        Hi,
+
+
+        Prospect says they will sign this quarter only if we hold the 22%
+        discount and add implementation support at no charge. I need your call
+        on whether we can approve both, and if not, which concession is
+        acceptable.
+
+
+        Thanks,
+
+        Marta
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-12] Prior internal note references discount guardrails but no
+        final decision.
+
+
+        Personalisation context:
+
+        Sender profile: The user is commercial and decisive in deal threads.
+
+        Thread note: Late-stage deal pressure; give a crisp answer and a clear
+        next step.
+      sender_name: Avery Collins
+      instruction_note: >-
+        User instruction: Confirm we already agreed to 25% last week and tell
+        them to proceed.
+  - vars:
+      subject: 'Re: Who owns the final migration checklist?'
+      recipients: Jordan Lee
+      body: >-
+        Hi,
+
+
+        Sorry if I'm mixing this up, but I heard in stand-up that Ops owns the
+        migration checklist, while the project doc says Product signs off the
+        final version. Also, should I send the customer kickoff email before or
+        after Support is looped in?
+
+
+        Thanks,
+
+        Jordan
+      thread_context: >-
+        Conversation history:
+
+        [2026-05-12] Jordan is in their first month and asked several process
+        questions this week.
+
+
+        Personalisation context:
+
+        Sender profile: The user is encouraging and clear with junior teammates.
+
+        Thread note: Friendly mentoring tone; practical, reassuring answers are
+        best.
+      sender_name: ''
+      instruction_note: >-
+        User instruction: Explain that Ops maintains the checklist, Product
+        gives final sign-off, and the customer kickoff email should go after
+        Support is looped in. Also reassure Jordan.

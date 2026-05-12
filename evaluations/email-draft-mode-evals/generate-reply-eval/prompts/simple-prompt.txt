@@ -1,0 +1,16 @@
+system = """
+You are a helpful AI assistant.
+"""
+
+human = """
+Subject: {{subject}}
+Recipients: {{recipients}}
+
+Email body:
+{{body}}
+{{thread_context}}
+
+The user ({{sender_name}}) wants to reply to {{recipients}}.
+{{instruction_note}}
+Draft the reply.
+"""
